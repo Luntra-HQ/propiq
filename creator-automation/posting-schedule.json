@@ -1,0 +1,73 @@
+{
+  "posts": [
+    {
+      "id": "linkedin-1",
+      "platform": "linkedin",
+      "title": "LinkedIn Post #1 - The 1% Rule is Dead",
+      "file": "../vibe-marketing/PROPIQ-READY-TO-POST.md",
+      "section": "📱 LINKEDIN POST #1",
+      "optimal_time": "Tuesday-Thursday 7:00-9:00 AM",
+      "cron": "0 7 * * 2",
+      "status": "pending",
+      "notes": "Best performing time for LinkedIn. First post to establish authority."
+    },
+    {
+      "id": "twitter-thread-1",
+      "platform": "twitter",
+      "title": "Twitter Thread #1 - Property Analysis in 30 Seconds",
+      "file": "../vibe-marketing/PROPIQ-READY-TO-POST.md",
+      "section": "🐦 TWITTER/X THREAD #1",
+      "optimal_time": "Tuesday-Thursday 8:00-10:00 PM ET",
+      "cron": "0 20 * * 2",
+      "status": "pending",
+      "notes": "Evening engagement on Twitter. Post same day as LinkedIn #1."
+    },
+    {
+      "id": "linkedin-2",
+      "platform": "linkedin",
+      "title": "LinkedIn Post #2 - What Separates Great Deals",
+      "file": "../vibe-marketing/PROPIQ-READY-TO-POST.md",
+      "section": "📱 LINKEDIN POST #2",
+      "optimal_time": "Thursday-Friday 7:00-9:00 AM",
+      "cron": "0 7 * * 4",
+      "status": "pending",
+      "notes": "Post 2-3 days after Post #1. Data-driven content."
+    },
+    {
+      "id": "linkedin-3",
+      "platform": "linkedin",
+      "title": "LinkedIn Post #3 - Founder Story",
+      "file": "../vibe-marketing/PROPIQ-READY-TO-POST.md",
+      "section": "📱 LINKEDIN POST #3",
+      "optimal_time": "Tuesday 7:00-9:00 AM (Week 2)",
+      "cron": "0 7 * * 2",
+      "status": "pending",
+      "notes": "Personal story builds connection. Wait until Week 2."
+    },
+    {
+      "id": "linkedin-4",
+      "platform": "linkedin",
+      "title": "LinkedIn Post #4 - Product Showcase",
+      "file": "../vibe-marketing/PROPIQ-READY-TO-POST.md",
+      "section": "📱 LINKEDIN POST #4",
+      "optimal_time": "Thursday 7:00-9:00 AM (Week 3)",
+      "cron": "0 7 * * 4",
+      "status": "pending",
+      "notes": "Product features after trust is built. Week 3."
+    }
+  ],
+  "slack_webhook_url": "https://hooks.slack.com/services/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",
+  "timezone": "America/New_York",
+  "advance_notice_hours": 1,
+  "research_folders": [
+    "../vibe-marketing/",
+    "../PROPIQ_KEYWORD_STRATEGY_2025.md",
+    "../PROPIQ_SOCIAL_MEDIA_IMAGES.md"
+  ],
+  "settings": {
+    "enable_reminders": true,
+    "auto_mark_completed": false,
+    "include_research_context": true,
+    "notification_format": "rich"
+  }
+}

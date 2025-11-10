@@ -1,0 +1,275 @@
+{
+  "name": "PropIQ Daily Intelligence Dashboard",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      },
+      "name": "Schedule Trigger (9 AM Daily)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300],
+      "id": "schedule-trigger"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.stripe.com/v1/charges",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "stripeApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "created[gte]",
+              "value": "={{ Math.floor(new Date(new Date().setDate(new Date().getDate() - 1)).getTime() / 1000) }}"
+            },
+            {
+              "name": "created[lte]",
+              "value": "={{ Math.floor(new Date().getTime() / 1000) }}"
+            },
+            {
+              "name": "limit",
+              "value": "100"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Fetch Stripe Revenue Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 200],
+      "id": "stripe-data"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "users",
+        "query": "={{ JSON.stringify([\n  {\n    $match: {\n      created_at: {\n        $gte: new Date(new Date().setDate(new Date().getDate() - 1))\n      }\n    }\n  },\n  {\n    $count: 'new_users'\n  }\n]) }}"
+      },
+      "name": "Query MongoDB - New Users",
+      "type": "n8n-nodes-base.mongodb",
+      "typeVersion": 1,
+      "position": [450, 350],
+      "credentials": {
+        "mongoDb": {
+          "id": "mongodb-credentials",
+          "name": "PropIQ MongoDB"
+        }
+      },
+      "id": "mongodb-users"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "property_analyses",
+        "query": "={{ JSON.stringify([\n  {\n    $match: {\n      created_at: {\n        $gte: new Date(new Date().setDate(new Date().getDate() - 1))\n      }\n    }\n  },\n  {\n    $count: 'analyses_count'\n  }\n]) }}"
+      },
+      "name": "Query MongoDB - Property Analyses",
+      "type": "n8n-nodes-base.mongodb",
+      "typeVersion": 1,
+      "position": [450, 500],
+      "credentials": {
+        "mongoDb": {
+          "id": "mongodb-credentials",
+          "name": "PropIQ MongoDB"
+        }
+      },
+      "id": "mongodb-analyses"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.wandb.ai/api/v1/runs/{{ $env.WANDB_PROJECT }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wandbApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.WANDB_API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Fetch W&B AI Metrics",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 650],
+      "id": "wandb-data"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "data-merge",
+              "name": "combined_data",
+              "type": "object",
+              "value": "={{ {\n  stripe: $('Fetch Stripe Revenue Data').all(),\n  users: $('Query MongoDB - New Users').all(),\n  analyses: $('Query MongoDB - Property Analyses').all(),\n  wandb: $('Fetch W&B AI Metrics').all(),\n  date: new Date().toISOString().split('T')[0]\n} }}"
+            }
+          ]
+        }
+      },
+      "name": "Combine All Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [650, 400],
+      "id": "combine-data"
+    },
+    {
+      "parameters": {
+        "model": "claude-3-5-sonnet-20241022",
+        "options": {
+          "temperature": 0.3,
+          "maxTokens": 2048
+        },
+        "prompt": "={{ `You are a business intelligence analyst for PropIQ, an AI-powered real estate investment analysis platform.\n\nYour task is to generate a comprehensive daily health report by analyzing the following data from the last 24 hours:\n\nSTRIPE REVENUE DATA:\n${JSON.stringify($json.combined_data.stripe, null, 2)}\n\nNEW USERS:\n${JSON.stringify($json.combined_data.users, null, 2)}\n\nPROPERTY ANALYSES:\n${JSON.stringify($json.combined_data.analyses, null, 2)}\n\nAI METRICS (W&B):\n${JSON.stringify($json.combined_data.wandb, null, 2)}\n\n---\n\nGenerate a Slack-formatted report with these sections:\n\n📊 *PropIQ Daily Health Report - ${$json.combined_data.date}*\n\n💰 *REVENUE (Last 24h)*\n- New customers: X ($XXX MRR)\n- Total MRR: $X,XXX (+X% vs yesterday)\n- Churn: X customers ($XX)\n- Trial → Paid conversions: X (X% rate)\n\n👥 *USER ACTIVITY*\n- New signups: XX\n- Active users (last 24h): XX\n- Property analyses run: XX\n- Avg analyses per user: X.X\n\n🤖 *AI PERFORMANCE*\n- Total OpenAI API calls: XXX\n- Avg response time: X.Xs\n- Token usage: XXX,XXX tokens\n- Estimated cost: $XX.XX\n- Success rate: XX%\n\n📈 *WEBSITE METRICS*\n- Unique visitors: X,XXX (estimate from user signups)\n- New vs returning: XX% / XX%\n\n🎯 *KEY INSIGHTS* (AI-generated)\n- Analyze trends vs yesterday/last week\n- Flag concerning metrics (red flags 🔴)\n- Highlight wins (green flags 🟢)\n- Note interesting patterns (yellow flags 🟡)\n- Suggest 1-2 action items\n\nTONE: Professional but encouraging. Celebrate wins, flag issues constructively.\n\nIMPORTANT: If any data is missing or empty, note it but don't let it stop the report. Make reasonable estimates where needed and mark them as [estimate].` }}"
+      },
+      "name": "Generate Report with Claude",
+      "type": "n8n-nodes-base.ai",
+      "typeVersion": 1,
+      "position": [850, 400],
+      "credentials": {
+        "anthropicApi": {
+          "id": "claude-api",
+          "name": "Claude API"
+        }
+      },
+      "id": "claude-report"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SLACK_WEBHOOK_URL }}",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text",
+              "value": "={{ $json.output }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Send to Slack",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1050, 400],
+      "id": "slack-send"
+    }
+  ],
+  "connections": {
+    "Schedule Trigger (9 AM Daily)": {
+      "main": [
+        [
+          {
+            "node": "Fetch Stripe Revenue Data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Query MongoDB - New Users",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Query MongoDB - Property Analyses",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch W&B AI Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Stripe Revenue Data": {
+      "main": [
+        [
+          {
+            "node": "Combine All Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query MongoDB - New Users": {
+      "main": [
+        [
+          {
+            "node": "Combine All Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query MongoDB - Property Analyses": {
+      "main": [
+        [
+          {
+            "node": "Combine All Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch W&B AI Metrics": {
+      "main": [
+        [
+          {
+            "node": "Combine All Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine All Data": {
+      "main": [
+        [
+          {
+            "node": "Generate Report with Claude",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Report with Claude": {
+      "main": [
+        [
+          {
+            "node": "Send to Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2025-10-31T00:00:00.000Z",
+  "versionId": "1"
+}

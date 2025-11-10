@@ -1,0 +1,10 @@
+# Netlify Init Configuration
+# Use these values when prompted:
+
+Team: bdusape's team
+Site name: propiq (or propiq-frontend)
+Build command: npm run build
+Directory to deploy: dist
+GitHub repo: Luntra-HQ/luntra
+Branch: main
+Base directory: propiq/frontend

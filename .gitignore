@@ -1,0 +1,328 @@
+# ============================================================================
+# DealIQ .gitignore - Comprehensive Security & Build Exclusions
+# ============================================================================
+
+# ============================================================================
+# 🔐 SECURITY - NEVER COMMIT THESE
+# ============================================================================
+
+# Environment variables (ALL variations)
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.*.local
+**/.env
+**/.env.local
+**/.env.development
+**/.env.test
+**/.env.production
+
+# Secrets and credentials
+secrets/
+credentials/
+*.key
+*.pem
+*.p12
+*.pfx
+service-account*.json
+firebase-adminsdk*.json
+
+# API keys and tokens
+*api_key*
+*secret_key*
+*access_token*
+*.credentials
+
+# ============================================================================
+# 🐍 PYTHON
+# ============================================================================
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+.pyenv
+pipenv/
+poetry.lock
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Testing
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# ============================================================================
+# 📦 NODE / JAVASCRIPT / TYPESCRIPT
+# ============================================================================
+
+# Dependencies
+node_modules/
+jspm_packages/
+bower_components/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build outputs
+dist/
+dist-ssr/
+build/
+.next/
+out/
+.nuxt/
+.cache/
+.parcel-cache/
+
+# Testing
+coverage/
+*.lcov
+.nyc_output
+
+# TypeScript
+*.tsbuildinfo
+
+# ESLint
+.eslintcache
+
+# ============================================================================
+# 🗄️ DATABASE & LOGS
+# ============================================================================
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.log
+logs/
+*.log.*
+
+# MongoDB
+mongodb_data/
+dump/
+
+# ============================================================================
+# ☁️ CLOUD & DEPLOYMENT
+# ============================================================================
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+
+# Azure
+.azure/
+*.azurePubxml
+
+# AWS
+.aws/
+.elasticbeanstalk/
+
+# Google Cloud
+.gcloud/
+
+# ============================================================================
+# 🔧 IDE & EDITOR
+# ============================================================================
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# JetBrains (PyCharm, WebStorm, IntelliJ)
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ============================================================================
+# 🍎 macOS
+# ============================================================================
+
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# ============================================================================
+# 🪟 WINDOWS
+# ============================================================================
+
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# ============================================================================
+# 🐧 LINUX
+# ============================================================================
+
+*~
+.directory
+.Trash-*
+
+# ============================================================================
+# 📊 ANALYTICS & MONITORING
+# ============================================================================
+
+# Weights & Biases
+wandb/
+*.wandb
+
+# Sentry
+.sentryclirc
+
+# ============================================================================
+# 🧪 TESTING & QA
+# ============================================================================
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Screenshots and recordings
+screenshots/
+recordings/
+*.har
+
+# ============================================================================
+# 🗂️ PROJECT-SPECIFIC
+# ============================================================================
+
+# DealIQ specific
+dealiq/backend/wandb/
+dealiq/frontend/dist/
+dealiq/frontend/.vite/
+dealiq-static/
+
+# Old experiments and archives
+experiments/
+archive/
+OUTREACH*/
+luntra-*-backup/
+*-old/
+*-backup/
+*.zip
+*.tar.gz
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+
+# ============================================================================
+# ✅ EXPLICITLY ALLOW THESE (despite patterns above)
+# ============================================================================
+
+# Template files (these are safe to commit)
+!.env.template
+!.env.example
+!backend/.env.template
+
+# Documentation
+!README.md
+!CLAUDE.md
+!*.md
+
+# Configuration templates
+!*template.json
+!*example.json
+
+# ============================================================================
+# 📝 NOTES
+# ============================================================================
+#
+# This .gitignore protects:
+# ✅ Production secrets (.env files)
+# ✅ API keys and credentials
+# ✅ Virtual environments (Python/Node)
+# ✅ Build artifacts and caches
+# ✅ IDE configuration files
+# ✅ OS-specific files (.DS_Store, etc.)
+# ✅ Test artifacts and logs
+#
+# Always verify before committing:
+# 1. Run: git status
+# 2. Check: No .env files, no API keys, no credentials
+# 3. Only commit: Code, templates, and documentation
+#
+# To check if a file is ignored:
+#   git check-ignore -v <filename>
+#
+# ============================================================================

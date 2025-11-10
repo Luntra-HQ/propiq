@@ -1,0 +1,169 @@
+{
+  "total_tests": 5,
+  "passed": 3,
+  "failed": 2,
+  "results": [
+    {
+      "test": "Login with simple password",
+      "success": false,
+      "status_code": 422,
+      "expected_status": 200,
+      "response": {
+        "detail": [
+          {
+            "type": "value_error",
+            "loc": [
+              "body",
+              "email"
+            ],
+            "msg": "value is not a valid email address: The part after the @-sign is a special-use or reserved name that cannot be used with email.",
+            "input": "will.weekend@simulated.propiq.test",
+            "ctx": {
+              "reason": "The part after the @-sign is a special-use or reserved name that cannot be used with email."
+            }
+          }
+        ]
+      },
+      "headers": {
+        "Date": "Wed, 22 Oct 2025 20:24:57 GMT",
+        "Content-Type": "application/json",
+        "Transfer-Encoding": "chunked",
+        "Connection": "keep-alive",
+        "rndr-id": "5990b7e0-a506-492c",
+        "vary": "Accept-Encoding",
+        "x-render-origin-server": "uvicorn",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "992bb89e9cfc7a38-EWR",
+        "alt-svc": "h3=\":443\"; ma=86400"
+      }
+    },
+    {
+      "test": "Login with exclamation mark",
+      "success": false,
+      "status_code": 422,
+      "expected_status": 200,
+      "response": {
+        "detail": [
+          {
+            "type": "value_error",
+            "loc": [
+              "body",
+              "email"
+            ],
+            "msg": "value is not a valid email address: The part after the @-sign is a special-use or reserved name that cannot be used with email.",
+            "input": "will.weekend@simulated.propiq.test",
+            "ctx": {
+              "reason": "The part after the @-sign is a special-use or reserved name that cannot be used with email."
+            }
+          }
+        ]
+      },
+      "headers": {
+        "Date": "Wed, 22 Oct 2025 20:24:58 GMT",
+        "Content-Type": "application/json",
+        "Transfer-Encoding": "chunked",
+        "Connection": "keep-alive",
+        "rndr-id": "5e347dbf-6266-4324",
+        "vary": "Accept-Encoding",
+        "x-render-origin-server": "uvicorn",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "992bb8a17da3643e-EWR",
+        "alt-svc": "h3=\":443\"; ma=86400"
+      }
+    },
+    {
+      "test": "Verify user exists in database",
+      "success": true,
+      "status_code": 401,
+      "expected_status": 401,
+      "response": {
+        "detail": "Invalid email or password"
+      },
+      "headers": {
+        "Date": "Wed, 22 Oct 2025 20:24:59 GMT",
+        "Content-Type": "application/json",
+        "Transfer-Encoding": "chunked",
+        "Connection": "keep-alive",
+        "rndr-id": "2de36753-f667-419b",
+        "vary": "Accept-Encoding",
+        "x-render-origin-server": "uvicorn",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "992bb8a52a33624e-EWR",
+        "alt-svc": "h3=\":443\"; ma=86400"
+      }
+    },
+    {
+      "test": "Login with empty password",
+      "success": true,
+      "status_code": 422,
+      "expected_status": 422,
+      "response": {
+        "detail": [
+          {
+            "type": "value_error",
+            "loc": [
+              "body",
+              "email"
+            ],
+            "msg": "value is not a valid email address: The part after the @-sign is a special-use or reserved name that cannot be used with email.",
+            "input": "will.weekend@simulated.propiq.test",
+            "ctx": {
+              "reason": "The part after the @-sign is a special-use or reserved name that cannot be used with email."
+            }
+          }
+        ]
+      },
+      "headers": {
+        "Date": "Wed, 22 Oct 2025 20:25:00 GMT",
+        "Content-Type": "application/json",
+        "Transfer-Encoding": "chunked",
+        "Connection": "keep-alive",
+        "rndr-id": "88d98463-a0ac-46a4",
+        "vary": "Accept-Encoding",
+        "x-render-origin-server": "uvicorn",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "992bb8ae6ed2be83-EWR",
+        "alt-svc": "h3=\":443\"; ma=86400"
+      }
+    },
+    {
+      "test": "Login with invalid email",
+      "success": true,
+      "status_code": 422,
+      "expected_status": 422,
+      "response": {
+        "detail": [
+          {
+            "type": "value_error",
+            "loc": [
+              "body",
+              "email"
+            ],
+            "msg": "value is not a valid email address: An email address must have an @-sign.",
+            "input": "not-an-email",
+            "ctx": {
+              "reason": "An email address must have an @-sign."
+            }
+          }
+        ]
+      },
+      "headers": {
+        "Date": "Wed, 22 Oct 2025 20:25:00 GMT",
+        "Content-Type": "application/json",
+        "Transfer-Encoding": "chunked",
+        "Connection": "keep-alive",
+        "rndr-id": "83050d45-9e4c-4538",
+        "vary": "Accept-Encoding",
+        "x-render-origin-server": "uvicorn",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "992bb8b2a8d0ea5b-EWR",
+        "alt-svc": "h3=\":443\"; ma=86400"
+      }
+    }
+  ]
+}

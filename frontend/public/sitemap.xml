@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
+  <!--
+    PropIQ by LUNTRA - XML Sitemap
+    Production-ready sitemap for search engine crawlers
+    Last updated: 2025-11-06
+
+    Priority Guidelines:
+    1.0 = Homepage (most important)
+    0.9 = Core features (calculator, analysis)
+    0.8 = Key pages (pricing, features)
+    0.7 = Supporting content (guides, blog)
+    0.6 = Secondary pages
+
+    Change Frequency Guidelines:
+    daily = Homepage, blog
+    weekly = Product pages, pricing
+    monthly = Static content, guides
+  -->
+
+  <!-- Homepage - Primary entry point -->
+  <url>
+    <loc>https://propiq.luntra.one/</loc>
+    <lastmod>2025-11-06</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://propiq.luntra.one/og-image.jpg</image:loc>
+      <image:title>PropIQ - AI Real Estate Investment Analysis</image:title>
+    </image:image>
+  </url>
+
+  <!-- Calculator - Core Feature -->
+  <url>
+    <loc>https://propiq.luntra.one/calculator</loc>
+    <lastmod>2025-11-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Pricing Page - Key Conversion Page -->
+  <url>
+    <loc>https://propiq.luntra.one/pricing</loc>
+    <lastmod>2025-11-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!--
+  =====================================================
+  FUTURE PAGES - RECOMMENDED CONTENT STRATEGY
+  =====================================================
+
+  Uncomment and implement these pages to boost SEO:
+
+  1. CALCULATOR SUB-PAGES (High SEO value - target specific keywords)
+  =====================================================
+
+  <url>
+    <loc>https://propiq.luntra.one/calculator/cap-rate</loc>
+    <lastmod>2025-XX-XX</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://propiq.luntra.one/calculator/cash-flow</loc>
+    <lastmod>2025-XX-XX</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://propiq.luntra.one/calculator/roi</loc>
+    <lastmod>2025-XX-XX</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://propiq.luntra.one/calculator/cash-on-cash</loc>
+    <lastmod>2025-XX-XX</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  2. EDUCATIONAL GUIDES (SEO gold - answer user questions)
+  =====================================================
+
+  <url>
+    <loc>https://propiq.luntra.one/guides/how-to-analyze-rental-property</loc>
+    <lastmod>2025-XX-XX</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://propiq.luntra.one/guides/cap-rate-explained</loc>
+    <lastmod>2025-XX-XX</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://propiq.luntra.one/guides/cash-flow-analysis</loc>
+    <lastmod>2025-XX-XX</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://propiq.luntra.one/guides/real-estate-roi</loc>
+    <lastmod>2025-XX-XX</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://propiq.luntra.one/guides/1-percent-rule</loc>
+    <lastmod>2025-XX-XX</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  3. BLOG SECTION (Regular content = higher rankings)
+  =====================================================
+
+  <url>
+    <loc>https://propiq.luntra.one/blog</loc>
+    <lastmod>2025-XX-XX</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  4. LEGAL & SUPPORT PAGES (Trustworthiness signals)
+  =====================================================
+
+  <url>
+    <loc>https://propiq.luntra.one/terms</loc>
+    <lastmod>2025-XX-XX</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+
+  <url>
+    <loc>https://propiq.luntra.one/privacy</loc>
+    <lastmod>2025-XX-XX</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+
+  <url>
+    <loc>https://propiq.luntra.one/about</loc>
+    <lastmod>2025-XX-XX</lastmod>
+    <changefreq>quarterly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <url>
+    <loc>https://propiq.luntra.one/contact</loc>
+    <lastmod>2025-XX-XX</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  5. COMPARISON PAGES (High commercial intent)
+  =====================================================
+
+  <url>
+    <loc>https://propiq.luntra.one/vs/biggerpockets-calculator</loc>
+    <lastmod>2025-XX-XX</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://propiq.luntra.one/vs/zillow-calculator</loc>
+    <lastmod>2025-XX-XX</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  -->
+
+</urlset>

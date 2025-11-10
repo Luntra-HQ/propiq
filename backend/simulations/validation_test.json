@@ -1,0 +1,55 @@
+{
+  "simulation_summary": {
+    "total_users": 1,
+    "total_actions_completed": 3,
+    "total_actions_failed": 1,
+    "total_edge_cases_triggered": 3,
+    "total_errors": 1,
+    "conversions_achieved": 0,
+    "conversion_rate": "0.0%"
+  },
+  "cost_analysis": {
+    "azure_openai_input_tokens": 0,
+    "azure_openai_output_tokens": 0,
+    "azure_openai_cost_usd": "$0.00",
+    "stripe_transactions": 0,
+    "stripe_fees_usd": "$0.00",
+    "total_cost_usd": "$7.00",
+    "api_requests_total": 6,
+    "api_requests_by_endpoint": {
+      "/auth/login": 1,
+      "/propiq/history": 1,
+      "/propiq/analyze": 3,
+      "/calculator": 1
+    }
+  },
+  "user_results": [
+    {
+      "name": "Weekend-Warrior-Will",
+      "duration_seconds": 4.160387,
+      "actions_completed": 3,
+      "actions_failed": 1,
+      "success_rate": "75.0%",
+      "edge_cases": [
+        "batch_analyze_failure_0",
+        "batch_analyze_failure_1",
+        "batch_analyze_failure_2"
+      ],
+      "errors": 1,
+      "conversion": false,
+      "cost_usd": "$7.00"
+    }
+  ],
+  "edge_cases_triggered": [
+    "batch_analyze_failure_2",
+    "batch_analyze_failure_0",
+    "batch_analyze_failure_1"
+  ],
+  "errors_encountered": [
+    {
+      "action": "login",
+      "error": "Login failed: 401",
+      "timestamp": "2025-10-22T16:31:42.190106"
+    }
+  ]
+}

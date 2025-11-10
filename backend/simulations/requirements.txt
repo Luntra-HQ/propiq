@@ -1,0 +1,43 @@
+# PropIQ Power User Simulation Dependencies
+# =========================================
+# Install with: pip install -r requirements.txt
+
+# YAML configuration parsing
+pyyaml>=6.0.1
+
+# HTTP requests (synchronous)
+requests>=2.31.0
+
+# Async HTTP requests (optional, for better performance)
+aiohttp>=3.9.0
+
+# Data validation
+pydantic>=2.5.0
+
+# CLI argument parsing (built-in, but documenting)
+# argparse - part of Python standard library
+
+# Async support (Python 3.7+)
+# asyncio - part of Python standard library
+
+# Logging (built-in)
+# logging - part of Python standard library
+
+# JSON handling (built-in)
+# json - part of Python standard library
+
+# Date/time handling (built-in)
+# datetime - part of Python standard library
+
+# Random number generation (built-in)
+# random - part of Python standard library
+
+# Optional: Progress bars for simulation
+tqdm>=4.66.0
+
+# Optional: Rich terminal output
+rich>=13.7.0
+
+# Optional: Testing framework
+pytest>=7.4.0
+pytest-asyncio>=0.21.0

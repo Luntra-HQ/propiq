@@ -1,0 +1,80 @@
+# Netlify Configuration for PropIQ Frontend
+# Fast deployment alternative to Azure Static Web Apps
+
+[build]
+  # Build command (run from base directory set in Netlify UI)
+  command = "npm run build"
+
+  # Output directory (Vite builds to dist/)
+  publish = "dist"
+
+[build.environment]
+  # Node.js version (Vite 7 requires Node 20+)
+  NODE_VERSION = "20"
+
+  # Note: NODE_ENV removed - we need devDependencies (typescript, vite) to build
+  # Vite automatically optimizes for production during build
+
+  # Disable smart detection for Firebase type definitions (false positives)
+  # Firebase packages include "AIza***" in TypeScript type definitions
+  SECRETS_SCAN_SMART_DETECTION_ENABLED = "false"
+
+# Temporary: Redirects disabled to break redirect loop during DNS propagation
+# Will re-enable once propiq.luntra.one is fully propagated as primary domain
+# Expected: 15-30 minutes after Netlify domain settings change
+
+# Brand: PropIQ (not DealIQ) - Redirect old domain to new (COMING SOON)
+# [[redirects]]
+#   from = "https://dealiq.luntra.one/*"
+#   to = "https://propiq.luntra.one/:splat"
+#   status = 301
+#   force = true
+#
+# [[redirects]]
+#   from = "http://dealiq.luntra.one/*"
+#   to = "https://propiq.luntra.one/:splat"
+#   status = 301
+#   force = true
+
+# SPA redirect rule - all routes go to index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Security headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Security headers
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+    # Cache control for HTML (don't cache)
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Cache static assets (JS, CSS, images) for 1 year
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Cache fonts
+[[headers]]
+  for = "/*.woff2"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Plugins (optional)
+# [[plugins]]
+#   package = "@netlify/plugin-lighthouse"
+
+# Development settings
+[dev]
+  command = "npm run dev"
+  port = 5173
+  targetPort = 5173
+  publish = "dist"
+  autoLaunch = false

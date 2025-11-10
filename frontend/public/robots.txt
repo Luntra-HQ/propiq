@@ -1,0 +1,110 @@
+# PropIQ by LUNTRA - robots.txt
+# Production-ready search engine crawler configuration
+# Last updated: 2025-11-06
+
+# ==========================================
+# ALLOW ALL MAJOR SEARCH ENGINES
+# ==========================================
+
+User-agent: *
+Allow: /
+Crawl-delay: 1
+
+# Sitemap location (for automated discovery)
+Sitemap: https://propiq.luntra.one/sitemap.xml
+
+# ==========================================
+# EXPLICIT ALLOW FOR MAJOR SEARCH ENGINES
+# ==========================================
+
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Googlebot-Mobile
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Slurp
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+User-agent: Sogou
+Allow: /
+
+# ==========================================
+# BLOCK AI TRAINING BOTS (Preserve SEO)
+# ==========================================
+# These bots are blocked from training but won't affect search rankings
+
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: Claude-Web
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: Amazonbot
+Disallow: /
+
+User-agent: FacebookBot
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+# ==========================================
+# BLOCK SCRAPERS & BAD BOTS
+# ==========================================
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: dotbot
+Disallow: /
+
+User-agent: Screaming Frog SEO Spider
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /

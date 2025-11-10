@@ -1,0 +1,821 @@
+# ============================================================================
+# PropIQ Power User Simulation Profiles
+# ============================================================================
+# 5 realistic user personas designed to test chaos engineering, cost estimation,
+# conversion flows, and edge cases across all pricing tiers
+#
+# Simulation Goals:
+# - Chaos engineering: Trigger all edge cases and error scenarios
+# - Cost estimation: Track Azure OpenAI, Stripe, infrastructure costs
+# - Conversion testing: Validate Free → Paid upgrade flows
+# - Performance testing: Max speed execution without artificial delays
+# ============================================================================
+
+simulation_config:
+  environment: "production"  # https://luntra.onrender.com
+  base_url: "https://luntra.onrender.com"
+  max_speed: true  # No artificial delays between actions
+  log_level: "detailed"  # Log all requests, responses, costs
+  session_duration: "30_minutes"  # Single session per user
+
+  # Cost tracking configuration
+  cost_tracking:
+    azure_openai_gpt4o_mini:
+      input_tokens: 0.00015  # per 1k tokens
+      output_tokens: 0.0006  # per 1k tokens
+    stripe_transaction_fee: 0.029  # 2.9% + $0.30
+
+  # Monitoring endpoints
+  monitoring:
+    weights_biases: true
+    microsoft_clarity: true
+    slack_notifications: true
+    sentry_errors: false  # Not yet configured
+
+# ============================================================================
+# USER 1: Portfolio Manager Paula (Elite Power User)
+# ============================================================================
+simulations:
+  - name: "Portfolio-Manager-Paula"
+    user_id: "sim_paula_001"
+    email: "paula.portfolio@simulated.propiq.com"
+
+    persona:
+      role: "Real estate investor managing 20+ properties"
+      experience_level: "expert"
+      investment_strategy: ["BRRRR", "buy_and_hold", "value_add"]
+      target_tier: "elite"
+      current_tier: "pro"  # Will upgrade during simulation
+
+      background: |
+        Paula manages a $5M real estate portfolio. She analyzes 40-60 properties
+        per month, looking for deals with 8%+ cash-on-cash return. She uses
+        PropIQ daily for quick evaluations and generates reports for her
+        investment partners and lenders.
+
+      behavioral_traits:
+        login_frequency: "daily"
+        session_duration_minutes: [30, 60]  # 30-60 min sessions
+        analyses_per_session: [8, 12]  # 8-12 properties per session
+        calculator_usage_probability: 0.95  # Almost always uses calculator
+        support_chat_probability: 0.05  # Rarely needs support
+        export_probability: 0.80  # Exports most analyses
+        history_review_probability: 0.40  # Reviews past analyses
+
+      success_criteria:
+        roi_threshold: 0.08  # 8%+ ROI
+        cash_flow_threshold: 300  # $300+/month cash flow
+        deal_score_threshold: 75  # Deal score 75+
+
+    # ========================================================================
+    # ACTION SEQUENCE: Paula's Typical Session
+    # ========================================================================
+    actions:
+      # 1. Login and initial setup
+      - type: "login"
+        email: "paula.portfolio@simulated.propiq.com"
+        password: "SimPaula2025!Elite"
+        expected_status: 200
+        probability: 1.0
+
+      # 2. Check current usage and tier
+      - type: "get_user_profile"
+        endpoint: "/auth/me"
+        expected_tier: "pro"
+        probability: 1.0
+
+      # 3. Batch analyze 10 properties (high-volume usage)
+      - type: "batch_analyze_properties"
+        count: 10
+        addresses:
+          - "1234 Maple St, Austin, TX 78701"
+          - "5678 Oak Ave, Denver, CO 80202"
+          - "9101 Pine Rd, Portland, OR 97201"
+          - "1122 Elm St, Phoenix, AZ 85001"
+          - "3344 Birch Ln, Atlanta, GA 30303"
+          - "5566 Cedar Dr, Miami, FL 33101"
+          - "7788 Spruce Way, Seattle, WA 98101"
+          - "9900 Willow Ct, Boston, MA 02101"
+          - "2233 Aspen Pl, Charlotte, NC 28202"
+          - "4455 Magnolia Blvd, Nashville, TN 37201"
+        expected_status: 200
+        probability: 0.95
+        delay_between_ms: [500, 1000]  # 0.5-1s between analyses
+
+      # 4. Use deal calculator for top 3 properties
+      - type: "use_deal_calculator"
+        count: 3
+        calculator_inputs:
+          - purchase_price: 285000
+            down_payment_percent: 25
+            interest_rate: 6.5
+            monthly_rent: 2400
+          - purchase_price: 425000
+            down_payment_percent: 20
+            interest_rate: 6.75
+            monthly_rent: 3200
+          - purchase_price: 195000
+            down_payment_percent: 30
+            interest_rate: 6.25
+            monthly_rent: 1850
+        probability: 0.95
+
+      # 5. Review analysis history
+      - type: "get_analysis_history"
+        endpoint: "/propiq/history"
+        limit: 20
+        expected_status: 200
+        probability: 0.40
+
+      # 6. Export top 5 analyses
+      - type: "export_analyses"
+        format: "pdf"
+        count: 5
+        expected_status: 200
+        probability: 0.80
+
+      # 7. Hit usage limit and see upgrade prompt
+      - type: "analyze_property"
+        address: "Extra property to trigger limit"
+        expected_status: 429  # Usage limit reached
+        expected_message: "Usage limit reached"
+        probability: 1.0
+
+      # 8. Upgrade to Elite tier
+      - type: "create_checkout_session"
+        endpoint: "/stripe/create-checkout-session"
+        tier: "elite"
+        price_id: "price_1SL52dJogOchEFxvVC7797Tw"
+        expected_status: 200
+        probability: 0.90
+
+      # 9. Complete Stripe checkout (simulate webhook)
+      - type: "simulate_stripe_webhook"
+        event_type: "checkout.session.completed"
+        tier: "elite"
+        amount: 149.00
+        expected_status: 200
+        probability: 0.90
+
+      # 10. Continue analyzing after upgrade
+      - type: "analyze_property"
+        address: "1111 Victory Ln, Dallas, TX 75201"
+        expected_status: 200
+        probability: 0.95
+
+      # 11. Logout
+      - type: "logout"
+        probability: 1.0
+
+    # Edge cases Paula should trigger
+    edge_cases_to_trigger:
+      - "usage_limit_warning_60_analyses"
+      - "usage_limit_hard_block"
+      - "tier_upgrade_mid_session"
+      - "concurrent_analyses_10_requests"
+      - "export_large_dataset_50_properties"
+      - "unicode_property_address"
+      - "expired_jwt_token_after_60min"
+
+# ============================================================================
+# USER 2: First-Time Investor Frank (Starter Tier, Support-Heavy)
+# ============================================================================
+  - name: "First-Time-Investor-Frank"
+    user_id: "sim_frank_002"
+    email: "frank.firsttime@simulated.propiq.com"
+
+    persona:
+      role: "First-time real estate investor, learning the ropes"
+      experience_level: "beginner"
+      investment_strategy: ["house_hack", "small_multifamily"]
+      target_tier: "starter"
+      current_tier: "free"  # Will upgrade during simulation
+
+      background: |
+        Frank is a 28-year-old software engineer looking to buy his first
+        investment property. He's price-sensitive but willing to pay for
+        quality tools. He analyzes 5-10 properties per month and relies
+        heavily on support chat to understand results.
+
+      behavioral_traits:
+        login_frequency: "weekly"
+        session_duration_minutes: [20, 45]
+        analyses_per_session: [2, 5]
+        calculator_usage_probability: 0.70
+        support_chat_probability: 0.80  # Heavy support user
+        export_probability: 0.30
+        history_review_probability: 0.60
+
+    actions:
+      # 1. Signup as new user
+      - type: "signup"
+        email: "frank.firsttime@simulated.propiq.com"
+        password: "SimFrank2025!Start"
+        first_name: "Frank"
+        last_name: "Firsttime"
+        expected_status: 200
+        probability: 1.0
+
+      # 2. Analyze first property (free tier)
+      - type: "analyze_property"
+        address: "2468 Starter Ave, Raleigh, NC 27601"
+        expected_status: 200
+        probability: 1.0
+
+      # 3. Immediately open support chat (confused by results)
+      - type: "send_support_message"
+        message: "What does 'cash-on-cash return' mean? Is 6.5% good?"
+        expected_status: 200
+        probability: 0.90
+
+      # 4. Continue support conversation
+      - type: "send_support_message"
+        message: "Should I factor in property taxes? Where do I see that?"
+        expected_status: 200
+        probability: 0.80
+
+      # 5. Use calculator based on support advice
+      - type: "use_deal_calculator"
+        count: 1
+        calculator_inputs:
+          - purchase_price: 220000
+            down_payment_percent: 5  # FHA loan
+            interest_rate: 6.875
+            monthly_rent: 1800
+        probability: 0.70
+
+      # 6. Analyze 4 more properties (reach free tier limit)
+      - type: "batch_analyze_properties"
+        count: 4
+        addresses:
+          - "1357 Beginner Blvd, Durham, NC 27701"
+          - "2468 Newbie St, Chapel Hill, NC 27514"
+          - "3579 Rookie Rd, Cary, NC 27511"
+          - "4680 Learner Ln, Apex, NC 27502"
+        expected_status: 200
+        probability: 0.95
+
+      # 7. Try to analyze 6th property - soft warning (4/5 used)
+      - type: "analyze_property"
+        address: "5791 Limit Test Dr, Morrisville, NC 27560"
+        expected_status: 200
+        expected_warning: "4 of 5 free analyses used"
+        probability: 1.0
+
+      # 8. Hit hard limit on 6th analysis
+      - type: "analyze_property"
+        address: "6802 Blocked St, Holly Springs, NC 27540"
+        expected_status: 429
+        expected_message: "Free tier limit reached. Upgrade to continue."
+        probability: 1.0
+
+      # 9. Review upgrade options via support
+      - type: "send_support_message"
+        message: "I hit my limit. Which plan should I get? I'm on a budget."
+        expected_status: 200
+        probability: 0.80
+
+      # 10. Upgrade to Starter tier
+      - type: "create_checkout_session"
+        tier: "starter"
+        price_id: "price_1SL50hJogOchEFxvxYpymxoT"
+        expected_status: 200
+        probability: 0.70  # 70% conversion rate
+
+      # 11. Simulate Stripe payment failure (test edge case)
+      - type: "simulate_stripe_webhook"
+        event_type: "invoice.payment_failed"
+        tier: "starter"
+        amount: 69.00
+        failure_reason: "insufficient_funds"
+        expected_status: 200
+        probability: 0.20  # 20% payment failures
+
+      # 12. Retry payment successfully
+      - type: "simulate_stripe_webhook"
+        event_type: "checkout.session.completed"
+        tier: "starter"
+        amount: 69.00
+        expected_status: 200
+        probability: 0.95
+
+      # 13. Continue analyzing after upgrade
+      - type: "analyze_property"
+        address: "7913 Success St, Fuquay-Varina, NC 27526"
+        expected_status: 200
+        probability: 1.0
+
+    edge_cases_to_trigger:
+      - "free_tier_soft_warning_4of5"
+      - "free_tier_hard_block_5of5"
+      - "stripe_payment_failure_insufficient_funds"
+      - "support_chat_high_volume_5_messages"
+      - "new_user_onboarding_email_trigger"
+      - "invalid_property_address_typo"
+
+# ============================================================================
+# USER 3: Real Estate Agent Rita (Pro Tier, Fast Turnaround)
+# ============================================================================
+  - name: "Real-Estate-Agent-Rita"
+    user_id: "sim_rita_003"
+    email: "rita.realtor@simulated.propiq.com"
+
+    persona:
+      role: "Real estate agent using PropIQ for client presentations"
+      experience_level: "intermediate"
+      investment_strategy: ["client_service", "investment_advisory"]
+      target_tier: "pro"
+      current_tier: "pro"
+
+      background: |
+        Rita is a licensed real estate agent who uses PropIQ to provide
+        investment analysis for her clients. She needs fast turnaround times
+        and professional-looking reports. She analyzes 20-30 properties per
+        month during peak house-hunting season.
+
+      behavioral_traits:
+        login_frequency: "daily"
+        session_duration_minutes: [10, 25]  # Quick sessions
+        analyses_per_session: [3, 7]
+        calculator_usage_probability: 0.85
+        support_chat_probability: 0.15
+        export_probability: 0.95  # Almost always exports
+        history_review_probability: 0.20
+
+    actions:
+      # 1. Login
+      - type: "login"
+        email: "rita.realtor@simulated.propiq.com"
+        password: "SimRita2025!Pro"
+        expected_status: 200
+        probability: 1.0
+
+      # 2. Quick batch analysis for 3 client properties
+      - type: "batch_analyze_properties"
+        count: 5
+        addresses:
+          - "1111 Client Ave, San Diego, CA 92101"
+          - "2222 Listing St, San Jose, CA 95101"
+          - "3333 Buyer Blvd, Sacramento, CA 95814"
+          - "4444 Seller Ln, Fresno, CA 93721"
+          - "5555 Deal Dr, Long Beach, CA 90802"
+        expected_status: 200
+        probability: 1.0
+        delay_between_ms: [200, 500]  # Very fast, professional use
+
+      # 3. Use calculator for all 5 properties
+      - type: "use_deal_calculator"
+        count: 5
+        calculator_inputs:
+          - purchase_price: 650000
+            down_payment_percent: 20
+            interest_rate: 6.5
+            monthly_rent: 3500
+          - purchase_price: 825000
+            down_payment_percent: 25
+            interest_rate: 6.25
+            monthly_rent: 4200
+          - purchase_price: 475000
+            down_payment_percent: 20
+            interest_rate: 6.75
+            monthly_rent: 2800
+          - purchase_price: 395000
+            down_payment_percent: 15
+            interest_rate: 7.0
+            monthly_rent: 2400
+          - purchase_price: 550000
+            down_payment_percent: 20
+            interest_rate: 6.5
+            monthly_rent: 3100
+        probability: 0.95
+
+      # 4. Export all 5 analyses immediately
+      - type: "export_analyses"
+        format: "pdf"
+        count: 5
+        expected_status: 200
+        probability: 0.95
+
+      # 5. Send exports to clients (simulate email via support)
+      - type: "send_support_message"
+        message: "How do I customize the branding on exported reports?"
+        expected_status: 200
+        probability: 0.20
+
+      # 6. Test concurrent requests (client is waiting on phone)
+      - type: "concurrent_analyze_properties"
+        count: 3
+        addresses:
+          - "6666 Urgent Ave, Oakland, CA 94601"
+          - "7777 Rush St, Berkeley, CA 94701"
+          - "8888 Quick Ln, Alameda, CA 94501"
+        expected_status: 200
+        probability: 0.80
+
+      # 7. Review subscription status
+      - type: "get_subscription_status"
+        endpoint: "/stripe/subscription"
+        expected_tier: "pro"
+        expected_status: 200
+        probability: 0.30
+
+      # 8. Logout
+      - type: "logout"
+        probability: 1.0
+
+    edge_cases_to_trigger:
+      - "concurrent_analyses_3_requests"
+      - "export_batch_5_properties"
+      - "fast_session_under_15_minutes"
+      - "high_property_values_800k_plus"
+      - "california_property_tax_calculations"
+
+# ============================================================================
+# USER 4: Weekend Warrior Will (Free Tier, Evenings/Weekends)
+# ============================================================================
+  - name: "Weekend-Warrior-Will"
+    user_id: "sim_will_004"
+    email: "will.weekend@simulated.propiq.com"
+
+    persona:
+      role: "Part-time investor, property hunting on weekends"
+      experience_level: "beginner"
+      investment_strategy: ["side_hustle", "passive_income"]
+      target_tier: "free"
+      current_tier: "free"
+
+      background: |
+        Will has a full-time job and hunts for investment properties on
+        weekends. He's price-sensitive and wants to maximize his free tier.
+        He uses PropIQ during off-peak hours (evenings 7-10pm, weekends).
+
+      behavioral_traits:
+        login_frequency: "weekly"
+        session_duration_minutes: [15, 30]
+        analyses_per_session: [2, 4]
+        calculator_usage_probability: 0.60
+        support_chat_probability: 0.40
+        export_probability: 0.10  # Free tier may not have export
+        history_review_probability: 0.70
+        preferred_hours: [19, 22]  # 7pm-10pm
+
+    actions:
+      # 1. Login on Sunday evening
+      - type: "login"
+        email: "will.weekend@simulated.propiq.com"
+        password: "SimTest2025!"
+        expected_status: 200
+        probability: 1.0
+
+      # 2. Review history from last week
+      - type: "get_analysis_history"
+        endpoint: "/propiq/history"
+        limit: 10
+        expected_status: 200
+        probability: 0.70
+
+      # 3. Analyze 3 properties (conservative usage)
+      - type: "batch_analyze_properties"
+        count: 3
+        addresses:
+          - "1010 Weekend Way, Columbus, OH 43201"
+          - "2020 Sunday St, Indianapolis, IN 46201"
+          - "3030 Evening Ave, Cincinnati, OH 45201"
+        expected_status: 200
+        probability: 0.90
+
+      # 4. Use calculator for 1 property
+      - type: "use_deal_calculator"
+        count: 1
+        calculator_inputs:
+          - purchase_price: 185000
+            down_payment_percent: 10
+            interest_rate: 7.0
+            monthly_rent: 1500
+        probability: 0.60
+
+      # 5. Try to export (feature restricted on free tier)
+      - type: "export_analyses"
+        format: "pdf"
+        count: 1
+        expected_status: 403  # Forbidden - premium feature
+        expected_message: "Export feature requires paid subscription"
+        probability: 0.50
+
+      # 6. Ask support about upgrade options
+      - type: "send_support_message"
+        message: "Do I need to upgrade to export reports? How much is it?"
+        expected_status: 200
+        probability: 0.40
+
+      # 7. View pricing page (no purchase)
+      - type: "view_pricing"
+        endpoint: "/pricing"
+        expected_status: 200
+        probability: 0.60
+
+      # 8. Logout (no conversion)
+      - type: "logout"
+        probability: 1.0
+
+    edge_cases_to_trigger:
+      - "free_tier_export_restriction"
+      - "free_tier_history_limit_10_items"
+      - "off_peak_hours_usage_evening"
+      - "price_shopping_no_conversion"
+      - "session_timeout_30_minutes"
+
+# ============================================================================
+# USER 5: Business Development Ben (Pro Tier, Company Portfolio)
+# ============================================================================
+  - name: "Business-Development-Ben"
+    user_id: "sim_ben_005"
+    email: "ben.bizdev@simulated.propiq.com"
+
+    persona:
+      role: "Real estate investment firm analyst"
+      experience_level: "expert"
+      investment_strategy: ["commercial", "multifamily", "portfolio"]
+      target_tier: "pro"
+      current_tier: "pro"
+
+      background: |
+        Ben works for a real estate investment firm evaluating large
+        multifamily and commercial properties. He analyzes 15-25 properties
+        per month, focusing on high-value deals ($500k-$2M). He needs
+        accurate financial modeling and detailed reports for stakeholders.
+
+      behavioral_traits:
+        login_frequency: "3x_per_week"
+        session_duration_minutes: [45, 90]
+        analyses_per_session: [5, 10]
+        calculator_usage_probability: 0.90
+        support_chat_probability: 0.10
+        export_probability: 0.85
+        history_review_probability: 0.50
+
+    actions:
+      # 1. Login
+      - type: "login"
+        email: "ben.bizdev@simulated.propiq.com"
+        password: "SimBen2025!BizPro"
+        expected_status: 200
+        probability: 1.0
+
+      # 2. Analyze 8 commercial/multifamily properties
+      - type: "batch_analyze_properties"
+        count: 8
+        addresses:
+          - "1500 Commerce Plaza, Chicago, IL 60601"
+          - "2750 Industrial Blvd, Milwaukee, WI 53201"
+          - "3890 Multifamily Complex, Detroit, MI 48201"
+          - "4200 Office Park Dr, Grand Rapids, MI 49501"
+          - "5100 Apartment Tower, Madison, WI 53701"
+          - "6300 Retail Center, Minneapolis, MN 55401"
+          - "7450 Mixed Use Development, St. Paul, MN 55101"
+          - "8600 Commercial Property, Green Bay, WI 54301"
+        expected_status: 200
+        probability: 0.95
+        delay_between_ms: [1000, 2000]
+
+      # 3. Advanced calculator for commercial properties
+      - type: "use_deal_calculator"
+        count: 8
+        calculator_inputs:
+          - purchase_price: 1250000
+            down_payment_percent: 30
+            interest_rate: 6.0
+            monthly_rent: 8500
+          - purchase_price: 875000
+            down_payment_percent: 25
+            interest_rate: 6.25
+            monthly_rent: 6200
+          - purchase_price: 1850000
+            down_payment_percent: 35
+            interest_rate: 5.875
+            monthly_rent: 12500
+          - purchase_price: 625000
+            down_payment_percent: 25
+            interest_rate: 6.5
+            monthly_rent: 4800
+          - purchase_price: 2100000
+            down_payment_percent: 40
+            interest_rate: 5.75
+            monthly_rent: 15000
+          - purchase_price: 950000
+            down_payment_percent: 30
+            interest_rate: 6.125
+            monthly_rent: 7200
+          - purchase_price: 1450000
+            down_payment_percent: 30
+            interest_rate: 6.0
+            monthly_rent: 10500
+          - purchase_price: 775000
+            down_payment_percent: 25
+            interest_rate: 6.375
+            monthly_rent: 5800
+        probability: 0.90
+
+      # 4. Export all analyses for board presentation
+      - type: "export_analyses"
+        format: "pdf"
+        count: 8
+        expected_status: 200
+        probability: 0.85
+
+      # 5. Review historical portfolio performance
+      - type: "get_analysis_history"
+        endpoint: "/propiq/history"
+        limit: 50
+        expected_status: 200
+        probability: 0.50
+
+      # 6. Test extremely large property value (edge case)
+      - type: "analyze_property"
+        address: "9999 Mega Development, Chicago, IL 60602"
+        purchase_price: 15000000  # $15M property
+        expected_status: 200
+        probability: 0.30
+
+      # 7. Test special characters in address (edge case)
+      - type: "analyze_property"
+        address: "123 Café-Résidence, Montréal, QC H3B 1A1"
+        expected_status: 200
+        probability: 0.20
+
+      # 8. Check API rate limits (rapid requests)
+      - type: "rapid_fire_requests"
+        count: 20
+        endpoint: "/propiq/health"
+        expected_status: [200, 429]  # May hit rate limit
+        probability: 0.50
+
+      # 9. Logout
+      - type: "logout"
+        probability: 1.0
+
+    edge_cases_to_trigger:
+      - "high_value_properties_1M_plus"
+      - "unicode_special_characters_address"
+      - "api_rate_limit_20_requests"
+      - "large_export_8_properties"
+      - "commercial_property_calculations"
+      - "long_session_90_minutes"
+
+# ============================================================================
+# CHAOS ENGINEERING: Additional Edge Cases to Test
+# ============================================================================
+chaos_scenarios:
+  # Authentication edge cases
+  - scenario: "expired_jwt_token"
+    trigger_user: "Portfolio-Manager-Paula"
+    action: "Force JWT expiration after 30 minutes, continue session"
+    expected_status: 401
+
+  - scenario: "concurrent_login_attempts"
+    trigger_user: "Real-Estate-Agent-Rita"
+    action: "Login from 2 different IPs simultaneously"
+    expected_status: 200  # Should allow
+
+  # Database edge cases
+  - scenario: "supabase_connection_timeout"
+    trigger_user: "Business-Development-Ben"
+    action: "Simulate slow database query (10s+)"
+    expected_status: 504
+
+  - scenario: "duplicate_analysis_submission"
+    trigger_user: "Portfolio-Manager-Paula"
+    action: "Submit same property address twice within 1 second"
+    expected_status: 200  # Should deduplicate or allow
+
+  # Payment edge cases
+  - scenario: "stripe_webhook_duplicate_event"
+    trigger_user: "First-Time-Investor-Frank"
+    action: "Send same checkout.session.completed webhook twice"
+    expected_status: 200  # Should be idempotent
+
+  - scenario: "downgrade_with_active_usage"
+    trigger_user: "Portfolio-Manager-Paula"
+    action: "Downgrade from Elite to Starter mid-month with 80 analyses used"
+    expected_status: 200  # Should warn about data loss
+
+  # Azure OpenAI edge cases
+  - scenario: "openai_api_error_500"
+    trigger_user: "Real-Estate-Agent-Rita"
+    action: "Simulate Azure OpenAI service unavailable"
+    expected_status: 503
+
+  - scenario: "openai_token_limit_exceeded"
+    trigger_user: "Business-Development-Ben"
+    action: "Submit extremely long property description (10k+ chars)"
+    expected_status: 413  # Payload too large
+
+  # Data validation edge cases
+  - scenario: "invalid_property_address_empty"
+    trigger_user: "Weekend-Warrior-Will"
+    action: "Submit empty address string"
+    expected_status: 422
+
+  - scenario: "invalid_property_address_international"
+    trigger_user: "Business-Development-Ben"
+    action: "Submit international address (e.g., Tokyo, Japan)"
+    expected_status: 200  # May return no results or error gracefully
+
+  - scenario: "negative_purchase_price"
+    trigger_user: "First-Time-Investor-Frank"
+    action: "Enter -$100,000 as purchase price in calculator"
+    expected_status: 422
+
+  - scenario: "calculator_division_by_zero"
+    trigger_user: "Weekend-Warrior-Will"
+    action: "Enter $0 purchase price or $0 down payment"
+    expected_status: 422
+
+# ============================================================================
+# COST ESTIMATION: Tracking Configuration
+# ============================================================================
+cost_tracking_config:
+  log_file: "simulation_costs.json"
+
+  metrics_to_track:
+    # Azure OpenAI costs
+    - name: "azure_openai_total_cost"
+      calculation: "(input_tokens * 0.00015 / 1000) + (output_tokens * 0.0006 / 1000)"
+
+    # Stripe transaction costs
+    - name: "stripe_transaction_fees"
+      calculation: "(amount * 0.029) + 0.30"
+
+    # Infrastructure costs (estimated)
+    - name: "render_hosting_cost"
+      value: 7.00  # $7/month Pro plan
+      prorated: "monthly"
+
+    - name: "supabase_database_cost"
+      value: 0.00  # Free tier
+      warning: "Monitor row count and storage"
+
+    # API request costs
+    - name: "total_api_requests"
+      count: true
+
+    - name: "api_requests_by_endpoint"
+      breakdown:
+        - "/auth/signup"
+        - "/auth/login"
+        - "/propiq/analyze"
+        - "/stripe/create-checkout-session"
+        - "/support/chat"
+
+  # Cost alerts
+  alerts:
+    - condition: "azure_openai_total_cost > 10.00"
+      message: "Azure OpenAI costs exceeded $10 for simulation session"
+
+    - condition: "total_api_requests > 1000"
+      message: "Total API requests exceeded 1000 in simulation"
+
+    - condition: "stripe_transaction_fees > 50.00"
+      message: "Stripe fees exceeded $50 (check for test mode)"
+
+# ============================================================================
+# SIMULATION EXECUTION ORDER
+# ============================================================================
+execution_order:
+  mode: "parallel"  # Run all 5 users concurrently for max chaos
+
+  sequence:
+    - step: 1
+      users: ["Portfolio-Manager-Paula", "First-Time-Investor-Frank"]
+      start_delay_seconds: 0
+
+    - step: 2
+      users: ["Real-Estate-Agent-Rita", "Weekend-Warrior-Will"]
+      start_delay_seconds: 5
+
+    - step: 3
+      users: ["Business-Development-Ben"]
+      start_delay_seconds: 10
+
+  duration: "30_minutes"
+  max_concurrent_users: 5
+
+# ============================================================================
+# EXPECTED OUTCOMES
+# ============================================================================
+expected_outcomes:
+  conversions:
+    free_to_paid: 0.60  # 60% conversion rate (Frank)
+    tier_upgrades: 0.80  # 80% upgrade rate (Paula)
+
+  usage_patterns:
+    avg_analyses_per_session: 6.5
+    avg_session_duration_minutes: 38
+
+  costs:
+    estimated_azure_openai_cost: "$3.50 - $5.00"
+    estimated_stripe_fees: "$15.00 - $20.00"
+    estimated_total_cost: "$25.00 - $30.00"
+
+  edge_cases_found: "15-20 unique edge cases"
+  errors_triggered: "5-10 expected errors (rate limits, validation)"

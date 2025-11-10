@@ -1,0 +1,45 @@
+{
+  "simulation_summary": {
+    "total_users": 1,
+    "total_actions_completed": 2,
+    "total_actions_failed": 1,
+    "total_edge_cases_triggered": 0,
+    "total_errors": 1,
+    "conversions_achieved": 0,
+    "conversion_rate": "0.0%"
+  },
+  "cost_analysis": {
+    "azure_openai_input_tokens": 0,
+    "azure_openai_output_tokens": 0,
+    "azure_openai_cost_usd": "$0.00",
+    "stripe_transactions": 0,
+    "stripe_fees_usd": "$0.00",
+    "total_cost_usd": "$7.00",
+    "api_requests_total": 3,
+    "api_requests_by_endpoint": {
+      "/auth/login": 1,
+      "/calculator": 1
+    }
+  },
+  "user_results": [
+    {
+      "name": "Weekend-Warrior-Will",
+      "duration_seconds": 1.966672,
+      "actions_completed": 2,
+      "actions_failed": 1,
+      "success_rate": "66.7%",
+      "edge_cases": [],
+      "errors": 1,
+      "conversion": false,
+      "cost_usd": "$7.00"
+    }
+  ],
+  "edge_cases_triggered": [],
+  "errors_encountered": [
+    {
+      "action": "login",
+      "error": "Login failed: 422",
+      "timestamp": "2025-10-22T15:51:30.465897"
+    }
+  ]
+}

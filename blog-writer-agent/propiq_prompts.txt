@@ -1,0 +1,155 @@
+TOPIC 1: How to Calculate Rental Property Cash Flow
+================================================================================
+Write a comprehensive blog post about calculating rental property cash flow for real estate investors.
+
+Title: "How to Calculate Rental Property Cash Flow: A Complete Guide for Investors"
+
+Key points to cover:
+- What is cash flow in real estate investing
+- Components of rental income (rent, parking, storage, etc.)
+- Operating expenses to account for (property management, maintenance, insurance, taxes, utilities, HOA fees)
+- How to calculate monthly and annual cash flow
+- The importance of cash flow in investment decisions
+- Common mistakes investors make when calculating cash flow
+- How PropIQ automates these calculations at propiq.luntra.one
+
+Target audience: Beginning to intermediate real estate investors
+Tone: Professional but approachable, educational
+Length: 1000-1500 words
+Include: Practical examples, actionable tips, clear formulas
+
+For visuals, use option 1 (placeholders for images to be uploaded later).
+
+Generate social media posts to promote this article after completion.
+
+
+TOPIC 2: Understanding Cap Rate
+================================================================================
+Write a technical blog post explaining cap rate for real estate investors.
+
+Title: "Understanding Cap Rate: What Real Estate Investors Need to Know"
+
+Key points to cover:
+- What is cap rate (capitalization rate)
+- The formula: Cap Rate = (Net Operating Income / Property Value) × 100
+- Why cap rate matters for investment decisions
+- How to interpret cap rates (good vs bad, market context)
+- Cap rate vs cash-on-cash return
+- Limitations of cap rate analysis
+- How PropIQ helps investors analyze properties using cap rates
+
+Target audience: Real estate investors (beginners to intermediate)
+Tone: Professional, educational, data-driven
+Length: 1000-1500 words
+Include: Real examples, visual explanations, practical applications
+
+For visuals, use option 1 (placeholders for images).
+
+Generate social media posts to promote this article.
+
+
+TOPIC 3: 5 Key Metrics Every Real Estate Investor Should Track
+================================================================================
+Write a guide covering the essential metrics for real estate investors.
+
+Title: "5 Key Metrics Every Real Estate Investor Should Track"
+
+Cover these 5 metrics:
+1. Net Operating Income (NOI)
+2. Cash-on-Cash Return
+3. Cap Rate
+4. Internal Rate of Return (IRR)
+5. Occupancy Rate
+
+For each metric:
+- Definition and formula
+- Why it matters
+- How to calculate it
+- Example calculation
+- How PropIQ tracks it automatically
+
+Target audience: Real estate investors
+Tone: Educational, practical, empowering
+Length: 1500-2000 words
+Include: Formulas, examples, comparison table
+
+For visuals, use option 1 (placeholders for images).
+
+Generate social media posts after completion.
+
+
+TOPIC 4: Zillow vs Reality
+================================================================================
+Write a blog post discussing the limitations of Zillow for serious real estate investors.
+
+Title: "Zillow vs. Reality: Why Real Estate Investors Need Better Analysis Tools"
+
+Key points to cover:
+- What Zillow does well (property discovery, basic info)
+- Limitations for investors:
+  * Zestimate accuracy issues
+  * Missing rental income analysis
+  * No cash flow calculations
+  * Limited expense tracking
+  * No investment metric calculations
+- What serious investors need beyond Zillow
+- How PropIQ fills these gaps
+- The cost of making decisions based on incomplete data
+
+Target audience: Real estate investors currently using Zillow
+Tone: Informative, not overly critical, solution-focused
+Length: 1000-1500 words
+Include: Specific examples, comparison charts
+
+For visuals, use option 1 (placeholders for images).
+
+Generate social media posts to promote this article.
+
+
+TOPIC 5: Analyzing Rental Properties with PropIQ
+================================================================================
+Write a step-by-step walkthrough of analyzing a rental property.
+
+Title: "Analyzing Rental Properties: A Step-by-Step Guide Using PropIQ"
+
+Walk through the complete process:
+1. Finding a property online (Zillow, Redfin, etc.)
+2. Gathering basic property information
+3. Estimating rental income (market research, comps)
+4. Calculating operating expenses
+5. Determining cash flow
+6. Analyzing key metrics (NOI, cap rate, cash-on-cash return)
+7. Making the investment decision
+8. How PropIQ automates steps 3-7
+
+Use a real example property (you can make up realistic numbers).
+
+Target audience: Real estate investors (all levels)
+Tone: Practical, tutorial-style, encouraging
+Length: 1500-2000 words
+Include: Step-by-step instructions, screenshots placeholders, checklist
+
+For visuals, use option 1 (placeholders for images).
+
+Generate social media posts after completion.
+
+
+================================================================================
+BRAND VOICE GUIDELINES FOR ALL TOPICS:
+================================================================================
+- Data-driven and analytical
+- Empowering investors with better tools
+- Transparent about real estate investing complexities
+- Focus on practical, actionable insights
+- Professional but not intimidating
+- Educational without being preachy
+- Include call-to-action to try PropIQ at propiq.luntra.one
+
+SEO Keywords to incorporate naturally:
+- rental property analysis
+- real estate investing
+- cap rate calculator
+- cash flow calculator
+- investment property analysis
+- NOI calculator
+- real estate metrics

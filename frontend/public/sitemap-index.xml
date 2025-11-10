@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!-- Parent Site Sitemap -->
+  <sitemap>
+    <loc>https://luntra.one/sitemap.xml</loc>
+    <lastmod>2025-11-05</lastmod>
+  </sitemap>
+
+  <!-- PropIQ Product Sitemap -->
+  <sitemap>
+    <loc>https://propiq.luntra.one/sitemap.xml</loc>
+    <lastmod>2025-11-05</lastmod>
+  </sitemap>
+
+</sitemapindex>

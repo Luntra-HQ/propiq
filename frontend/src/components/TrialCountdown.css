@@ -1,0 +1,427 @@
+/**
+ * TrialCountdown Component Styles
+ * Sprint 9: User Onboarding & Growth
+ */
+
+/* Main notification banner */
+.trial-countdown {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 800px;
+  width: calc(100% - 32px);
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Position variants */
+.trial-countdown-top {
+  top: 16px;
+  transform: translate(-50%, -20px);
+}
+
+.trial-countdown-top.trial-countdown-visible {
+  transform: translate(-50%, 0);
+  opacity: 1;
+}
+
+.trial-countdown-bottom {
+  bottom: 16px;
+  transform: translate(-50%, 20px);
+}
+
+.trial-countdown-bottom.trial-countdown-visible {
+  transform: translate(-50%, 0);
+  opacity: 1;
+}
+
+/* Urgency variants */
+.trial-countdown-info {
+  border-left: 4px solid #3b82f6;
+}
+
+.trial-countdown-warning {
+  border-left: 4px solid #f59e0b;
+  background: linear-gradient(135deg, #2c1810 0%, #1e1410 100%);
+}
+
+.trial-countdown-critical {
+  border-left: 4px solid #ef4444;
+  background: linear-gradient(135deg, #2c1012 0%, #1e0d10 100%);
+  animation: pulse 2s infinite;
+}
+
+/* Content layout */
+.trial-countdown-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+}
+
+/* Icon */
+.trial-countdown-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trial-countdown-info .trial-countdown-icon {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+}
+
+.trial-countdown-warning .trial-countdown-icon {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+}
+
+.trial-countdown-critical .trial-countdown-icon {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+/* Message */
+.trial-countdown-message {
+  flex: 1;
+  min-width: 0;
+}
+
+.trial-countdown-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f8fafc;
+  margin: 0 0 0.25rem 0;
+  line-height: 1.4;
+}
+
+.trial-countdown-subtitle {
+  font-size: 0.875rem;
+  color: #94a3b8;
+  margin: 0 0 0.75rem 0;
+  line-height: 1.4;
+}
+
+/* Progress bar */
+.trial-countdown-progress-container {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.trial-countdown-progress-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.trial-countdown-info .trial-countdown-progress-bar {
+  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.trial-countdown-warning .trial-countdown-progress-bar {
+  background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+}
+
+.trial-countdown-critical .trial-countdown-progress-bar {
+  background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+}
+
+/* Stats */
+.trial-countdown-stats {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.trial-countdown-stat strong {
+  color: #e2e8f0;
+  font-weight: 600;
+}
+
+.trial-countdown-separator {
+  color: #475569;
+}
+
+/* Actions */
+.trial-countdown-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.trial-countdown-upgrade-button {
+  padding: 0.625rem 1.25rem;
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+}
+
+.trial-countdown-upgrade-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+.trial-countdown-upgrade-button:active {
+  transform: translateY(0);
+}
+
+.trial-countdown-critical .trial-countdown-upgrade-button {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+  animation: glow 2s infinite;
+}
+
+.trial-countdown-critical .trial-countdown-upgrade-button:hover {
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.5);
+}
+
+.trial-countdown-dismiss-button {
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  border-radius: 6px;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trial-countdown-dismiss-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+}
+
+/* Compact version */
+.trial-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  text-align: left;
+}
+
+.trial-compact:hover {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+.trial-compact-urgent {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  animation: pulse-subtle 2s infinite;
+}
+
+.trial-compact-urgent:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.trial-compact-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.trial-compact-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.trial-compact-count {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #8b5cf6;
+}
+
+.trial-compact-urgent .trial-compact-count {
+  color: #ef4444;
+}
+
+.trial-compact-progress {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.trial-compact-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #8b5cf6 0%, #7c3aed 100%);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.trial-compact-urgent .trial-compact-progress-fill {
+  background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 10px 40px rgba(239, 68, 68, 0.3);
+  }
+  50% {
+    box-shadow: 0 10px 40px rgba(239, 68, 68, 0.5);
+  }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.6);
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+  .trial-countdown {
+    width: calc(100% - 16px);
+    border-radius: 8px;
+  }
+
+  .trial-countdown-top {
+    top: 8px;
+  }
+
+  .trial-countdown-bottom {
+    bottom: 8px;
+  }
+
+  .trial-countdown-content {
+    flex-wrap: wrap;
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+
+  .trial-countdown-message {
+    flex-basis: 100%;
+    order: 2;
+  }
+
+  .trial-countdown-actions {
+    flex-basis: 100%;
+    order: 3;
+    justify-content: stretch;
+  }
+
+  .trial-countdown-upgrade-button {
+    flex: 1;
+  }
+
+  .trial-countdown-title {
+    font-size: 0.875rem;
+  }
+
+  .trial-countdown-subtitle {
+    font-size: 0.8125rem;
+  }
+
+  .trial-countdown-icon {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* Tablet */
+@media (max-width: 768px) {
+  .trial-countdown {
+    max-width: calc(100% - 32px);
+  }
+
+  .trial-countdown-content {
+    gap: 0.875rem;
+  }
+}
+
+/* Accessibility */
+.trial-countdown-upgrade-button:focus-visible,
+.trial-countdown-dismiss-button:focus-visible,
+.trial-compact:focus-visible {
+  outline: 2px solid #8b5cf6;
+  outline-offset: 2px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .trial-countdown,
+  .trial-countdown-upgrade-button,
+  .trial-countdown-dismiss-button,
+  .trial-compact,
+  .trial-countdown-progress-bar,
+  .trial-compact-progress-fill {
+    transition: none;
+  }
+
+  .trial-countdown-critical,
+  .trial-compact-urgent,
+  .trial-countdown-critical .trial-countdown-upgrade-button {
+    animation: none;
+  }
+}
+
+/* Print styles */
+@media print {
+  .trial-countdown,
+  .trial-compact {
+    display: none !important;
+  }
+}
+
+/* Dark mode refinements */
+@media (prefers-color-scheme: dark) {
+  .trial-countdown {
+    background: linear-gradient(135deg, #0f172a 0%, #020617 100%);
+  }
+
+  .trial-countdown-warning {
+    background: linear-gradient(135deg, #1c1410 0%, #120d0a 100%);
+  }
+
+  .trial-countdown-critical {
+    background: linear-gradient(135deg, #1c0e10 0%, #120a0c 100%);
+  }
+}

@@ -1,0 +1,808 @@
+{
+  "timestamp": "2025-11-06T01:41:27.072077",
+  "summary": {
+    "files_scanned": 287,
+    "files_modified": 207,
+    "total_replacements": 2402
+  },
+  "replacements_by_pattern": {
+    "PropIQ": 1203,
+    "PROPIQ": 18,
+    "propIQ": 34,
+    "propiq": 1082,
+    "Prop IQ": 65
+  },
+  "modified_files": {
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/NETLIFY_SETUP.md": {
+      "PropIQ": 1,
+      "propiq": 24
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/SECURITY_AUDIT_PHASE_2_COMPLETE.md": {
+      "PropIQ": 1,
+      "propiq": 6
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/GOOGLE_SEARCH_CONSOLE_SETUP.md": {
+      "PropIQ": 7,
+      "propiq": 11
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/DEMO_SCRIPT_REFINED.md": {
+      "PropIQ": 16,
+      "propiq": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/UX_REVIEW_TOOLS_GUIDE.md": {
+      "PropIQ": 10,
+      "propiq": 7
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/15_PRE_WRITTEN_POSTS.md": {
+      "PropIQ": 53
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/CODE_REVIEW_REPORT.md": {
+      "PropIQ": 2,
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/RENDER_ENV_VARS.txt": {
+      "PropIQ": 2,
+      "propIQ": 1,
+      "propiq": 9
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/DUAL_BRAND_SEO_STRATEGY.md": {
+      "PropIQ": 5,
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/SECURITY_AUDIT_REPORT.md": {
+      "PropIQ": 3,
+      "propIQ": 1,
+      "propiq": 8
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/IMPLEMENTATION_SUMMARY.md": {
+      "PropIQ": 1,
+      "propiq": 9
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/P2_FIXES_COMPLETE.md": {
+      "PropIQ": 17,
+      "propiq": 12,
+      "Prop IQ": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/CONTENT_LIBRARY_STRUCTURE.md": {
+      "PropIQ": 7
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/INTERVIEW_PREP_ANSWERS.md": {
+      "PropIQ": 15,
+      "propiq": 12,
+      "Prop IQ": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/ONBOARDING_CAMPAIGN_GUIDE.md": {
+      "PropIQ": 9,
+      "propiq": 8
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/DEVELOPMENT_WORKFLOW.md": {
+      "PropIQ": 9,
+      "propiq": 2,
+      "Prop IQ": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/DEMO_QUICK_REFERENCE.md": {
+      "PropIQ": 12,
+      "propiq": 5
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/CONTENT_TEMPLATES.md": {
+      "PropIQ": 47
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/ONBOARDING_VS_SLACK_COMPARISON.md": {
+      "PropIQ": 3,
+      "propiq": 5
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/ONBOARDING_CONVERSATION_GUIDE.md": {
+      "PropIQ": 14
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/P1_FIXES_COMPLETE.md": {
+      "PropIQ": 5,
+      "propiq": 8
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/UX_FIXES_DANITA_FEEDBACK.md": {
+      "PropIQ": 15,
+      "propiq": 2,
+      "Prop IQ": 4
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/WEEK_1_CONTENT_CALENDAR.md": {
+      "PropIQ": 23,
+      "propiq": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/SLACK_STRIPE_TEST_RESULTS.md": {
+      "PropIQ": 2,
+      "propiq": 7
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/IMPLEMENTATION_SUMMARY_HERO_PDF.md": {
+      "PropIQ": 11,
+      "propIQ": 11,
+      "propiq": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/TOOL_EVALUATION.md": {
+      "PropIQ": 17,
+      "propiq": 4
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/PROPIQ_ANALYSIS_COMPLETE.md": {
+      "PropIQ": 39,
+      "propiq": 9
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/FEATURE_SHOWCASE.md": {
+      "PropIQ": 17,
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/IMPLEMENT_UX_FIXES.md": {
+      "PropIQ": 8,
+      "propiq": 4,
+      "Prop IQ": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/VERSION_SYSTEM_QUICK_START.md": {
+      "PropIQ": 1,
+      "propiq": 3
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/P0_FIXES_COMPLETE.md": {
+      "PropIQ": 14,
+      "propiq": 8,
+      "Prop IQ": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/PROPIQ_SOCIAL_MEDIA_IMAGES.md": {
+      "propiq": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/HERO_AND_PDF_EXPORT_README.md": {
+      "PropIQ": 14,
+      "propiq": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/COMET_ASSISTANT_GUIDE.md": {
+      "PropIQ": 45,
+      "propiq": 9
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/ACCESSIBILITY_FIXES_SUMMARY.md": {
+      "propiq": 4
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/PHASE_0_COMPLETE.md": {
+      "PropIQ": 5,
+      "propiq": 9
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/VERSION_SYSTEM.md": {
+      "PropIQ": 9,
+      "propiq": 3
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/SLACK_SETUP_GUIDE.md": {
+      "PropIQ": 4,
+      "propiq": 12
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/SLACK_QUICK_START.md": {
+      "PropIQ": 1,
+      "propiq": 5
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/RESPONSIBLE_AI_NOTES.md": {
+      "PropIQ": 11,
+      "propiq": 3
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/SLACK_NOTIFICATIONS_SUMMARY.md": {
+      "PropIQ": 1,
+      "propiq": 22
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/SOCIAL_MEDIA_AUTOMATION_GUIDE.md": {
+      "propiq": 13
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/DEPLOYMENT_SUCCESS.md": {
+      "PropIQ": 9,
+      "propiq": 19
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/DEPLOYMENT_SUMMARY.md": {
+      "PropIQ": 3,
+      "propiq": 24
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/CONTENT_LIBRARY_QUICKSTART.md": {
+      "PropIQ": 6,
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/PRODUCT_CAPABILITIES_REFERENCE.md": {
+      "PropIQ": 16
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/REBRAND_COMPLETE.md": {
+      "PropIQ": 10,
+      "propiq": 21,
+      "Prop IQ": 4
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/CONNECTING_LUNTRA_AND_PROPIQ.md": {
+      "PropIQ": 6,
+      "propiq": 20,
+      "Prop IQ": 4
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/ACCESSIBILITY_FIX_PLAN.md": {
+      "PropIQ": 5
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/SEO_AUDIT_AND_IMPLEMENTATION_PLAN.md": {
+      "PropIQ": 17,
+      "propiq": 11
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/FAST_DEPLOYMENT_GUIDE.md": {
+      "PropIQ": 2,
+      "propiq": 26
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/PRIORITY_1_FIXES_COMPLETE.md": {
+      "PropIQ": 24,
+      "propiq": 12
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/DEMO_READY_SUMMARY.md": {
+      "PropIQ": 10,
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/ACCESSIBILITY_FIXES_IMPLEMENTED.md": {
+      "PropIQ": 4,
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/DEPLOY_NOW_CHECKLIST.md": {
+      "PropIQ": 2,
+      "propIQ": 1,
+      "propiq": 20
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/QUICK_START_HERO_PDF.md": {
+      "PropIQ": 6,
+      "propIQ": 11,
+      "propiq": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/AUTOMATION_SETUP_GUIDE.md": {
+      "PropIQ": 18,
+      "propiq": 3
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/claude.md": {
+      "PropIQ": 4,
+      "propiq": 13
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/LINKEDIN_INTERVIEW_PREP.md": {
+      "PropIQ": 39,
+      "propiq": 7
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/DEPLOYMENT_CHECKLIST.md": {
+      "PropIQ": 2,
+      "propiq": 6
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/MIGRATION_TO_VERSION_SYSTEM.md": {
+      "PropIQ": 1,
+      "PROPIQ": 1,
+      "propiq": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/DEPLOYMENT_COMPLETE.md": {
+      "PropIQ": 4,
+      "propiq": 27
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/social-cli/linkedin-oauth-simple.py": {
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/social-cli/QUICK_START.md": {
+      "propiq": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/vibe-marketing/ready-to-post-today.md": {
+      "PropIQ": 3
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/vibe-marketing/run_daily_intelligence.sh": {
+      "PropIQ": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/vibe-marketing/RESEARCH_KB_GUIDE.md": {
+      "PropIQ": 4,
+      "propiq": 3
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/vibe-marketing/QUICK_START_GUIDE.md": {
+      "PropIQ": 5,
+      "propiq": 3
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/vibe-marketing/n8n-daily-intelligence.json": {
+      "PropIQ": 5
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/vibe-marketing/TODAY_ACTION_PLAN.md": {
+      "PropIQ": 2,
+      "PROPIQ": 1,
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/vibe-marketing/RESEARCH_KB_QUICKSTART.md": {
+      "propiq": 3
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/vibe-marketing/COMET_TASK_REDDIT_INTELLIGENCE.md": {
+      "PropIQ": 15,
+      "PROPIQ": 1,
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/vibe-marketing/README.md": {
+      "PropIQ": 10,
+      "PROPIQ": 1,
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/vibe-marketing/.env.template": {
+      "PropIQ": 1,
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/vibe-marketing/daily_intelligence.py": {
+      "PropIQ": 5,
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/vibe-marketing/N8N_SETUP_GUIDE.md": {
+      "PropIQ": 5,
+      "propiq": 7
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/vibe-marketing/WORKFLOW_1_COMPLETE.md": {
+      "PropIQ": 2,
+      "propiq": 4
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/vibe-marketing/DAILY_INTELLIGENCE_WORKFLOW.md": {
+      "PropIQ": 8,
+      "propiq": 3
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/vibe-marketing/ready-to-post-today-INTEGRITY-EDIT.md": {
+      "PropIQ": 12
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/vibe-marketing/content-batch-1.md": {
+      "PropIQ": 16
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/vibe-marketing/PROMPT_TEMPLATES.md": {
+      "PropIQ": 58,
+      "PROPIQ": 6
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/vibe-marketing/research/README.md": {
+      "PropIQ": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/vibe-marketing/research/_templates/market-trends-template.md": {
+      "PropIQ": 1,
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/vibe-marketing/research/_templates/customer-insight-template.md": {
+      "PropIQ": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/vibe-marketing/research/_templates/reddit-research-template.md": {
+      "PropIQ": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/vibe-marketing/research/_templates/competitor-intel-template.md": {
+      "PropIQ": 11
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/vibe-marketing/research/reddit/2025-10-31-example-insurance-rates.md": {
+      "PropIQ": 12
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/vibe-marketing/tools/content_miner.py": {
+      "PropIQ": 8
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/vibe-marketing/tools/research_capture.py": {
+      "PropIQ": 14,
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/index.html": {
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/netlify.toml": {
+      "PropIQ": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/PRINT_BUTTONS_LOCATION.md": {
+      "PropIQ": 13
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/TALLY_FEEDBACK_SETUP.md": {
+      "PropIQ": 15,
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/README.md": {
+      "PropIQ": 2,
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/.netlify-deploy.sh": {
+      "PropIQ": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/QUICK_TEST.md": {
+      "PropIQ": 5,
+      "propiq": 1,
+      "Prop IQ": 3
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/DIAGNOSTIC_REPORT.md": {
+      "PropIQ": 1,
+      "propiq": 6,
+      "Prop IQ": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/URL_VERIFICATION.md": {
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/.netlify-init-config.txt": {
+      "propiq": 3
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/CHROME_EXTENSIONS_GUIDE.md": {
+      "PropIQ": 1,
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/PRINT_FEATURE_DEPLOYMENT.md": {
+      "PropIQ": 5,
+      "propiq": 5
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/diagnostic_check.sh": {
+      "PropIQ": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/tests/print-functionality.spec.ts": {
+      "PropIQ": 6,
+      "propiq": 19
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/tests/propiq-debug.spec.ts": {
+      "PropIQ": 1,
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/tests/verify-fix.spec.ts": {
+      "propiq": 2,
+      "Prop IQ": 3
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/tests/full-user-journey-with-screenshots.spec.ts": {
+      "PropIQ": 1,
+      "Prop IQ": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/tests/propiq-deployment.spec.ts": {
+      "PropIQ": 6,
+      "propiq": 4,
+      "Prop IQ": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/tests/accessibility.spec.ts": {
+      "PropIQ": 3,
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/tests/chrome-with-extensions.spec.ts": {
+      "PropIQ": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/tests/full-user-journey.spec.ts": {
+      "PropIQ": 1,
+      "propiq": 2,
+      "Prop IQ": 6
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/public/index.html": {
+      "Prop IQ": 5
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/public/IMAGE_REQUIREMENTS.md": {
+      "PropIQ": 8,
+      "propiq": 5
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/.netlify/netlify.toml": {
+      "propiq": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/test-results/print-functionality-PropIQ-ba6dd-hen-print-button-is-clicked-chromium/error-context.md": {
+      "PropIQ": 2,
+      "Prop IQ": 5
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/test-results/print-functionality-PropIQ-7b952--button-in-analysis-results-chromium/error-context.md": {
+      "PropIQ": 2,
+      "Prop IQ": 5
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/src/App.tsx": {
+      "PropIQ": 8,
+      "Prop IQ": 4
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/src/config/pricing.ts": {
+      "Prop IQ": 8
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/src/utils/calculatorUtils.ts": {
+      "PropIQ": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/src/utils/pdfExport.ts": {
+      "PropIQ": 5
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/src/utils/printReport.ts": {
+      "propiq": 29
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/src/components/IntegrationExample.tsx": {
+      "PropIQ": 5,
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/src/components/PropIQAnalysis.tsx": {
+      "PropIQ": 9,
+      "propiq": 91
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/src/components/FeedbackWidget.tsx": {
+      "PropIQ": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/src/components/PropIQAnalysis.css": {
+      "PROPIQ": 1,
+      "propiq": 87
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/src/components/SupportChat.tsx": {
+      "PropIQ": 2,
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/src/components/PricingPage.tsx": {
+      "Prop IQ": 5
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/src/.netlify/netlify.toml": {
+      "propiq": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/content-library/QUICK_START.md": {
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/versions/README.md": {
+      "PropIQ": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/versions/INDEX.md": {
+      "PropIQ": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/versions/CURRENT.md": {
+      "PropIQ": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/versions/v3.2/v3.2.0/FEATURE_REQUESTS.md": {
+      "PropIQ": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/versions/v3.2/v3.2.0/ROADMAP.md": {
+      "PropIQ": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/versions/v3.1/SUMMARY.md": {
+      "PropIQ": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/versions/v3.1/v3.1.1/CHANGELOG.md": {
+      "PropIQ": 1,
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/RENDER_DEPLOYMENT.md": {
+      "PropIQ": 1,
+      "propiq": 10
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/test_onboarding.sh": {
+      "PropIQ": 6
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/auth.py": {
+      "PropIQ": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/test_e2e_stripe.py": {
+      "PropIQ": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/render.yaml": {
+      "PropIQ": 1,
+      "propiq": 3
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/database_supabase.py": {
+      "PropIQ": 1,
+      "propiq": 6
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/database.py": {
+      "PropIQ": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/INTERCOM_QUICK_START.md": {
+      "propiq": 3
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/migrate_to_supabase.sh": {
+      "PropIQ": 2,
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/MICROSOFT_CLARITY_INTEGRATION.md": {
+      "PropIQ": 4,
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/INTERCOM_MESSENGER_INTEGRATION.md": {
+      "PropIQ": 7
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/copy_env_to_render.sh": {
+      "PropIQ": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/TESTING_GUIDE.md": {
+      "PropIQ": 3,
+      "propiq": 20
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/README.md": {
+      "PropIQ": 3,
+      "PROPIQ": 1,
+      "propiq": 5
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/api.py": {
+      "PropIQ": 4,
+      "propiq": 4
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/supabase_schema.sql": {
+      "PropIQ": 3,
+      "propiq": 10
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/.env.template": {
+      "PropIQ": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/README_INTEGRATIONS.md": {
+      "PropIQ": 3,
+      "propiq": 4
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/CUSTOM_SUPPORT_CHAT_GUIDE.md": {
+      "PropIQ": 4,
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/deploy_render.sh": {
+      "PropIQ": 3,
+      "propiq": 4
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/test_ai_analysis.sh": {
+      "PropIQ": 2,
+      "propiq": 4
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/INTERCOM_BACKEND_API_SETUP.md": {
+      "PropIQ": 6,
+      "propiq": 5
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/RAILWAY_DEPLOY.md": {
+      "PropIQ": 3,
+      "propIQ": 1,
+      "propiq": 7
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/INTEGRATION_SUMMARY.md": {
+      "PropIQ": 5,
+      "propIQ": 1,
+      "propiq": 8
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/SUPABASE_SETUP.md": {
+      "PropIQ": 4,
+      "propiq": 3
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/INTERCOM_WEBHOOK_SETUP_GUIDE.md": {
+      "PropIQ": 1,
+      "propiq": 6
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/deploy-railway.sh": {
+      "PropIQ": 2,
+      "propiq": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/QUICK_START.md": {
+      "PropIQ": 2,
+      "propiq": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/test_railway_api.sh": {
+      "PropIQ": 7,
+      "PROPIQ": 3,
+      "propiq": 8
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/database_mongodb.py": {
+      "PropIQ": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/test_prod.py": {
+      "PropIQ": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/migrate_to_supabase.py": {
+      "PropIQ": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/DEPLOYMENT_COMPLETE.md": {
+      "PropIQ": 4,
+      "propiq": 9
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/routers/support_chat.py": {
+      "PropIQ": 6,
+      "propiq": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/routers/marketing.py": {
+      "PropIQ": 8,
+      "propiq": 5
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/routers/onboarding.py": {
+      "PropIQ": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/routers/slack_test.py": {
+      "propiq": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/routers/property_advisor_multiagent.py": {
+      "PropIQ": 8,
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/routers/propiq.py": {
+      "PropIQ": 2,
+      "propiq": 3
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/routers/support_chat_enhanced.py": {
+      "PropIQ": 6,
+      "propiq": 27
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/routers/intercom.py": {
+      "PropIQ": 1,
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/routers/payment.py": {
+      "PropIQ": 1,
+      "propiq": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/middleware/rate_limiter.py": {
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/middleware/__init__.py": {
+      "PropIQ": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/utils/onboarding_campaign.py": {
+      "PropIQ": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/utils/onboarding_emails.py": {
+      "PropIQ": 31,
+      "PROPIQ": 1,
+      "propiq": 5
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/utils/__init__.py": {
+      "PropIQ": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/utils/slack.py": {
+      "PropIQ": 5
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/simulations/delete_old_test_users.py": {
+      "PropIQ": 1,
+      "propiq": 5
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/simulations/create_test_users.py": {
+      "PropIQ": 2,
+      "propiq": 6
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/simulations/full_simulation_20251022_161452.json": {
+      "propiq": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/simulations/FIX_SUMMARY.md": {
+      "PropIQ": 1,
+      "propiq": 19
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/simulations/simulation_runner.py": {
+      "PropIQ": 4,
+      "PROPIQ": 1,
+      "propiq": 7
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/simulations/debug_assistant.py": {
+      "PropIQ": 2,
+      "propiq": 3
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/simulations/requirements.txt": {
+      "PropIQ": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/simulations/debug_report.json": {
+      "propiq": 3
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/simulations/MIGRATION_INSTRUCTIONS.md": {
+      "PropIQ": 1,
+      "propiq": 10
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/simulations/SIMULATION_GUIDE.md": {
+      "PropIQ": 2,
+      "PROPIQ": 1,
+      "propiq": 10
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/simulations/luntra-sim-profiles.yaml": {
+      "PropIQ": 5,
+      "propiq": 15
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/simulations/SIMULATION_SUMMARY.md": {
+      "PropIQ": 5,
+      "propiq": 9
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/simulations/README.md": {
+      "PropIQ": 1,
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/simulations/COMPLETE_MIGRATION.sql": {
+      "PropIQ": 2,
+      "propiq": 6
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/simulations/FINAL_SIMULATION_REPORT.md": {
+      "PropIQ": 4,
+      "propiq": 10
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/simulations/run_simulation.sh": {
+      "PropIQ": 2,
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/simulations/validation_test.json": {
+      "propiq": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/backend/simulations/SIMULATION_TEST_RESULTS.md": {
+      "PropIQ": 1,
+      "propiq": 8
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/docs/DEPLOYMENT_READY.md": {
+      "PropIQ": 3,
+      "propIQ": 2,
+      "propiq": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/docs/AZURE_DOCKER_DEPLOYMENT.md": {
+      "PropIQ": 3,
+      "propIQ": 2,
+      "propiq": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/docs/DEPLOY_NOW.md": {
+      "PropIQ": 1,
+      "propIQ": 1,
+      "propiq": 1
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/docs/README.md": {
+      "PropIQ": 9,
+      "propiq": 6
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/docs/RENDER_DEPLOYMENT_GUIDE.md": {
+      "PropIQ": 2,
+      "propIQ": 2,
+      "propiq": 2
+    },
+    "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/creator-automation/README.md": {
+      "propiq": 3
+    }
+  },
+  "skipped_files": []
+}
