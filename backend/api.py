@@ -129,6 +129,10 @@ All endpoints use the `/api/v1` prefix for versioning. Future API versions will 
             "description": "GDPR Article 15 (Right of Access) and Article 17 (Right to Erasure) implementations."
         },
         {
+            "name": "Feedback & Evaluation",
+            "description": "CSAT, NPS, PMF surveys, feature requests, bug reports, interview scheduling, and product analytics."
+        },
+        {
             "name": "Support",
             "description": "AI-powered customer support chat."
         },
@@ -303,6 +307,14 @@ try:
     logger.info("Analysis history router registered (with advanced filtering)")
 except ImportError as e:
     logger.warning(f"Analysis history router not available: {e}")
+
+# Import and include feedback router (CSAT, NPS, PMF, feature requests)
+try:
+    from routers.feedback import router as feedback_router
+    app.include_router(feedback_router)
+    logger.info("Feedback router registered (CSAT, NPS, PMF, feature requests)")
+except ImportError as e:
+    logger.warning(f"Feedback router not available: {e}")
 
 # Import and include custom support chat router (AI-powered, no third-party dependencies)
 try:
