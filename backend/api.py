@@ -55,31 +55,37 @@ PropIQ provides comprehensive property analysis powered by Azure OpenAI, helping
 make data-driven decisions.
 
 ### Features
-- **Property Analysis:** AI-powered analysis with financial projections
-- **Deal Scoring:** Automated scoring based on investment metrics
-- **User Management:** Secure authentication with JWT tokens
-- **Subscription Management:** Stripe-powered subscription tiers
-- **Support Chat:** AI-powered customer support
+- **Property Analysis:** AI-powered analysis with financial projections and deal scoring
+- **Analysis History:** Track all analyses with advanced filtering, sorting, and CSV/JSON export
+- **Subscription Management:** Full lifecycle management (upgrade, downgrade, cancel) with Stripe
+- **User Dashboard:** Usage analytics, billing history, and personalized recommendations
+- **Account Settings:** Profile, passwords, email preferences, and notification controls
+- **GDPR Compliance:** Full Article 15 (data access) and Article 17 (data erasure) support
+- **Secure Authentication:** JWT tokens with bcrypt password hashing
+- **AI Support Chat:** Multi-agent property advisor with function calling
 
 ### Security
-- **Authentication:** JWT tokens with bcrypt password hashing
+- **Authentication:** JWT tokens with bcrypt password hashing (7-day expiration)
 - **Input Validation:** Multi-layered XSS and SQL injection protection
-- **Security Headers:** CSP, HSTS, X-Frame-Options, and more
-- **Rate Limiting:** Protected against DoS attacks
+- **Security Headers:** CSP, HSTS, X-Frame-Options, X-Content-Type-Options
+- **Rate Limiting:** Configurable per-endpoint rate limits
+- **GDPR Compliance:** Right of access and right to erasure
+- **PCI DSS Level 4:** Compliant via Stripe (no card data stored)
 
 ### API Versioning
 All endpoints use the `/api/v1` prefix for versioning. Future API versions will use `/api/v2`, etc.
 
 ### Rate Limits
-- General endpoints: 100 requests/min per IP
+- General endpoints: 60 requests/min per IP
 - Auth endpoints: 10 requests/min per IP
 - Analysis endpoints: 5 requests/min per user
+- Export endpoints: 10 requests/hour per user
 
 ### Support
 - Documentation: https://propiq.luntra.one/docs
 - API Status: https://status.propiq.luntra.one
 """,
-    version="3.1.1",
+    version="4.0.0",
     contact={
         "name": "PropIQ Support",
         "url": "https://propiq.luntra.one",
@@ -101,6 +107,26 @@ All endpoints use the `/api/v1` prefix for versioning. Future API versions will 
         {
             "name": "Payments",
             "description": "Stripe subscription management and checkout."
+        },
+        {
+            "name": "Subscription Management",
+            "description": "Upgrade, downgrade, and cancel subscriptions. View subscription details and available plans."
+        },
+        {
+            "name": "User Dashboard",
+            "description": "Dashboard overview, usage statistics, billing history, and personalized recommendations."
+        },
+        {
+            "name": "Account Settings",
+            "description": "Profile management, password changes, email preferences, and notification settings."
+        },
+        {
+            "name": "Analysis History",
+            "description": "Property analysis history with advanced filtering, sorting, and export capabilities."
+        },
+        {
+            "name": "GDPR Compliance",
+            "description": "GDPR Article 15 (Right of Access) and Article 17 (Right to Erasure) implementations."
         },
         {
             "name": "Support",
@@ -229,6 +255,54 @@ try:
     logger.info("Stripe payment router registered")
 except ImportError as e:
     logger.warning(f"Payment router not available: {e}")
+
+# Import and include enhanced payment router with webhook handling
+try:
+    from routers.payment_enhanced import router as payment_enhanced_router
+    app.include_router(payment_enhanced_router)
+    logger.info("Enhanced payment router registered (with webhook handling)")
+except ImportError as e:
+    logger.warning(f"Enhanced payment router not available: {e}")
+
+# Import and include GDPR compliance router
+try:
+    from routers.gdpr import router as gdpr_router
+    app.include_router(gdpr_router)
+    logger.info("GDPR compliance router registered (Articles 15 & 17)")
+except ImportError as e:
+    logger.warning(f"GDPR router not available: {e}")
+
+# Import and include subscription management router
+try:
+    from routers.subscription import router as subscription_router
+    app.include_router(subscription_router)
+    logger.info("Subscription management router registered")
+except ImportError as e:
+    logger.warning(f"Subscription router not available: {e}")
+
+# Import and include dashboard router
+try:
+    from routers.dashboard import router as dashboard_router
+    app.include_router(dashboard_router)
+    logger.info("Dashboard router registered (usage analytics & billing)")
+except ImportError as e:
+    logger.warning(f"Dashboard router not available: {e}")
+
+# Import and include account settings router
+try:
+    from routers.account import router as account_router
+    app.include_router(account_router)
+    logger.info("Account settings router registered")
+except ImportError as e:
+    logger.warning(f"Account router not available: {e}")
+
+# Import and include analysis history router
+try:
+    from routers.analysis_history import router as analysis_history_router
+    app.include_router(analysis_history_router)
+    logger.info("Analysis history router registered (with advanced filtering)")
+except ImportError as e:
+    logger.warning(f"Analysis history router not available: {e}")
 
 # Import and include custom support chat router (AI-powered, no third-party dependencies)
 try:
