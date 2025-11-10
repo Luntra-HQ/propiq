@@ -408,6 +408,223 @@ WHERE table_name = 'users'
 
 ---
 
+## 🔵 SPRINT 2 DELIVERABLES - Post-Sprint Actions
+
+### 26. Add GDPR Router to Main Application
+**Owner:** Backend Lead
+**Time:** 5 minutes
+**Priority:** P1 - HIGH
+**Sprint:** Sprint 2 Post-Deployment
+
+**Action:**
+```python
+# In backend/api.py, add:
+from routers.gdpr import router as gdpr_router
+app.include_router(gdpr_router)
+```
+
+**Verification:**
+```bash
+curl -X GET https://luntra-outreach-app.azurewebsites.net/api/v1/gdpr/health
+# Expected: {"status": "healthy", "gdpr_compliance": "enabled"}
+```
+
+**Status:** ⬜ Not Started
+
+---
+
+### 27. Run GDPR Database Migration
+**Owner:** Backend Lead / DevOps
+**Time:** 5 minutes
+**Priority:** P1 - HIGH
+**Sprint:** Sprint 2 Post-Deployment
+
+**Action:**
+```sql
+-- Add deletion tracking columns to users table
+ALTER TABLE users ADD COLUMN IF NOT EXISTS deletion_scheduled BOOLEAN DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS deletion_scheduled_date TIMESTAMP;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS deletion_reason TEXT;
+```
+
+**Verification:**
+```sql
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_name = 'users'
+  AND column_name LIKE '%deletion%';
+
+-- Expected:
+-- deletion_scheduled | boolean | YES
+-- deletion_scheduled_date | timestamp | YES
+-- deletion_reason | text | YES
+```
+
+**Status:** ⬜ Not Started
+
+---
+
+### 28. Add Privacy Policy and ToS to Website
+**Owner:** Frontend Lead
+**Time:** 30 minutes
+**Priority:** P1 - HIGH
+**Sprint:** Sprint 2 Post-Deployment
+
+**Action:**
+1. Create `/legal/privacy` page on website
+2. Create `/legal/terms` page on website
+3. Copy content from:
+   - `backend/legal/PRIVACY_POLICY.md`
+   - `backend/legal/TERMS_OF_SERVICE.md`
+4. Add links to footer: "Privacy Policy" | "Terms of Service"
+5. Add links to registration page: "By signing up, you agree to our [Terms] and [Privacy Policy]"
+
+**Verification:**
+- Navigate to https://propiq.luntra.one/legal/privacy
+- Navigate to https://propiq.luntra.one/legal/terms
+- Verify footer links work
+- Verify registration checkbox/text present
+
+**Status:** ⬜ Not Started
+
+---
+
+### 29. Set Up Background Job for Account Deletions
+**Owner:** Backend Lead / DevOps
+**Time:** 1-2 hours
+**Priority:** P2 - MEDIUM
+**Sprint:** Sprint 3 (not blocking)
+
+**Action:**
+Create scheduled job (cron or Azure Function) to process account deletions:
+
+```python
+# File: backend/jobs/process_deletions.py
+from database_supabase import get_users_scheduled_for_deletion, permanently_delete_user
+import asyncio
+
+async def process_scheduled_deletions():
+    """Run daily to process account deletions"""
+    users = get_users_scheduled_for_deletion()
+    for user in users:
+        try:
+            await permanently_delete_user(user['id'])
+            print(f"✅ Deleted user {user['email']}")
+        except Exception as e:
+            print(f"❌ Failed to delete user {user['email']}: {e}")
+
+if __name__ == "__main__":
+    asyncio.run(process_scheduled_deletions())
+```
+
+**Schedule:** Daily at 2:00 AM UTC
+**Method:** Azure Functions Timer Trigger or cron job
+
+**Status:** ⬜ Not Started
+
+---
+
+### 30. Create Email Templates for Account Deletion
+**Owner:** Marketing / Product
+**Time:** 1 hour
+**Priority:** P2 - MEDIUM
+**Sprint:** Sprint 3 (not blocking)
+
+**Templates Needed:**
+1. **Deletion Scheduled Confirmation**
+   - Subject: "Account Deletion Scheduled - 30 Day Grace Period"
+   - Content: Confirmation, grace period details, cancellation link
+
+2. **Deletion Canceled Confirmation**
+   - Subject: "Account Deletion Canceled - Your Account is Active"
+   - Content: Confirmation, account restored message
+
+3. **Final Deletion Warning (7 days before)**
+   - Subject: "Account Deletion in 7 Days - Last Chance to Cancel"
+   - Content: Final warning, cancellation link, data export reminder
+
+4. **Deletion Complete**
+   - Subject: "Account Deleted - Goodbye from PropIQ"
+   - Content: Confirmation, data removed, re-signup option
+
+**Tool:** SendGrid or Resend
+**Templates:** Add to `backend/utils/onboarding_emails.py`
+
+**Status:** ⬜ Not Started
+
+---
+
+### 31. Legal Review of Privacy Policy and ToS
+**Owner:** Legal Counsel / CTO
+**Time:** 2-4 hours (external review)
+**Priority:** P1 - HIGH
+**Sprint:** Before Launch
+
+**Action:**
+1. Send documents to legal counsel for review:
+   - `backend/legal/PRIVACY_POLICY.md`
+   - `backend/legal/TERMS_OF_SERVICE.md`
+2. Address any feedback or required changes
+3. Get written approval from counsel
+4. Document approval in compliance folder
+
+**Deliverable:** Signed-off legal documents ready for production
+
+**Status:** ⬜ Not Started
+
+---
+
+### 32. Run Full Test Suite and Verify Coverage
+**Owner:** Backend Lead / QA
+**Time:** 30 minutes
+**Priority:** P1 - HIGH
+**Sprint:** Sprint 2 Post-Completion
+
+**Action:**
+```bash
+# Install test dependencies
+cd backend
+pip install pytest pytest-cov pytest-asyncio
+
+# Run test suite
+pytest tests/ -v
+
+# Check coverage
+pytest --cov=backend --cov-report=html tests/
+
+# Open coverage report
+open htmlcov/index.html
+```
+
+**Success Criteria:**
+- All tests pass
+- Coverage ≥ 60%
+- No critical warnings
+
+**Status:** ⬜ Not Started
+
+---
+
+### 33. Document GDPR Compliance Procedures
+**Owner:** CTO / Legal
+**Time:** 1-2 hours
+**Priority:** P2 - MEDIUM
+**Sprint:** Before Launch
+
+**Action:**
+Create `GDPR_COMPLIANCE.md` documenting:
+1. Data retention policy (30-day grace period, 2-year inactive)
+2. User rights and how to exercise them
+3. Data processing agreements with third parties
+4. Incident response plan for data breaches
+5. Regular audit schedule
+
+**Reference:** GDPR Articles 15, 17, 32, 33, 34
+
+**Status:** ⬜ Not Started
+
+---
+
 ## 📝 NOTES
 
 **Update Frequency:** This document should be updated:
