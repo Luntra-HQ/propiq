@@ -20,10 +20,10 @@ CREATE TABLE IF NOT EXISTS users (
     subscription_stripe_customer_id VARCHAR(255),
     subscription_stripe_subscription_id VARCHAR(255),
 
-    -- DealIQ Usage Tracking
-    dealiq_usage_count INTEGER DEFAULT 0,
-    dealiq_usage_limit INTEGER DEFAULT 5,
-    dealiq_last_reset_date TIMESTAMP,
+    -- PropIQ Usage Tracking
+    propiq_usage_count INTEGER DEFAULT 0,
+    propiq_usage_limit INTEGER DEFAULT 5,
+    propiq_last_reset_date TIMESTAMP,
 
     -- Metadata
     created_at TIMESTAMP DEFAULT NOW(),
@@ -93,12 +93,12 @@ CREATE INDEX IF NOT EXISTS idx_support_chats_user ON support_chats(user_id);
 -- HELPER FUNCTIONS
 -- ============================================================================
 
--- Function to increment DealIQ usage count
-CREATE OR REPLACE FUNCTION increment_dealiq_usage(user_id_param UUID)
+-- Function to increment PropIQ usage count
+CREATE OR REPLACE FUNCTION increment_propiq_usage(user_id_param UUID)
 RETURNS void AS $$
 BEGIN
     UPDATE users
-    SET dealiq_usage_count = dealiq_usage_count + 1,
+    SET propiq_usage_count = propiq_usage_count + 1,
         updated_at = NOW()
     WHERE id = user_id_param;
 END;
@@ -109,11 +109,11 @@ CREATE OR REPLACE FUNCTION reset_monthly_usage()
 RETURNS void AS $$
 BEGIN
     UPDATE users
-    SET dealiq_usage_count = 0,
-        dealiq_last_reset_date = NOW(),
+    SET propiq_usage_count = 0,
+        propiq_last_reset_date = NOW(),
         updated_at = NOW()
-    WHERE dealiq_last_reset_date IS NULL
-       OR dealiq_last_reset_date < DATE_TRUNC('month', NOW());
+    WHERE propiq_last_reset_date IS NULL
+       OR propiq_last_reset_date < DATE_TRUNC('month', NOW');
 END;
 $$ LANGUAGE plpgsql;
 
