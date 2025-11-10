@@ -13,8 +13,8 @@ from typing import Dict, Any
 import os
 
 # Email configuration
-FROM_EMAIL = os.getenv("FROM_EMAIL", "team@propiq.ai")
-SUPPORT_EMAIL = os.getenv("SUPPORT_EMAIL", "support@propiq.ai")
+FROM_EMAIL = os.getenv("FROM_EMAIL", "team@propiq.luntra.one")
+SUPPORT_EMAIL = os.getenv("SUPPORT_EMAIL", "support@propiq.luntra.one")
 APP_URL = os.getenv("APP_URL", "https://propiq.luntra.one")
 
 def get_email_day_1(user_name: str = "there", user_email: str = "") -> Dict[str, Any]:

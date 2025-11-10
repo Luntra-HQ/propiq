@@ -238,6 +238,8 @@ async def signup(request: SignupRequest):
             logger.warning(f"Slack notification failed: {e}")
 
         # Start onboarding email campaign
+        onboarding_success = True
+        onboarding_message = ""
         try:
             from utils.onboarding_campaign import start_onboarding_campaign
             onboarding_result = await start_onboarding_campaign(
@@ -252,16 +254,29 @@ async def signup(request: SignupRequest):
                     "emails_scheduled": len(onboarding_result.get('emails_scheduled', []))
                 }
             )
+
+            # Check if there were any errors in the onboarding campaign
+            if onboarding_result.get('errors'):
+                onboarding_success = False
+                onboarding_message = " Note: There was an issue sending the welcome email. Please contact support if you don't receive it within 24 hours."
+                logger.warning(f"Onboarding had errors: {onboarding_result.get('errors')}")
+
         except Exception as e:
             # Don't fail signup if onboarding campaign fails
+            onboarding_success = False
             logger.warning(f"Onboarding campaign failed: {e}")
+            onboarding_message = " Note: There was an issue sending the welcome email. Please contact support if you don't receive it within 24 hours."
+
+        success_message = "User created successfully"
+        if not onboarding_success:
+            success_message += onboarding_message
 
         return UserResponse(
             success=True,
             userId=user_id,
             email=request.email.lower(),
             accessToken=access_token,
-            message="User created successfully"
+            message=success_message
         )
 
     except Exception as e:

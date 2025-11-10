@@ -28,15 +28,17 @@ SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
 async def send_onboarding_email(
     to_email: str,
     email_data: Dict[str, Any],
-    user_name: str = "there"
+    user_name: str = "there",
+    max_retries: int = 3
 ) -> bool:
     """
-    Send a single onboarding email via SendGrid
+    Send a single onboarding email via SendGrid with retry logic
 
     Args:
         to_email: Recipient email address
         email_data: Email dictionary with subject, html_content
         user_name: User's first name for personalization
+        max_retries: Maximum number of retry attempts (default: 3)
 
     Returns:
         True if email sent successfully, False otherwise
@@ -45,28 +47,47 @@ async def send_onboarding_email(
         logger.error("SENDGRID_API_KEY not configured")
         return False
 
-    try:
-        sg = SendGridAPIClient(SENDGRID_API_KEY)
+    import asyncio
+    from sendgrid.helpers.mail import Mail
 
-        message = Mail(
-            from_email=FROM_EMAIL,
-            to_emails=to_email,
-            subject=email_data["subject"],
-            html_content=email_data["html_content"]
-        )
+    for attempt in range(max_retries):
+        try:
+            sg = SendGridAPIClient(SENDGRID_API_KEY)
 
-        response = sg.send(message)
+            message = Mail(
+                from_email=FROM_EMAIL,
+                to_emails=to_email,
+                subject=email_data["subject"],
+                html_content=email_data["html_content"]
+            )
 
-        if response.status_code in [200, 202]:
-            logger.info(f"✅ Sent onboarding email to {to_email}: {email_data['subject']}")
-            return True
-        else:
-            logger.error(f"❌ SendGrid returned status {response.status_code} for {to_email}")
-            return False
+            response = sg.send(message)
 
-    except Exception as e:
-        logger.error(f"❌ Failed to send onboarding email to {to_email}: {str(e)}")
-        return False
+            if response.status_code in [200, 202]:
+                if attempt > 0:
+                    logger.info(f"✅ Sent onboarding email to {to_email} after {attempt + 1} attempts: {email_data['subject']}")
+                else:
+                    logger.info(f"✅ Sent onboarding email to {to_email}: {email_data['subject']}")
+                return True
+            else:
+                logger.warning(f"⚠️  SendGrid returned status {response.status_code} for {to_email} (attempt {attempt + 1}/{max_retries})")
+
+                # Don't retry on client errors (4xx), only server errors (5xx) or network issues
+                if 400 <= response.status_code < 500:
+                    logger.error(f"❌ Client error {response.status_code} - not retrying")
+                    return False
+
+        except Exception as e:
+            logger.warning(f"⚠️  Failed to send onboarding email to {to_email} (attempt {attempt + 1}/{max_retries}): {str(e)}")
+
+        # If not the last attempt, wait before retrying (exponential backoff)
+        if attempt < max_retries - 1:
+            wait_time = 2 ** attempt  # 1s, 2s, 4s
+            logger.info(f"⏳ Waiting {wait_time}s before retry...")
+            await asyncio.sleep(wait_time)
+
+    logger.error(f"❌ Failed to send onboarding email to {to_email} after {max_retries} attempts")
+    return False
 
 
 async def start_onboarding_campaign(

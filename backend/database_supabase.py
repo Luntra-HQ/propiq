@@ -413,3 +413,203 @@ def test_connection() -> bool:
         return True
     except Exception:
         return False
+
+# ============================================================================
+# ONBOARDING STATUS FUNCTIONS
+# ============================================================================
+
+def record_onboarding_status(user_id: str, campaign_results: Dict[str, Any]) -> bool:
+    """
+    Record initial onboarding campaign status in database
+
+    Args:
+        user_id: User's database ID
+        campaign_results: Results from start_onboarding_campaign containing:
+            - user_email: Email address
+            - emails_sent: List of sent emails
+            - emails_scheduled: List of scheduled emails
+            - errors: List of errors
+
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    if not supabase:
+        logger.warning("Supabase not available - cannot record onboarding status")
+        return False
+
+    try:
+        # Build email_status object from results
+        email_status = {}
+        for sent_email in campaign_results.get("emails_sent", []):
+            email_status[f"day_{sent_email['day']}"] = "sent"
+        for scheduled_email in campaign_results.get("emails_scheduled", []):
+            email_status[f"day_{scheduled_email['day']}"] = "scheduled"
+
+        # Prepare data for database
+        onboarding_data = {
+            "user_id": user_id,
+            "user_email": campaign_results.get("user_email", ""),
+            "campaign_started_at": datetime.utcnow().isoformat(),
+            "email_status": email_status,
+            "emails_scheduled": campaign_results.get("emails_scheduled", []),
+            "errors": campaign_results.get("errors", []),
+            "created_at": datetime.utcnow().isoformat(),
+            "updated_at": datetime.utcnow().isoformat()
+        }
+
+        # Insert or update (upsert) onboarding status
+        result = supabase.table("onboarding_status").upsert(
+            onboarding_data,
+            on_conflict="user_id"
+        ).execute()
+
+        logger.info(f"✅ Recorded onboarding status for user {user_id}")
+        return True
+
+    except Exception as e:
+        logger.error(f"❌ Failed to record onboarding status for {user_id}: {e}", exc_info=True)
+        return False
+
+
+def update_onboarding_status(user_id: str, day_number: int, status: str) -> bool:
+    """
+    Update the status of a specific onboarding email
+
+    Args:
+        user_id: User's database ID
+        day_number: Email day number (1-4)
+        status: New status ("sent", "failed", "scheduled")
+
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    if not supabase:
+        logger.warning("Supabase not available - cannot update onboarding status")
+        return False
+
+    try:
+        # First, get current status
+        result = supabase.table("onboarding_status").select("*").eq("user_id", user_id).execute()
+
+        if not result.data:
+            logger.warning(f"No onboarding record found for user {user_id}")
+            return False
+
+        current_data = result.data[0]
+        email_status = current_data.get("email_status", {})
+        emails_scheduled = current_data.get("emails_scheduled", [])
+
+        # Update email_status
+        email_status[f"day_{day_number}"] = status
+
+        # Update the scheduled email status in emails_scheduled array
+        for scheduled_email in emails_scheduled:
+            if scheduled_email.get("day") == day_number:
+                scheduled_email["status"] = status
+
+        # Update database
+        update_result = supabase.table("onboarding_status").update({
+            "email_status": email_status,
+            "emails_scheduled": emails_scheduled,
+            "updated_at": datetime.utcnow().isoformat()
+        }).eq("user_id", user_id).execute()
+
+        logger.info(f"✅ Updated onboarding status for user {user_id}, day {day_number}: {status}")
+        return True
+
+    except Exception as e:
+        logger.error(f"❌ Failed to update onboarding status for {user_id}: {e}", exc_info=True)
+        return False
+
+
+def get_onboarding_status(user_id: str) -> Optional[Dict[str, Any]]:
+    """
+    Get onboarding campaign status for a user
+
+    Args:
+        user_id: User's database ID
+
+    Returns:
+        Dictionary with onboarding status or None if not found
+    """
+    if not supabase:
+        logger.warning("Supabase not available - cannot get onboarding status")
+        return None
+
+    try:
+        result = supabase.table("onboarding_status").select("*").eq("user_id", user_id).execute()
+
+        if result.data:
+            return result.data[0]
+        else:
+            logger.info(f"No onboarding status found for user {user_id}")
+            return None
+
+    except Exception as e:
+        logger.error(f"❌ Failed to get onboarding status for {user_id}: {e}", exc_info=True)
+        return None
+
+
+def get_pending_onboarding_emails() -> list[Dict[str, Any]]:
+    """
+    Get all scheduled onboarding emails that are due to be sent
+
+    Returns:
+        List of dictionaries with pending email information:
+        [
+            {
+                "user_id": "uuid",
+                "user_email": "user@example.com",
+                "day_number": 2,
+                "scheduled_for": "ISO timestamp",
+                "subject": "Email subject"
+            },
+            ...
+        ]
+    """
+    if not supabase:
+        logger.warning("Supabase not available - cannot get pending emails")
+        return []
+
+    try:
+        # Get all onboarding statuses
+        result = supabase.table("onboarding_status").select("*").execute()
+
+        pending_emails = []
+        current_time = datetime.utcnow()
+
+        for record in result.data:
+            user_id = record.get("user_id")
+            user_email = record.get("user_email")
+            emails_scheduled = record.get("emails_scheduled", [])
+
+            # Check each scheduled email
+            for scheduled_email in emails_scheduled:
+                status = scheduled_email.get("status", "")
+                scheduled_for_str = scheduled_email.get("scheduled_for", "")
+
+                # Only include emails that are scheduled and due
+                if status == "scheduled" and scheduled_for_str:
+                    try:
+                        # Parse ISO timestamp
+                        scheduled_for = datetime.fromisoformat(scheduled_for_str.replace("Z", "+00:00"))
+
+                        # Check if it's time to send
+                        if scheduled_for <= current_time:
+                            pending_emails.append({
+                                "user_id": user_id,
+                                "user_email": user_email,
+                                "day_number": scheduled_email.get("day"),
+                                "scheduled_for": scheduled_for_str,
+                                "subject": scheduled_email.get("subject", "")
+                            })
+                    except Exception as parse_error:
+                        logger.warning(f"Failed to parse scheduled_for date: {parse_error}")
+                        continue
+
+        logger.info(f"📧 Found {len(pending_emails)} pending onboarding emails")
+        return pending_emails
+
+    except Exception as e:
+        logger.error(f"❌ Failed to get pending onboarding emails: {e}", exc_info=True)
+        return []
