@@ -613,3 +613,300 @@ def get_pending_onboarding_emails() -> list[Dict[str, Any]]:
     except Exception as e:
         logger.error(f"❌ Failed to get pending onboarding emails: {e}", exc_info=True)
         return []
+
+
+# ============================================================================
+# GDPR COMPLIANCE FUNCTIONS
+# ============================================================================
+
+async def get_user_property_analyses(user_id: str) -> list[Dict[str, Any]]:
+    """
+    Get all property analyses for a user (for GDPR data export)
+
+    Args:
+        user_id: User ID
+
+    Returns:
+        List of property analyses
+    """
+    if not supabase:
+        return []
+
+    try:
+        result = supabase.table("property_analyses") \
+            .select("*") \
+            .eq("user_id", user_id) \
+            .order("created_at", desc=True) \
+            .execute()
+
+        return result.data if result.data else []
+
+    except Exception as e:
+        logger.error(f"Failed to get user analyses: {e}", exc_info=True)
+        return []
+
+
+async def get_user_support_chats(user_id: str) -> list[Dict[str, Any]]:
+    """
+    Get all support chat messages for a user (for GDPR data export)
+
+    Args:
+        user_id: User ID
+
+    Returns:
+        List of support chat messages
+    """
+    if not supabase:
+        return []
+
+    try:
+        result = supabase.table("support_chats") \
+            .select("*") \
+            .eq("user_id", user_id) \
+            .order("created_at", desc=True) \
+            .execute()
+
+        return result.data if result.data else []
+
+    except Exception as e:
+        logger.error(f"Failed to get user support chats: {e}", exc_info=True)
+        return []
+
+
+async def verify_user_password(user_id: str, password: str) -> bool:
+    """
+    Verify user password by user ID
+
+    Args:
+        user_id: User ID
+        password: Plain text password to verify
+
+    Returns:
+        True if password is correct, False otherwise
+    """
+    if not supabase:
+        return False
+
+    try:
+        # Get user's password hash
+        result = supabase.table("users") \
+            .select("password_hash") \
+            .eq("id", user_id) \
+            .execute()
+
+        if not result.data:
+            return False
+
+        password_hash = result.data[0].get("password_hash")
+        if not password_hash:
+            return False
+
+        # Verify password
+        return verify_password(password, password_hash)
+
+    except Exception as e:
+        logger.error(f"Failed to verify password: {e}", exc_info=True)
+        return False
+
+
+async def schedule_account_deletion(user_id: str, reason: Optional[str] = None) -> str:
+    """
+    Schedule account deletion with 30-day grace period
+
+    Args:
+        user_id: User ID
+        reason: Optional reason for deletion
+
+    Returns:
+        Scheduled deletion date (ISO format)
+    """
+    if not supabase:
+        raise Exception("Supabase not initialized")
+
+    try:
+        from datetime import timedelta
+
+        # Calculate deletion date (30 days from now)
+        deletion_date = datetime.utcnow() + timedelta(days=30)
+        deletion_date_str = deletion_date.isoformat()
+
+        # Update user record
+        update_data = {
+            "deletion_scheduled": True,
+            "deletion_scheduled_date": deletion_date_str,
+            "deletion_reason": reason,
+            "updated_at": datetime.utcnow().isoformat()
+        }
+
+        result = supabase.table("users") \
+            .update(update_data) \
+            .eq("id", user_id) \
+            .execute()
+
+        if not result.data:
+            raise Exception("Failed to schedule deletion")
+
+        logger.info(f"🗑️  Scheduled account deletion for user {user_id} on {deletion_date_str}")
+        return deletion_date_str
+
+    except Exception as e:
+        logger.error(f"Failed to schedule account deletion: {e}", exc_info=True)
+        raise
+
+
+async def cancel_scheduled_deletion(user_id: str) -> bool:
+    """
+    Cancel scheduled account deletion
+
+    Args:
+        user_id: User ID
+
+    Returns:
+        True if successful
+    """
+    if not supabase:
+        raise Exception("Supabase not initialized")
+
+    try:
+        # Update user record
+        update_data = {
+            "deletion_scheduled": False,
+            "deletion_scheduled_date": None,
+            "deletion_reason": None,
+            "updated_at": datetime.utcnow().isoformat()
+        }
+
+        result = supabase.table("users") \
+            .update(update_data) \
+            .eq("id", user_id) \
+            .execute()
+
+        if not result.data:
+            return False
+
+        logger.info(f"✅ Canceled scheduled deletion for user {user_id}")
+        return True
+
+    except Exception as e:
+        logger.error(f"Failed to cancel deletion: {e}", exc_info=True)
+        return False
+
+
+async def cancel_user_subscription(user_id: str) -> bool:
+    """
+    Cancel user's subscription (called before account deletion)
+
+    Args:
+        user_id: User ID
+
+    Returns:
+        True if successful or no subscription exists
+    """
+    if not supabase:
+        return False
+
+    try:
+        # Update user subscription to canceled
+        update_data = {
+            "subscription_tier": "free",
+            "subscription_status": "canceled",
+            "subscription_stripe_subscription_id": None,
+            "updated_at": datetime.utcnow().isoformat()
+        }
+
+        result = supabase.table("users") \
+            .update(update_data) \
+            .eq("id", user_id) \
+            .execute()
+
+        if not result.data:
+            return False
+
+        logger.info(f"✅ Canceled subscription for user {user_id}")
+        return True
+
+    except Exception as e:
+        logger.error(f"Failed to cancel subscription: {e}", exc_info=True)
+        return False
+
+
+def get_users_scheduled_for_deletion() -> list[Dict[str, Any]]:
+    """
+    Get users whose deletion date has passed (for background job)
+
+    Returns:
+        List of users to be deleted
+    """
+    if not supabase:
+        return []
+
+    try:
+        # Get users with deletion_scheduled_date <= now
+        current_time = datetime.utcnow().isoformat()
+
+        result = supabase.table("users") \
+            .select("*") \
+            .eq("deletion_scheduled", True) \
+            .lte("deletion_scheduled_date", current_time) \
+            .execute()
+
+        return result.data if result.data else []
+
+    except Exception as e:
+        logger.error(f"Failed to get users scheduled for deletion: {e}", exc_info=True)
+        return []
+
+
+async def permanently_delete_user(user_id: str) -> bool:
+    """
+    Permanently delete user and all associated data (GDPR compliance)
+
+    This function:
+    1. Deletes all property analyses
+    2. Deletes all support chat messages
+    3. Deletes user record
+    4. Cannot be undone!
+
+    Args:
+        user_id: User ID
+
+    Returns:
+        True if successful
+    """
+    if not supabase:
+        raise Exception("Supabase not initialized")
+
+    try:
+        # 1. Delete property analyses
+        supabase.table("property_analyses") \
+            .delete() \
+            .eq("user_id", user_id) \
+            .execute()
+
+        # 2. Delete support chats
+        supabase.table("support_chats") \
+            .delete() \
+            .eq("user_id", user_id) \
+            .execute()
+
+        # 3. Delete onboarding status
+        supabase.table("onboarding_status") \
+            .delete() \
+            .eq("user_id", user_id) \
+            .execute()
+
+        # 4. Delete user record
+        result = supabase.table("users") \
+            .delete() \
+            .eq("id", user_id) \
+            .execute()
+
+        if not result.data:
+            raise Exception("Failed to delete user record")
+
+        logger.info(f"🗑️  Permanently deleted user {user_id} and all associated data")
+        return True
+
+    except Exception as e:
+        logger.error(f"Failed to permanently delete user: {e}", exc_info=True)
+        raise

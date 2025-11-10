@@ -183,6 +183,50 @@ def reset_test_state():
     pass
 
 
+@pytest.fixture
+def stripe_test_mode():
+    """
+    Ensure Stripe is in test mode for all tests
+
+    Usage:
+        def test_stripe_feature(client, stripe_test_mode):
+            # Test will use Stripe test keys
+            pass
+    """
+    import stripe
+    # Ensure using test key
+    stripe_key = os.getenv("STRIPE_SECRET_KEY", "")
+    assert "test" in stripe_key.lower() or stripe_key == "", \
+        "STRIPE_SECRET_KEY must be a test key (sk_test_...) in test environment"
+
+    return {
+        "mode": "test",
+        "webhook_secret": os.getenv("STRIPE_WEBHOOK_SECRET", "whsec_test_secret")
+    }
+
+
+@pytest.fixture
+def mock_stripe():
+    """
+    Mock Stripe API for tests that don't need real Stripe calls
+
+    Usage:
+        def test_payment(client, mock_stripe):
+            # Stripe calls will be mocked
+            pass
+    """
+    from unittest.mock import patch
+    with patch('stripe.checkout.Session.create') as mock_checkout, \
+         patch('stripe.Customer.list') as mock_customer_list, \
+         patch('stripe.Subscription.list') as mock_subscription_list:
+
+        yield {
+            'checkout': mock_checkout,
+            'customer_list': mock_customer_list,
+            'subscription_list': mock_subscription_list
+        }
+
+
 # Pytest plugins
 pytest_plugins = []
 
