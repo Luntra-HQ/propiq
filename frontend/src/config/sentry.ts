@@ -33,15 +33,8 @@ export function initSentry() {
 
     // Integrations
     integrations: [
-      new Sentry.BrowserTracing({
-        // Trace all requests
-        tracePropagationTargets: [
-          "localhost",
-          "propiq.luntra.one",
-          "luntra-outreach-app.azurewebsites.net",
-        ],
-      }),
-      new Sentry.Replay({
+      Sentry.browserTracingIntegration(),
+      Sentry.replayIntegration({
         // Session replay configuration
         maskAllText: true, // Mask all text for privacy
         blockAllMedia: true, // Block all media
