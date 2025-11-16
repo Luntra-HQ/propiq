@@ -61,6 +61,7 @@ export const SupportChat = () => {
   if (!isOpen) {
     return (
       <button
+        data-tour="support-button"
         className="support-chat-button"
         onClick={() => setIsOpen(true)}
         aria-label="Open AI-powered support chat"

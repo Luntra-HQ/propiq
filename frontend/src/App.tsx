@@ -5,6 +5,7 @@ import { SupportChat } from './components/SupportChat';
 import { DealCalculator } from './components/DealCalculator';
 import { FeedbackWidget } from './components/FeedbackWidget';
 import { PropIQAnalysis } from './components/PropIQAnalysis';
+import { ProductTour, useShouldShowTour } from './components/ProductTour';
 
 // --- BACKEND AUTH IMPORTS ---
 import { AuthModal } from './components/AuthModal';
@@ -428,6 +429,8 @@ const App = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [authToken, setAuthToken] = useState<string | null>(null);
+  const shouldShowTour = useShouldShowTour();
+  const [showTour, setShowTour] = useState(false);
 
   // Derived state
   const tierConfig = PRICING_TIERS[currentTier] || PRICING_TIERS.free;
@@ -503,6 +506,17 @@ const App = () => {
     }
   }, [propIqUsed, propIqLimit, isLoading]);
 
+  // Effect to show product tour for new users
+  useEffect(() => {
+    if (!isLoading && userId && shouldShowTour) {
+      // Small delay to ensure DOM is ready and user can see the interface
+      const timer = setTimeout(() => {
+        setShowTour(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading, userId, shouldShowTour]);
+
   // Handler to use PropIQ feature (increments usage)
   const handleUsePropIq = async () => {
     if (isLoading || !userId) return;
@@ -574,6 +588,16 @@ const App = () => {
     setShowUpgradeBanner(false);
     // Store dismissal in localStorage to prevent repeated prompts
     localStorage.setItem('upgradeBannerDismissed', Date.now().toString());
+  };
+
+  const handleTourComplete = () => {
+    setShowTour(false);
+    console.log('Product tour completed');
+  };
+
+  const handleTourSkip = () => {
+    setShowTour(false);
+    console.log('Product tour skipped');
   };
 
   if (isLoading) {
@@ -659,6 +683,7 @@ const App = () => {
           {/* Prominent CTA */}
           <div className="mt-6 flex justify-center">
             <button
+              data-tour="analyze-button"
               onClick={() => setShowPropIQAnalysis(true)}
               className="group flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white text-xl font-bold rounded-xl shadow-2xl transition-all duration-300 hover:shadow-violet-500/50 hover:scale-105"
             >
@@ -670,7 +695,7 @@ const App = () => {
         </section>
 
         {/* Deal Calculator Section - Free Tool */}
-        <section className="bg-slate-800 p-8 md:p-10 rounded-xl shadow-xl border border-slate-700 mb-16" aria-labelledby="calculator-heading">
+        <section data-tour="calculator-button" className="bg-slate-800 p-8 md:p-10 rounded-xl shadow-xl border border-slate-700 mb-16" aria-labelledby="calculator-heading">
           <div className="flex items-center justify-between mb-6">
             <h2 id="calculator-heading" className="text-2xl font-bold text-gray-50">
               Real Estate Investment Calculator
@@ -702,6 +727,7 @@ const App = () => {
               Your {tierConfig.displayName} Benefits
             </h2>
             <button
+              data-tour="pricing-button"
               onClick={handleUpgradeClick}
               className="px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold rounded-lg transition-colors"
             >
@@ -791,6 +817,15 @@ const App = () => {
           onClose={() => setShowPropIQAnalysis(false)}
           userId={userId}
           authToken={authToken}
+        />
+      )}
+
+      {/* Product Tour for new users */}
+      {showTour && (
+        <ProductTour
+          onComplete={handleTourComplete}
+          onSkip={handleTourSkip}
+          autoStart={true}
         />
       )}
     </div>
