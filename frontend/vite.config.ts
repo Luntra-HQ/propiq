@@ -16,6 +16,10 @@ export default defineConfig({
     },
     // Code splitting configuration
     rollupOptions: {
+      external: [
+        // Don't bundle Convex server imports
+        'convex/server',
+      ],
       output: {
         manualChunks: {
           // Vendor chunks for large libraries
