@@ -1,0 +1,13 @@
+{
+  "name": "propiq",
+  "version": "1.0.0",
+  "description": "PropIQ - AI-Powered Real Estate Investment Analysis Platform",
+  "type": "module",
+  "scripts": {
+    "dev": "convex dev",
+    "build": "convex deploy"
+  },
+  "dependencies": {
+    "convex": "^1.17.2"
+  }
+}

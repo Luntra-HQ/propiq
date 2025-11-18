@@ -1,11 +1,13 @@
 /**
  * Authentication Modal Component
- * Handles user signup and login with backend API
+ * Handles user signup and login with Convex backend
  */
 
 import React, { useState } from 'react';
 import { X, Mail, Lock, User, Building, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
-import { signup, login, type SignupData, type LoginData } from '../utils/auth';
+import { useMutation } from 'convex/react';
+import { api } from '../../convex/_generated/api';
+import { handleAuthSuccess } from '../utils/auth';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -24,6 +26,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  // Convex mutations
+  const signupMutation = useMutation(api.auth.signup);
+  const loginMutation = useMutation(api.auth.login);
 
   // Form fields
   const [email, setEmail] = useState('');
@@ -52,45 +58,56 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
     try {
       if (mode === 'signup') {
-        const data: SignupData = {
+        const result = await signupMutation({
           email: email.trim(),
           password,
           firstName: firstName.trim() || undefined,
           lastName: lastName.trim() || undefined,
           company: company.trim() || undefined,
-        };
-
-        const result = await signup(data);
+        });
 
         if (result.success) {
+          // Store auth data in localStorage
+          handleAuthSuccess(
+            result.userId!,
+            result.email!,
+            result.subscriptionTier || 'free'
+          );
+
           setSuccess('Account created successfully! Redirecting...');
           setTimeout(() => {
             onSuccess();
             resetForm();
           }, 1500);
         } else {
-          setError(result.error || 'Signup failed. Please try again.');
+          setError(result.message || 'Signup failed. Please try again.');
         }
       } else {
-        const data: LoginData = {
+        const result = await loginMutation({
           email: email.trim(),
           password,
-        };
-
-        const result = await login(data);
+        });
 
         if (result.success) {
+          // Store auth data in localStorage
+          handleAuthSuccess(
+            result.userId!,
+            result.email!,
+            result.subscriptionTier || 'free'
+          );
+
           setSuccess('Login successful! Redirecting...');
           setTimeout(() => {
             onSuccess();
             resetForm();
           }, 1500);
         } else {
-          setError(result.error || 'Login failed. Please check your credentials.');
+          setError(result.message || 'Login failed. Please check your credentials.');
         }
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+    } catch (err: any) {
+      console.error('Auth error:', err);
+      setError(err.message || 'An error occurred. Please try again.');
     } finally {
       setLoading(false);
     }

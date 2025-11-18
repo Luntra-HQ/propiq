@@ -1,28 +1,33 @@
 /**
- * Authentication Utility for PropIQ Backend API
+ * Authentication Utility for PropIQ Convex Backend
  * Handles user signup, login, logout, and session management
  *
- * Sprint 7: Migrated to /api/v1 endpoint prefix
+ * Migrated from Azure API to Convex
  */
-
-import { apiClient, API_ENDPOINTS } from '../config/api';
 
 export interface User {
   id: string;
   email: string;
-  full_name?: string;
-  subscription_tier?: string;
-  subscription_status?: string;
-  propiq_usage_count?: number;
-  propiq_usage_limit?: number;
-  trial_analyses_remaining?: number;
+  firstName?: string;
+  lastName?: string;
+  company?: string;
+  subscriptionTier: string;
+  analysesUsed: number;
+  analysesLimit: number;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  active: boolean;
+  emailVerified: boolean;
+  createdAt: number;
+  lastLogin?: number;
 }
 
 export interface AuthResponse {
   success: boolean;
   userId?: string;
   email?: string;
-  accessToken?: string;
+  subscriptionTier?: string;
+  analysesLimit?: number;
   message?: string;
   error?: string;
 }
@@ -41,72 +46,57 @@ export interface LoginData {
 }
 
 /**
+ * Store auth data in localStorage
+ */
+function storeAuthData(userId: string, email: string, tier: string): void {
+  localStorage.setItem('propiq_user_id', userId);
+  localStorage.setItem('propiq_user_email', email);
+  localStorage.setItem('propiq_subscription_tier', tier);
+  localStorage.setItem('propiq_logged_in', 'true');
+}
+
+/**
  * Sign up a new user
+ * Note: This is a wrapper. Components should use useMutation(api.auth.signup) directly
  */
 export async function signup(data: SignupData): Promise<AuthResponse> {
-  try {
-    const response = await apiClient.post(API_ENDPOINTS.AUTH_SIGNUP, data);
-    const result = response.data;
+  // This function is deprecated - components should use Convex mutations directly
+  // Kept for backward compatibility
+  console.warn('signup() is deprecated. Use useMutation(api.auth.signup) instead');
 
-    // Store auth token and user info
-    if (result.success && result.accessToken) {
-      localStorage.setItem('propiq_token', result.accessToken);
-      localStorage.setItem('propiq_user_id', result.userId);
-      localStorage.setItem('propiq_user_email', result.email);
-    }
-
-    return result;
-  } catch (error: any) {
-    console.error('Signup error:', error);
-    return {
-      success: false,
-      error: error.response?.data?.detail || error.message || 'Signup failed',
-    };
-  }
+  return {
+    success: false,
+    error: 'Please use Convex mutations directly in components',
+  };
 }
 
 /**
  * Log in an existing user
+ * Note: This is a wrapper. Components should use useMutation(api.auth.login) directly
  */
 export async function login(data: LoginData): Promise<AuthResponse> {
-  try {
-    const response = await apiClient.post(API_ENDPOINTS.AUTH_LOGIN, data);
-    const result = response.data;
+  // This function is deprecated - components should use Convex mutations directly
+  // Kept for backward compatibility
+  console.warn('login() is deprecated. Use useMutation(api.auth.login) instead');
 
-    // Store auth token and user info
-    if (result.success && result.accessToken) {
-      localStorage.setItem('propiq_token', result.accessToken);
-      localStorage.setItem('propiq_user_id', result.userId);
-      localStorage.setItem('propiq_user_email', result.email);
-    }
-
-    return result;
-  } catch (error: any) {
-    console.error('Login error:', error);
-    return {
-      success: false,
-      error: error.response?.data?.detail || error.message || 'Login failed',
-    };
-  }
+  return {
+    success: false,
+    error: 'Please use Convex mutations directly in components',
+  };
 }
 
 /**
  * Log out the current user
  */
 export function logout(): void {
-  localStorage.removeItem('propiq_token');
   localStorage.removeItem('propiq_user_id');
   localStorage.removeItem('propiq_user_email');
+  localStorage.removeItem('propiq_subscription_tier');
+  localStorage.removeItem('propiq_logged_in');
+  localStorage.removeItem('propiq_analyses_used');
 
   // Reload to clear any cached state
   window.location.reload();
-}
-
-/**
- * Get the current user's auth token
- */
-export function getAuthToken(): string | null {
-  return localStorage.getItem('propiq_token');
 }
 
 /**
@@ -124,65 +114,66 @@ export function getUserEmail(): string | null {
 }
 
 /**
+ * Get the current user's subscription tier
+ */
+export function getUserTier(): string {
+  return localStorage.getItem('propiq_subscription_tier') || 'free';
+}
+
+/**
  * Check if user is logged in
  */
 export function isAuthenticated(): boolean {
-  const token = getAuthToken();
+  const isLoggedIn = localStorage.getItem('propiq_logged_in');
   const userId = getUserId();
-  return !!(token && userId);
+  return !!(isLoggedIn === 'true' && userId);
 }
 
 /**
- * Get user details from backend
+ * Get user details from Convex
+ * Note: Components should use useQuery(api.auth.getUser) instead
  */
 export async function getUserDetails(userId: string): Promise<User | null> {
-  try {
-    const token = getAuthToken();
-    if (!token) {
-      throw new Error('No auth token found');
-    }
+  // This function is deprecated - components should use Convex queries directly
+  console.warn('getUserDetails() is deprecated. Use useQuery(api.auth.getUser) instead');
 
-    const response = await apiClient.get(API_ENDPOINTS.AUTH_USER(userId));
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching user details:', error);
-    return null;
-  }
+  // For now, return cached data from localStorage
+  const email = getUserEmail();
+  const tier = getUserTier();
+
+  if (!email) return null;
+
+  return {
+    id: userId,
+    email,
+    subscriptionTier: tier,
+    analysesUsed: 0,
+    analysesLimit: tier === 'free' ? 3 : tier === 'starter' ? 20 : tier === 'pro' ? 100 : 999999,
+    active: true,
+    emailVerified: false,
+    createdAt: Date.now(),
+  };
 }
 
 /**
- * Make authenticated API request
- * @deprecated Use apiClient directly instead - authentication is handled automatically
+ * Store login data after successful authentication
  */
-export async function authenticatedFetch(
-  url: string,
-  options: RequestInit = {}
-): Promise<Response> {
-  const token = getAuthToken();
+export function handleAuthSuccess(userId: string, email: string, tier: string): void {
+  storeAuthData(userId, email, tier);
+}
 
-  if (!token) {
-    throw new Error('Not authenticated');
-  }
-
-  const headers = {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`,
-    ...options.headers,
-  };
-
-  return fetch(url, {
-    ...options,
-    headers,
-  });
+/**
+ * Get the current user's auth token
+ * @deprecated Convex handles authentication automatically
+ */
+export function getAuthToken(): string | null {
+  return null; // Convex doesn't use JWT tokens
 }
 
 /**
  * Verify if token is still valid
+ * @deprecated Convex handles authentication automatically
  */
 export async function verifyToken(): Promise<boolean> {
-  const userId = getUserId();
-  if (!userId) return false;
-
-  const user = await getUserDetails(userId);
-  return user !== null;
+  return isAuthenticated();
 }

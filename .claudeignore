@@ -1,0 +1,38 @@
+# Node modules and dependencies
+node_modules/
+dist/
+build/
+.next/
+
+# Python virtual environments
+venv/
+.venv/
+env/
+__pycache__/
+*.pyc
+
+# Test artifacts
+test-results/
+playwright-report/
+coverage/
+
+# Caches
+.cache/
+
+# Environment files
+.env
+.env.*
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+
+# Azure/deployment artifacts
+.azure/
