@@ -453,14 +453,12 @@ const App = () => {
             if (user) {
               console.log('User loaded:', user);
 
-              // Set usage from backend
-              const used = user.propiq_usage_count || user.trial_analyses_remaining !== undefined
-                ? (TOTAL_TRIAL_USES - (user.trial_analyses_remaining || 0))
-                : 0;
+              // Set usage from backend (Convex uses analysesUsed)
+              const used = user.analysesUsed || 0;
               setPropIqUsed(used);
 
-              // Set tier from backend
-              const tier = user.subscription_tier || 'free';
+              // Set tier from backend (Convex uses subscriptionTier)
+              const tier = user.subscriptionTier || 'free';
               setCurrentTier(tier);
 
               setIsLoading(false);

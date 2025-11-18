@@ -6,7 +6,7 @@
 import React, { useState } from 'react';
 import { X, Mail, Lock, User, Building, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { useMutation } from 'convex/react';
-import { api } from '../../convex/_generated/api';
+import { api } from '../../../convex/_generated/api';
 import { handleAuthSuccess } from '../utils/auth';
 
 interface AuthModalProps {
