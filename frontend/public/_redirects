@@ -1,5 +1,2 @@
-# Redirect old subdomain to new subdomain (permanent 301)
-https://propiq.luntra.one/*  https://dealiq.luntra.one/:splat  301!
-
-# SPA fallback (must come after domain redirect)
+# SPA fallback - all routes go to index.html for client-side routing
 /*  /index.html  200
