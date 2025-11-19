@@ -4,6 +4,14 @@ import react from '@vitejs/plugin-react'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      // Stub out convex/server for browser builds
+      // This is needed because convex/_generated/api.js imports from convex/server
+      // but we only need the client-side API types
+      'convex/server': new URL('./convex-server-stub.js', import.meta.url).pathname,
+    },
+  },
   build: {
     // Optimize bundle size
     target: 'es2015',
@@ -16,10 +24,6 @@ export default defineConfig({
     },
     // Code splitting configuration
     rollupOptions: {
-      external: [
-        // Don't bundle Convex server imports
-        'convex/server',
-      ],
       output: {
         manualChunks: {
           // Vendor chunks for large libraries
