@@ -30,8 +30,8 @@ test.describe('Usage Limits & Constraints - Chaos Testing', () => {
     console.log('📝 Creating test user:', testUser.email);
 
     // Fill signup form
-    await page.fill('input[type="email"]', testUser.email);
-    await page.fill('input[type="password"]', testUser.password);
+    await page.fill('[data-testid="email-input"]', testUser.email);
+    await page.fill('[data-testid="password-input"]', testUser.password);
 
     // Fill optional fields if they exist
     const firstNameInput = page.locator('input[name="firstName"]').or(
@@ -49,10 +49,7 @@ test.describe('Usage Limits & Constraints - Chaos Testing', () => {
     }
 
     // Click "Create Account" button
-    const submitButton = page.locator('button:has-text("Create Account")').or(
-      page.locator('button[type="submit"]')
-    ).first();
-
+    const submitButton = page.locator('[data-testid="signup-submit-button"]');
     await submitButton.click();
 
     // Wait for signup to complete
