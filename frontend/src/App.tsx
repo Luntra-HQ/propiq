@@ -5,6 +5,7 @@ import { SupportChat } from './components/SupportChat';
 import { DealCalculator } from './components/DealCalculator';
 import { FeedbackWidget } from './components/FeedbackWidget';
 import { PropIQAnalysis } from './components/PropIQAnalysis';
+import { ProductTour, useShouldShowTour } from './components/ProductTour';
 
 // --- BACKEND AUTH IMPORTS ---
 import { AuthModal } from './components/AuthModal';
@@ -429,6 +430,10 @@ const App = () => {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [authToken, setAuthToken] = useState<string | null>(null);
 
+  // Product tour state
+  const shouldShowTour = useShouldShowTour();
+  const [showTour, setShowTour] = useState(false);
+
   // Derived state
   const tierConfig = PRICING_TIERS[currentTier] || PRICING_TIERS.free;
   const propIqLimit = tierConfig.propIqLimit;
@@ -573,6 +578,17 @@ const App = () => {
     // Store dismissal in localStorage to prevent repeated prompts
     localStorage.setItem('upgradeBannerDismissed', Date.now().toString());
   };
+
+  // Show product tour after user logs in (if they haven't seen it)
+  useEffect(() => {
+    if (userId && shouldShowTour && !showAuthModal) {
+      // Small delay to let the app finish loading
+      const timer = setTimeout(() => {
+        setShowTour(true);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [userId, shouldShowTour, showAuthModal]);
 
   if (isLoading) {
     return <LoadingScreen />;
@@ -771,6 +787,15 @@ const App = () => {
             feedback_source: 'general'
           }}
           position="bottom-right"
+        />
+      )}
+
+      {/* Product Tour - shows after login for new users */}
+      {showTour && (
+        <ProductTour
+          onComplete={() => setShowTour(false)}
+          onSkip={() => setShowTour(false)}
+          autoStart={true}
         />
       )}
 
