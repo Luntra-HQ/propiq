@@ -6,7 +6,6 @@
 import React, { useState } from 'react';
 import { X, Mail, Lock, User, Building, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { useMutation } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
 import { handleAuthSuccess } from '../utils/auth';
 
 interface AuthModalProps {
@@ -27,9 +26,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Convex mutations
-  const signupMutation = useMutation(api.auth.signup);
-  const loginMutation = useMutation(api.auth.login);
+  // Convex mutations using string-based API (works without generated files)
+  const signupMutation = useMutation('auth:signup' as any);
+  const loginMutation = useMutation('auth:login' as any);
 
   // Form fields
   const [email, setEmail] = useState('');

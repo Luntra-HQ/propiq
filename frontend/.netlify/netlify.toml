@@ -14,11 +14,11 @@ autoLaunch = false
 [functions."*"]
 
 [build]
-publish = "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend/dist"
+publish = "/Users/briandusape/Projects/LUNTRA/propiq/frontend/dist"
 publishOrigin = "config"
 commandOrigin = "config"
-base = "/Users/briandusape/Projects/LUNTRA/LUNTRA MVPS/propiq/frontend"
-command = "npm run build"
+base = "/Users/briandusape/Projects/LUNTRA/propiq/frontend"
+command = "vite build"
 
 [build.environment]
 NODE_VERSION = "20"
