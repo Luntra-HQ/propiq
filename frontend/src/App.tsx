@@ -7,9 +7,9 @@ import { FeedbackWidget } from './components/FeedbackWidget';
 import { PropIQAnalysis } from './components/PropIQAnalysis';
 import { ProductTour, useShouldShowTour } from './components/ProductTour';
 
-// --- BACKEND AUTH IMPORTS ---
+// --- BACKEND AUTH IMPORTS (Server-side sessions with httpOnly cookies) ---
 import { AuthModal } from './components/AuthModal';
-import { isAuthenticated, getUserId, getUserEmail, getUserDetails, logout, type User } from './utils/auth';
+import { useAuth } from './hooks/useAuth';
 // ------------------------
 
 // --- PRICING IMPORTS ---
@@ -439,57 +439,31 @@ const App = () => {
   const propIqLimit = tierConfig.propIqLimit;
   const propIqRemaining = getRemainingRuns(propIqUsed, propIqLimit);
 
-  // 1. Check authentication status and load user data from backend
+  // Use server-side session auth (httpOnly cookies)
+  // Note: App is wrapped in ProtectedRoute, so user is always authenticated here
+  const { user, isLoading: authLoading, logout: authLogout } = useAuth();
+
+  // Sync auth state with local component state
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        // Check if user is logged in
-        if (isAuthenticated()) {
-          const id = getUserId();
-          const email = getUserEmail();
+    // Still loading auth - ProtectedRoute handles the loading state,
+    // but we still sync here for internal state
+    if (authLoading) {
+      setIsLoading(true);
+      return;
+    }
 
-          if (id && email) {
-            setUserId(id);
-            setUserEmail(email);
+    // Auth loaded - update state from user data
+    setIsLoading(false);
 
-            // Fetch user details from backend
-            const user = await getUserDetails(id);
-
-            if (user) {
-              console.log('User loaded:', user);
-
-              // Set usage from backend (Convex uses analysesUsed)
-              const used = user.analysesUsed || 0;
-              setPropIqUsed(used);
-
-              // Set tier from backend (Convex uses subscriptionTier)
-              const tier = user.subscriptionTier || 'free';
-              setCurrentTier(tier);
-
-              setIsLoading(false);
-            } else {
-              // User details fetch failed, might be invalid token
-              console.warn('Failed to fetch user details');
-              logout();
-              setShowAuthModal(true);
-              setIsLoading(false);
-            }
-          }
-        } else {
-          // Not logged in - show auth modal
-          console.log('User not authenticated');
-          setShowAuthModal(true);
-          setIsLoading(false);
-        }
-      } catch (error) {
-        console.error('Auth check error:', error);
-        setShowAuthModal(true);
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, []); // Run once on mount
+    if (user) {
+      console.log('[APP] User data synced:', user.email);
+      setUserId(user._id);
+      setUserEmail(user.email);
+      setPropIqUsed(user.analysesUsed || 0);
+      setCurrentTier(user.subscriptionTier || 'free');
+    }
+    // Note: No need to handle unauthenticated case - ProtectedRoute handles it
+  }, [user, authLoading]);
 
   // Effect to show upgrade prompts based on usage thresholds
   useEffect(() => {
@@ -565,12 +539,13 @@ const App = () => {
 
   const handleAuthSuccess = () => {
     setShowAuthModal(false);
-    // Reload to fetch user data
-    window.location.reload();
+    // No reload needed - useCurrentUser hook will automatically fetch fresh data
+    // when localStorage is updated by AuthModal's handleAuthSuccess
   };
 
   const handleLogout = () => {
-    logout();
+    // Use server-side logout (clears httpOnly cookie)
+    authLogout();
   };
 
   const handleDismissUpgradeBanner = () => {

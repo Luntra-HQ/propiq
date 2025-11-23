@@ -59,6 +59,7 @@ export const signup = mutation({
 });
 
 // Login mutation - Authenticate user
+// Includes automatic migration from legacy SHA-256 to PBKDF2
 export const login = mutation({
   args: {
     email: v.string(),
@@ -89,10 +90,22 @@ export const login = mutation({
       throw new Error("Account is inactive. Please contact support.");
     }
 
+    const now = Date.now();
+
+    // MIGRATION: If user has legacy SHA-256 hash, upgrade to PBKDF2
+    if (isLegacyHash(user.passwordHash)) {
+      console.log("[AUTH] Migrating password hash for user:", email);
+      const newHash = await rehashPassword(args.password);
+      await ctx.db.patch(user._id, {
+        passwordHash: newHash,
+        updatedAt: now,
+      });
+    }
+
     // Update last login timestamp
     await ctx.db.patch(user._id, {
-      lastLogin: Date.now(),
-      updatedAt: Date.now(),
+      lastLogin: now,
+      updatedAt: now,
     });
 
     return {
@@ -109,7 +122,7 @@ export const login = mutation({
   },
 });
 
-// Get user profile query
+// Get user profile query (accepts Convex ID type)
 export const getUser = query({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
@@ -123,6 +136,48 @@ export const getUser = query({
     const { passwordHash, ...userWithoutPassword } = user;
 
     return userWithoutPassword;
+  },
+});
+
+// Get user by string ID - FIXES localStorage string → Convex ID type mismatch
+// This is the query that should be used from the frontend
+export const getUserById = query({
+  args: { userIdString: v.string() },
+  handler: async (ctx, args) => {
+    try {
+      // Validate and convert string to Convex ID
+      const userId = ctx.db.normalizeId("users", args.userIdString);
+      if (!userId) {
+        console.log("[getUserById] Invalid ID format:", args.userIdString);
+        return null;
+      }
+
+      const user = await ctx.db.get(userId);
+      if (!user) {
+        console.log("[getUserById] User not found for ID:", args.userIdString);
+        return null;
+      }
+
+      // Return user data without password hash
+      return {
+        _id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        company: user.company,
+        subscriptionTier: user.subscriptionTier,
+        analysesUsed: user.analysesUsed ?? 0,
+        analysesLimit: user.analysesLimit ?? 3,
+        active: user.active,
+        emailVerified: user.emailVerified,
+        createdAt: user.createdAt,
+        lastLogin: user.lastLogin,
+        updatedAt: user.updatedAt,
+      };
+    } catch (e) {
+      console.error("[getUserById] Error fetching user:", e);
+      return null;
+    }
   },
 });
 
@@ -173,16 +228,392 @@ export const updateProfile = mutation({
   },
 });
 
-// Simple password hashing (will be replaced with bcrypt in production)
-async function hashPassword(password: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password + "propiq_salt_2025"); // Static salt for now
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+// ============================================
+// SECURE PASSWORD HASHING (PBKDF2-SHA256)
+// ============================================
+//
+// Uses Web Crypto API PBKDF2 which works in Convex's edge runtime
+// - Random 16-byte salt per user
+// - 600,000 iterations (OWASP 2023 recommendation)
+// - 32-byte derived key
+// - Format: $pbkdf2-sha256$v1$iterations$salt$hash
+//
+// Supports migration from old SHA-256 hashes
+
+const PBKDF2_ITERATIONS = 600000; // ~100ms on server, OWASP recommended
+const PBKDF2_SALT_LENGTH = 16; // 128 bits
+const PBKDF2_KEY_LENGTH = 32; // 256 bits
+const HASH_VERSION = "v1";
+
+/**
+ * Convert ArrayBuffer to base64 string
+ */
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
 }
 
-async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  const passwordHash = await hashPassword(password);
-  return passwordHash === hash;
+/**
+ * Convert base64 string to Uint8Array
+ */
+function base64ToUint8Array(base64: string): Uint8Array {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
 }
+
+/**
+ * Generate cryptographically secure random salt
+ */
+function generateSalt(): Uint8Array {
+  const salt = new Uint8Array(PBKDF2_SALT_LENGTH);
+  crypto.getRandomValues(salt);
+  return salt;
+}
+
+/**
+ * Hash password using PBKDF2-SHA256
+ * Returns formatted string: $pbkdf2-sha256$v1$iterations$salt$hash
+ */
+async function hashPassword(password: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const salt = generateSalt();
+
+  // Import password as key material
+  const keyMaterial = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(password),
+    "PBKDF2",
+    false,
+    ["deriveBits"]
+  );
+
+  // Derive key using PBKDF2
+  const derivedBits = await crypto.subtle.deriveBits(
+    {
+      name: "PBKDF2",
+      salt: salt,
+      iterations: PBKDF2_ITERATIONS,
+      hash: "SHA-256",
+    },
+    keyMaterial,
+    PBKDF2_KEY_LENGTH * 8 // bits
+  );
+
+  // Format: $pbkdf2-sha256$v1$iterations$salt$hash
+  const saltB64 = arrayBufferToBase64(salt.buffer);
+  const hashB64 = arrayBufferToBase64(derivedBits);
+
+  return `$pbkdf2-sha256$${HASH_VERSION}$${PBKDF2_ITERATIONS}$${saltB64}$${hashB64}`;
+}
+
+/**
+ * Verify password against stored hash
+ * Supports both new PBKDF2 format and legacy SHA-256 (for migration)
+ */
+async function verifyPassword(password: string, storedHash: string): Promise<boolean> {
+  // Check if it's a new PBKDF2 hash
+  if (storedHash.startsWith("$pbkdf2-sha256$")) {
+    return verifyPbkdf2Password(password, storedHash);
+  }
+
+  // Legacy SHA-256 hash (64 hex characters)
+  if (storedHash.length === 64 && /^[a-f0-9]+$/.test(storedHash)) {
+    return verifyLegacySha256Password(password, storedHash);
+  }
+
+  // Unknown format
+  console.error("[AUTH] Unknown password hash format");
+  return false;
+}
+
+/**
+ * Verify password against PBKDF2 hash
+ */
+async function verifyPbkdf2Password(password: string, storedHash: string): Promise<boolean> {
+  try {
+    // Parse stored hash: $pbkdf2-sha256$v1$iterations$salt$hash
+    const parts = storedHash.split("$");
+    if (parts.length !== 6) {
+      console.error("[AUTH] Invalid PBKDF2 hash format");
+      return false;
+    }
+
+    const [, algo, version, iterationsStr, saltB64, hashB64] = parts;
+
+    if (algo !== "pbkdf2-sha256") {
+      console.error("[AUTH] Unknown algorithm:", algo);
+      return false;
+    }
+
+    const iterations = parseInt(iterationsStr, 10);
+    const salt = base64ToUint8Array(saltB64);
+    const storedHashBytes = base64ToUint8Array(hashB64);
+
+    // Hash the input password with the same salt
+    const encoder = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey(
+      "raw",
+      encoder.encode(password),
+      "PBKDF2",
+      false,
+      ["deriveBits"]
+    );
+
+    const derivedBits = await crypto.subtle.deriveBits(
+      {
+        name: "PBKDF2",
+        salt: salt,
+        iterations: iterations,
+        hash: "SHA-256",
+      },
+      keyMaterial,
+      storedHashBytes.length * 8
+    );
+
+    // Constant-time comparison to prevent timing attacks
+    const derivedBytes = new Uint8Array(derivedBits);
+    if (derivedBytes.length !== storedHashBytes.length) {
+      return false;
+    }
+
+    let result = 0;
+    for (let i = 0; i < derivedBytes.length; i++) {
+      result |= derivedBytes[i] ^ storedHashBytes[i];
+    }
+
+    return result === 0;
+  } catch (e) {
+    console.error("[AUTH] Error verifying PBKDF2 password:", e);
+    return false;
+  }
+}
+
+/**
+ * Verify password against legacy SHA-256 hash
+ * Used for migration - old users with SHA-256 hashes
+ */
+async function verifyLegacySha256Password(password: string, storedHash: string): Promise<boolean> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password + "propiq_salt_2025"); // Old static salt
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const computedHash = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+
+  // Constant-time comparison
+  if (computedHash.length !== storedHash.length) {
+    return false;
+  }
+
+  let result = 0;
+  for (let i = 0; i < computedHash.length; i++) {
+    result |= computedHash.charCodeAt(i) ^ storedHash.charCodeAt(i);
+  }
+
+  return result === 0;
+}
+
+/**
+ * Check if a stored hash is using the legacy SHA-256 format
+ */
+function isLegacyHash(storedHash: string): boolean {
+  return storedHash.length === 64 && /^[a-f0-9]+$/.test(storedHash);
+}
+
+/**
+ * Rehash a password with the new secure algorithm
+ * Called during login for users with legacy hashes
+ */
+async function rehashPassword(password: string): Promise<string> {
+  console.log("[AUTH] Rehashing password with PBKDF2");
+  return hashPassword(password);
+}
+
+// ============================================
+// SESSION-BASED AUTH (httpOnly cookie)
+// ============================================
+
+// Session duration: 30 days in milliseconds
+const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
+
+/**
+ * Generate a cryptographically secure session token
+ */
+function generateSessionToken(): string {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return Array.from(array, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/**
+ * Login with server-side session (for HTTP endpoint)
+ * Creates a session record and returns the token for cookie
+ * Includes automatic migration from legacy SHA-256 to PBKDF2
+ */
+export const loginWithSession = mutation({
+  args: {
+    email: v.string(),
+    password: v.string(),
+    userAgent: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const email = args.email.toLowerCase().trim();
+
+    // Find user by email
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .first();
+
+    if (!user) {
+      return { success: false, error: "Invalid email or password" };
+    }
+
+    // Verify password
+    const isValidPassword = await verifyPassword(args.password, user.passwordHash);
+
+    if (!isValidPassword) {
+      return { success: false, error: "Invalid email or password" };
+    }
+
+    // Check if account is active
+    if (!user.active) {
+      return { success: false, error: "Account is inactive. Please contact support." };
+    }
+
+    const now = Date.now();
+
+    // MIGRATION: If user has legacy SHA-256 hash, upgrade to PBKDF2
+    if (isLegacyHash(user.passwordHash)) {
+      console.log("[AUTH] Migrating password hash for user:", email);
+      const newHash = await rehashPassword(args.password);
+      await ctx.db.patch(user._id, {
+        passwordHash: newHash,
+        updatedAt: now,
+      });
+    }
+
+    // Create session
+    const token = generateSessionToken();
+
+    await ctx.db.insert("sessions", {
+      userId: user._id,
+      token,
+      expiresAt: now + SESSION_DURATION_MS,
+      userAgent: args.userAgent,
+      createdAt: now,
+      lastActivityAt: now,
+    });
+
+    // Update last login timestamp
+    await ctx.db.patch(user._id, {
+      lastLogin: now,
+      updatedAt: now,
+    });
+
+    console.log("[AUTH] Login with session for user:", user.email);
+
+    return {
+      success: true,
+      sessionToken: token,
+      user: {
+        _id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        company: user.company,
+        subscriptionTier: user.subscriptionTier,
+        analysesUsed: user.analysesUsed ?? 0,
+        analysesLimit: user.analysesLimit ?? 3,
+        active: user.active,
+        emailVerified: user.emailVerified,
+      },
+    };
+  },
+});
+
+/**
+ * Signup with server-side session (for HTTP endpoint)
+ * Creates user and session, returns token for cookie
+ */
+export const signupWithSession = mutation({
+  args: {
+    email: v.string(),
+    password: v.string(),
+    firstName: v.optional(v.string()),
+    lastName: v.optional(v.string()),
+    company: v.optional(v.string()),
+    userAgent: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const email = args.email.toLowerCase().trim();
+
+    // Check if user already exists
+    const existingUser = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .first();
+
+    if (existingUser) {
+      return { success: false, error: "User with this email already exists" };
+    }
+
+    // Hash password
+    const passwordHash = await hashPassword(args.password);
+
+    // Create user
+    const now = Date.now();
+    const userId = await ctx.db.insert("users", {
+      email,
+      passwordHash,
+      firstName: args.firstName,
+      lastName: args.lastName,
+      company: args.company,
+      subscriptionTier: "free",
+      analysesUsed: 0,
+      analysesLimit: 3,
+      active: true,
+      emailVerified: false,
+      createdAt: now,
+      lastLogin: now,
+    });
+
+    // Create session
+    const token = generateSessionToken();
+
+    await ctx.db.insert("sessions", {
+      userId,
+      token,
+      expiresAt: now + SESSION_DURATION_MS,
+      userAgent: args.userAgent,
+      createdAt: now,
+      lastActivityAt: now,
+    });
+
+    console.log("[AUTH] Signup with session for user:", email);
+
+    return {
+      success: true,
+      sessionToken: token,
+      user: {
+        _id: userId,
+        email,
+        firstName: args.firstName,
+        lastName: args.lastName,
+        company: args.company,
+        subscriptionTier: "free",
+        analysesUsed: 0,
+        analysesLimit: 3,
+        active: true,
+        emailVerified: false,
+      },
+    };
+  },
+});

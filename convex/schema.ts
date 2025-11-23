@@ -99,4 +99,30 @@ export default defineSchema({
     rawData: v.string(), // JSON string of full event
     createdAt: v.number(),
   }).index("by_event_id", ["eventId"]),
+
+  // Sessions table - Server-side session management with httpOnly cookies
+  // This replaces localStorage-based auth for proper security
+  sessions: defineTable({
+    userId: v.id("users"),
+
+    // Session token (stored in httpOnly cookie, NOT the session _id)
+    token: v.string(),
+
+    // Expiration times:
+    // - expiresAt: 30 days idle timeout (resets on activity)
+    // - absoluteExpiresAt: 1 year max (never extends, forces re-auth)
+    expiresAt: v.number(),
+    absoluteExpiresAt: v.optional(v.number()), // Optional for backward compatibility
+
+    // Metadata for security/debugging
+    userAgent: v.optional(v.string()),
+    ipAddress: v.optional(v.string()),
+
+    // Timestamps
+    createdAt: v.number(),
+    lastActivityAt: v.number(),
+  })
+    .index("by_token", ["token"])
+    .index("by_user", ["userId"])
+    .index("by_expires", ["expiresAt"]),
 });

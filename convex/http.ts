@@ -1,5 +1,11 @@
 /**
- * HTTP endpoints for webhooks and external integrations
+ * HTTP endpoints for webhooks, external integrations, and auth
+ *
+ * Auth endpoints use httpOnly cookies for secure session management:
+ * - POST /auth/login - Authenticate and set session cookie
+ * - GET /auth/me - Validate session and return user data
+ * - POST /auth/logout - Clear session and cookie
+ * - POST /auth/refresh - Extend session expiration
  */
 
 import { httpRouter } from "convex/server";
@@ -7,6 +13,481 @@ import { httpAction } from "./_generated/server";
 import { api } from "./_generated/api";
 
 const http = httpRouter();
+
+// Cookie configuration
+const COOKIE_NAME = "propiq_session";
+const COOKIE_MAX_AGE = 30 * 24 * 60 * 60; // 30 days in seconds
+const IS_PRODUCTION = true; // Set based on environment
+
+// CORS headers for cross-origin requests from frontend
+const corsHeaders = {
+  "Access-Control-Allow-Origin": IS_PRODUCTION
+    ? "https://propiq.luntra.one"
+    : "http://localhost:5173",
+  "Access-Control-Allow-Credentials": "true",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
+
+/**
+ * Build Set-Cookie header for session
+ */
+function buildSessionCookie(token: string, maxAge: number = COOKIE_MAX_AGE): string {
+  const parts = [
+    `${COOKIE_NAME}=${token}`,
+    `Max-Age=${maxAge}`,
+    "Path=/",
+    "HttpOnly",
+    "SameSite=Lax",
+  ];
+
+  if (IS_PRODUCTION) {
+    parts.push("Secure");
+    parts.push("Domain=.luntra.one"); // Works for subdomains
+  }
+
+  return parts.join("; ");
+}
+
+/**
+ * Build Set-Cookie header to clear session
+ */
+function buildClearCookie(): string {
+  const parts = [
+    `${COOKIE_NAME}=`,
+    "Max-Age=0",
+    "Path=/",
+    "HttpOnly",
+    "SameSite=Lax",
+  ];
+
+  if (IS_PRODUCTION) {
+    parts.push("Secure");
+    parts.push("Domain=.luntra.one");
+  }
+
+  return parts.join("; ");
+}
+
+/**
+ * Parse session token from cookie header
+ */
+function getSessionToken(request: Request): string | null {
+  const cookieHeader = request.headers.get("Cookie");
+  if (!cookieHeader) return null;
+
+  const cookies = cookieHeader.split(";").map((c) => c.trim());
+  for (const cookie of cookies) {
+    const [name, value] = cookie.split("=");
+    if (name === COOKIE_NAME) {
+      return value;
+    }
+  }
+  return null;
+}
+
+// ============================================
+// AUTH ENDPOINTS
+// ============================================
+
+// OPTIONS handler for CORS preflight
+http.route({
+  path: "/auth/me",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }),
+});
+
+http.route({
+  path: "/auth/login",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }),
+});
+
+http.route({
+  path: "/auth/logout",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }),
+});
+
+http.route({
+  path: "/auth/refresh",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }),
+});
+
+http.route({
+  path: "/auth/signup",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }),
+});
+
+/**
+ * POST /auth/login
+ * Authenticate user and set session cookie
+ */
+http.route({
+  path: "/auth/login",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    try {
+      const body = await request.json();
+      const { email, password } = body;
+
+      if (!email || !password) {
+        return new Response(
+          JSON.stringify({ success: false, error: "Email and password required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Call the login mutation
+      const result = await ctx.runMutation(api.auth.loginWithSession, {
+        email,
+        password,
+        userAgent: request.headers.get("User-Agent") || undefined,
+      });
+
+      if (!result.success) {
+        return new Response(
+          JSON.stringify({ success: false, error: result.error }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Set session cookie
+      const setCookie = buildSessionCookie(result.sessionToken!);
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          user: result.user,
+        }),
+        {
+          status: 200,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+            "Set-Cookie": setCookie,
+          },
+        }
+      );
+    } catch (error) {
+      console.error("[AUTH] Login error:", error);
+      return new Response(
+        JSON.stringify({ success: false, error: "Login failed" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+  }),
+});
+
+/**
+ * POST /auth/signup
+ * Create user and set session cookie
+ */
+http.route({
+  path: "/auth/signup",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    try {
+      const body = await request.json();
+      const { email, password, firstName, lastName, company } = body;
+
+      if (!email || !password) {
+        return new Response(
+          JSON.stringify({ success: false, error: "Email and password required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Call the signup mutation
+      const result = await ctx.runMutation(api.auth.signupWithSession, {
+        email,
+        password,
+        firstName,
+        lastName,
+        company,
+        userAgent: request.headers.get("User-Agent") || undefined,
+      });
+
+      if (!result.success) {
+        return new Response(
+          JSON.stringify({ success: false, error: result.error }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Set session cookie
+      const setCookie = buildSessionCookie(result.sessionToken!);
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          user: result.user,
+        }),
+        {
+          status: 200,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+            "Set-Cookie": setCookie,
+          },
+        }
+      );
+    } catch (error) {
+      console.error("[AUTH] Signup error:", error);
+      return new Response(
+        JSON.stringify({ success: false, error: "Signup failed" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+  }),
+});
+
+/**
+ * GET /auth/me
+ * Validate session cookie and return user data
+ */
+http.route({
+  path: "/auth/me",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    try {
+      const token = getSessionToken(request);
+
+      if (!token) {
+        return new Response(
+          JSON.stringify({ authenticated: false, user: null }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Validate session
+      const result = await ctx.runQuery(api.sessions.validateSession, { token });
+
+      if (!result) {
+        // Invalid/expired session - clear cookie
+        return new Response(
+          JSON.stringify({ authenticated: false, user: null }),
+          {
+            status: 200,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json",
+              "Set-Cookie": buildClearCookie(),
+            },
+          }
+        );
+      }
+
+      // If session needs refresh, do it
+      if (result.session.needsRefresh) {
+        await ctx.runMutation(api.sessions.refreshSession, { token });
+      }
+
+      return new Response(
+        JSON.stringify({
+          authenticated: true,
+          user: result.user,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    } catch (error) {
+      console.error("[AUTH] /me error:", error);
+      return new Response(
+        JSON.stringify({ authenticated: false, user: null }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+  }),
+});
+
+/**
+ * POST /auth/logout
+ * Clear session and cookie
+ */
+http.route({
+  path: "/auth/logout",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    try {
+      const token = getSessionToken(request);
+
+      if (token) {
+        // Delete server-side session
+        await ctx.runMutation(api.sessions.deleteSession, { token });
+      }
+
+      // Clear cookie
+      return new Response(
+        JSON.stringify({ success: true }),
+        {
+          status: 200,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+            "Set-Cookie": buildClearCookie(),
+          },
+        }
+      );
+    } catch (error) {
+      console.error("[AUTH] Logout error:", error);
+      return new Response(
+        JSON.stringify({ success: true }), // Still clear cookie on error
+        {
+          status: 200,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+            "Set-Cookie": buildClearCookie(),
+          },
+        }
+      );
+    }
+  }),
+});
+
+/**
+ * POST /auth/refresh
+ * Extend session expiration
+ */
+http.route({
+  path: "/auth/refresh",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    try {
+      const token = getSessionToken(request);
+
+      if (!token) {
+        return new Response(
+          JSON.stringify({ success: false, error: "No session" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const result = await ctx.runMutation(api.sessions.refreshSession, { token });
+
+      if (!result.success) {
+        return new Response(
+          JSON.stringify({ success: false, error: result.error }),
+          {
+            status: 401,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json",
+              "Set-Cookie": buildClearCookie(),
+            },
+          }
+        );
+      }
+
+      // Update cookie with new expiration
+      return new Response(
+        JSON.stringify({ success: true, expiresAt: result.expiresAt }),
+        {
+          status: 200,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+            "Set-Cookie": buildSessionCookie(token),
+          },
+        }
+      );
+    } catch (error) {
+      console.error("[AUTH] Refresh error:", error);
+      return new Response(
+        JSON.stringify({ success: false, error: "Refresh failed" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+  }),
+});
+
+// OPTIONS handler for logout-everywhere
+http.route({
+  path: "/auth/logout-everywhere",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }),
+});
+
+/**
+ * POST /auth/logout-everywhere
+ * Clear ALL sessions for the current user (logout from all devices)
+ */
+http.route({
+  path: "/auth/logout-everywhere",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    try {
+      const token = getSessionToken(request);
+
+      if (!token) {
+        return new Response(
+          JSON.stringify({ success: false, error: "No session" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // First, validate the session to get the userId
+      const sessionData = await ctx.runQuery(api.sessions.validateSession, { token });
+
+      if (!sessionData) {
+        return new Response(
+          JSON.stringify({ success: false, error: "Invalid session" }),
+          {
+            status: 401,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json",
+              "Set-Cookie": buildClearCookie(),
+            },
+          }
+        );
+      }
+
+      // Delete all sessions for this user
+      const result = await ctx.runMutation(api.sessions.deleteAllUserSessions, {
+        userId: sessionData.user._id,
+      });
+
+      console.log("[AUTH] Logged out from all devices for user:", sessionData.user.email);
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: `Logged out from ${result.deletedCount} device(s)`,
+          deletedCount: result.deletedCount,
+        }),
+        {
+          status: 200,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+            "Set-Cookie": buildClearCookie(),
+          },
+        }
+      );
+    } catch (error) {
+      console.error("[AUTH] Logout everywhere error:", error);
+      return new Response(
+        JSON.stringify({ success: false, error: "Failed to logout from all devices" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+  }),
+});
 
 // Stripe webhook handler
 http.route({

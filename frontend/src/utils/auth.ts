@@ -5,6 +5,75 @@
  * Migrated from Azure API to Convex
  */
 
+/**
+ * Check if localStorage is available (may not be in private browsing, iframes, etc.)
+ */
+function isLocalStorageAvailable(): boolean {
+  try {
+    const test = '__storage_test__';
+    localStorage.setItem(test, test);
+    localStorage.removeItem(test);
+    return true;
+  } catch (e) {
+    console.error('[AUTH] localStorage not available:', e);
+    return false;
+  }
+}
+
+/**
+ * Safely set an item in localStorage with error handling
+ */
+function safeSetItem(key: string, value: string): boolean {
+  if (!isLocalStorageAvailable()) {
+    console.error('[AUTH] Cannot store auth data - localStorage unavailable');
+    return false;
+  }
+
+  try {
+    localStorage.setItem(key, value);
+    // Verify the write succeeded
+    if (localStorage.getItem(key) !== value) {
+      console.error('[AUTH] localStorage write verification failed for:', key);
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.error('[AUTH] Failed to write to localStorage:', e);
+    return false;
+  }
+}
+
+/**
+ * Safely get an item from localStorage with error handling
+ */
+function safeGetItem(key: string): string | null {
+  if (!isLocalStorageAvailable()) {
+    return null;
+  }
+
+  try {
+    return localStorage.getItem(key);
+  } catch (e) {
+    console.error('[AUTH] Failed to read from localStorage:', e);
+    return null;
+  }
+}
+
+/**
+ * Safely remove an item from localStorage with error handling
+ */
+function safeRemoveItem(key: string): void {
+  if (!isLocalStorageAvailable()) {
+    return;
+  }
+
+  try {
+    localStorage.removeItem(key);
+  } catch (e) {
+    console.error('[AUTH] Failed to remove from localStorage:', e);
+  }
+}
+
 export interface User {
   id: string;
   email: string;
@@ -46,13 +115,19 @@ export interface LoginData {
 }
 
 /**
- * Store auth data in localStorage
+ * Store auth data in localStorage with safety checks
  */
-function storeAuthData(userId: string, email: string, tier: string): void {
-  localStorage.setItem('propiq_user_id', userId);
-  localStorage.setItem('propiq_user_email', email);
-  localStorage.setItem('propiq_subscription_tier', tier);
-  localStorage.setItem('propiq_logged_in', 'true');
+function storeAuthData(userId: string, email: string, tier: string): boolean {
+  const success = safeSetItem('propiq_user_id', userId) &&
+                  safeSetItem('propiq_user_email', email) &&
+                  safeSetItem('propiq_subscription_tier', tier) &&
+                  safeSetItem('propiq_logged_in', 'true');
+
+  if (!success) {
+    console.error('[AUTH] Failed to store auth data - some localStorage writes failed');
+  }
+
+  return success;
 }
 
 /**
@@ -89,11 +164,11 @@ export async function login(data: LoginData): Promise<AuthResponse> {
  * Log out the current user
  */
 export function logout(): void {
-  localStorage.removeItem('propiq_user_id');
-  localStorage.removeItem('propiq_user_email');
-  localStorage.removeItem('propiq_subscription_tier');
-  localStorage.removeItem('propiq_logged_in');
-  localStorage.removeItem('propiq_analyses_used');
+  safeRemoveItem('propiq_user_id');
+  safeRemoveItem('propiq_user_email');
+  safeRemoveItem('propiq_subscription_tier');
+  safeRemoveItem('propiq_logged_in');
+  safeRemoveItem('propiq_analyses_used');
 
   // Reload to clear any cached state
   window.location.reload();
@@ -103,28 +178,28 @@ export function logout(): void {
  * Get the current user's ID
  */
 export function getUserId(): string | null {
-  return localStorage.getItem('propiq_user_id');
+  return safeGetItem('propiq_user_id');
 }
 
 /**
  * Get the current user's email
  */
 export function getUserEmail(): string | null {
-  return localStorage.getItem('propiq_user_email');
+  return safeGetItem('propiq_user_email');
 }
 
 /**
  * Get the current user's subscription tier
  */
 export function getUserTier(): string {
-  return localStorage.getItem('propiq_subscription_tier') || 'free';
+  return safeGetItem('propiq_subscription_tier') || 'free';
 }
 
 /**
  * Check if user is logged in
  */
 export function isAuthenticated(): boolean {
-  const isLoggedIn = localStorage.getItem('propiq_logged_in');
+  const isLoggedIn = safeGetItem('propiq_logged_in');
   const userId = getUserId();
   return !!(isLoggedIn === 'true' && userId);
 }

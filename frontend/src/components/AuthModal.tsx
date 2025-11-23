@@ -1,12 +1,16 @@
 /**
  * Authentication Modal Component
- * Handles user signup and login with Convex backend
+ * Handles user signup and login with server-side sessions (httpOnly cookies)
+ *
+ * SECURITY: Uses HTTP endpoints that set httpOnly cookies
+ * - Session token never exposed to JavaScript
+ * - Works in private browsing
+ * - Sessions can be revoked server-side
  */
 
 import React, { useState } from 'react';
 import { X, Mail, Lock, User, Building, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
-import { useMutation } from 'convex/react';
-import { handleAuthSuccess } from '../utils/auth';
+import { useAuth } from '../hooks/useAuth';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -26,9 +30,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Convex mutations using string-based API (works without generated files)
-  const signupMutation = useMutation('auth:signup' as any);
-  const loginMutation = useMutation('auth:login' as any);
+  // Use new auth hook with server-side sessions
+  const { login, signup } = useAuth();
 
   // Form fields
   const [email, setEmail] = useState('');
@@ -57,7 +60,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
     try {
       if (mode === 'signup') {
-        const result = await signupMutation({
+        // Use HTTP endpoint - sets httpOnly cookie automatically
+        const result = await signup({
           email: email.trim(),
           password,
           firstName: firstName.trim() || undefined,
@@ -66,42 +70,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         });
 
         if (result.success) {
-          // Store auth data in localStorage
-          handleAuthSuccess(
-            result.userId!,
-            result.email!,
-            result.subscriptionTier || 'free'
-          );
-
           setSuccess('Account created successfully! Redirecting...');
           setTimeout(() => {
             onSuccess();
             resetForm();
           }, 1500);
         } else {
-          setError(result.message || 'Signup failed. Please try again.');
+          setError(result.error || 'Signup failed. Please try again.');
         }
       } else {
-        const result = await loginMutation({
-          email: email.trim(),
-          password,
-        });
+        // Use HTTP endpoint - sets httpOnly cookie automatically
+        const result = await login(email.trim(), password);
 
         if (result.success) {
-          // Store auth data in localStorage
-          handleAuthSuccess(
-            result.userId!,
-            result.email!,
-            result.subscriptionTier || 'free'
-          );
-
           setSuccess('Login successful! Redirecting...');
           setTimeout(() => {
             onSuccess();
             resetForm();
           }, 1500);
         } else {
-          setError(result.message || 'Login failed. Please check your credentials.');
+          setError(result.error || 'Login failed. Please check your credentials.');
         }
       }
     } catch (err: any) {

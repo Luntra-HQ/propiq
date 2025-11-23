@@ -12,6 +12,7 @@ import type * as auth from "../auth.js";
 import type * as http from "../http.js";
 import type * as payments from "../payments.js";
 import type * as propiq from "../propiq.js";
+import type * as sessions from "../sessions.js";
 import type * as support from "../support.js";
 
 import type {
@@ -25,6 +26,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   payments: typeof payments;
   propiq: typeof propiq;
+  sessions: typeof sessions;
   support: typeof support;
 }>;
 
