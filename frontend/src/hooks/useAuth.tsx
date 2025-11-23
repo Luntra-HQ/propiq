@@ -320,16 +320,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     fetchCurrentUser();
   }, [fetchCurrentUser]);
 
-  // Refresh user on window focus (optional, catches session changes)
+  // Refresh user on window focus - THROTTLED to prevent session race conditions
+  // Only check once every 5 minutes, with a 30-second delay after focus
   useEffect(() => {
+    let focusTimeout: ReturnType<typeof setTimeout>;
+    let lastCheck = 0;
+
     const handleFocus = () => {
-      if (!state.isLoading) {
-        fetchCurrentUser();
+      // Don't check if we're already loading
+      if (state.isLoading) return;
+
+      // Throttle: only check once every 5 minutes minimum
+      const now = Date.now();
+      if (now - lastCheck < 5 * 60 * 1000) {
+        return; // Skip - checked recently
       }
+
+      // Delay the check to avoid rapid checks on tab switching
+      clearTimeout(focusTimeout);
+      focusTimeout = setTimeout(() => {
+        lastCheck = Date.now();
+        fetchCurrentUser();
+      }, 5000); // 5 second delay
     };
 
     window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      clearTimeout(focusTimeout);
+    };
   }, [fetchCurrentUser, state.isLoading]);
 
   const contextValue: AuthContextType = {

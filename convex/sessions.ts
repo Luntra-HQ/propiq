@@ -32,7 +32,8 @@ function generateSessionToken(): string {
  * Create a new session for a user
  * Called after successful login
  *
- * Session expires after 30 days of inactivity (sliding window)
+ * IMPORTANT: Uses Convex _id as the session token (not random token)
+ * This prevents race conditions and token mismatch issues
  */
 export const createSession = mutation({
   args: {
@@ -42,11 +43,11 @@ export const createSession = mutation({
   },
   handler: async (ctx, args) => {
     const now = Date.now();
-    const token = generateSessionToken();
 
+    // Insert session - the _id IS the token
     const sessionId = await ctx.db.insert("sessions", {
       userId: args.userId,
-      token,
+      token: "", // Legacy field, kept for schema compatibility
       expiresAt: now + SESSION_IDLE_TIMEOUT_MS, // 30 day sliding window
       userAgent: args.userAgent,
       ipAddress: args.ipAddress,
@@ -54,11 +55,14 @@ export const createSession = mutation({
       lastActivityAt: now,
     });
 
-    console.log("[SESSION] Created session for user:", args.userId);
+    // Use Convex _id as the token - this is immutable and safe
+    const token = sessionId.toString();
+
+    console.log("[SESSION] Created session for user:", args.userId, "token:", token);
 
     return {
       sessionId,
-      token,
+      token, // This is now the _id string
       expiresAt: now + SESSION_IDLE_TIMEOUT_MS,
     };
   },
@@ -68,7 +72,8 @@ export const createSession = mutation({
  * Validate a session token and return user data
  * Called by the /auth/me HTTP endpoint
  *
- * SIMPLIFIED: Only checks sliding 30-day expiry, auto-extends on activity
+ * IMPORTANT: Token is now the Convex _id (not random string)
+ * Uses normalizeId for direct lookup - no index needed
  */
 export const validateSession = query({
   args: { token: v.string() },
@@ -79,19 +84,23 @@ export const validateSession = query({
 
     const now = Date.now();
 
-    // Find session by token
-    const session = await ctx.db
-      .query("sessions")
-      .withIndex("by_token", (q) => q.eq("token", args.token))
-      .first();
+    // Token IS the session _id - use normalizeId for direct lookup
+    const sessionId = ctx.db.normalizeId("sessions", args.token);
+    if (!sessionId) {
+      console.log("[SESSION] Invalid session ID format:", args.token);
+      return null;
+    }
 
+    // Direct lookup by _id (fastest possible)
+    const session = await ctx.db.get(sessionId);
     if (!session) {
+      console.log("[SESSION] Session not found");
       return null;
     }
 
     // Check if session expired (30-day sliding window)
     if (session.expiresAt < now) {
-      console.log("[SESSION] Session expired, cleaning up");
+      console.log("[SESSION] Session expired");
       return null;
     }
 
@@ -131,18 +140,20 @@ export const validateSession = query({
  * Refresh a session (extend idle expiration)
  * Called when user is active and session is close to expiring
  *
- * SIMPLIFIED: Always extends by 30 days from now
+ * Token is now the Convex _id
  */
 export const refreshSession = mutation({
   args: { token: v.string() },
   handler: async (ctx, args) => {
     const now = Date.now();
 
-    const session = await ctx.db
-      .query("sessions")
-      .withIndex("by_token", (q) => q.eq("token", args.token))
-      .first();
+    // Token IS the session _id
+    const sessionId = ctx.db.normalizeId("sessions", args.token);
+    if (!sessionId) {
+      return { success: false, error: "Invalid session" };
+    }
 
+    const session = await ctx.db.get(sessionId);
     if (!session || session.expiresAt < now) {
       return { success: false, error: "Invalid or expired session" };
     }
@@ -150,7 +161,7 @@ export const refreshSession = mutation({
     // Extend session by 30 days
     const newExpiresAt = now + SESSION_IDLE_TIMEOUT_MS;
 
-    await ctx.db.patch(session._id, {
+    await ctx.db.patch(sessionId, {
       expiresAt: newExpiresAt,
       lastActivityAt: now,
     });
@@ -166,17 +177,20 @@ export const refreshSession = mutation({
 
 /**
  * Delete a session (logout)
+ * Token is now the Convex _id
  */
 export const deleteSession = mutation({
   args: { token: v.string() },
   handler: async (ctx, args) => {
-    const session = await ctx.db
-      .query("sessions")
-      .withIndex("by_token", (q) => q.eq("token", args.token))
-      .first();
+    // Token IS the session _id
+    const sessionId = ctx.db.normalizeId("sessions", args.token);
+    if (!sessionId) {
+      return { success: true }; // Already gone
+    }
 
+    const session = await ctx.db.get(sessionId);
     if (session) {
-      await ctx.db.delete(session._id);
+      await ctx.db.delete(sessionId);
       console.log("[SESSION] Deleted session for user:", session.userId);
     }
 
