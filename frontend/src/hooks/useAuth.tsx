@@ -86,6 +86,7 @@ interface AuthContextType extends AuthState {
   logout: () => Promise<void>;
   logoutEverywhere: () => Promise<{ success: boolean; deletedCount?: number; error?: string }>;
   refreshUser: () => Promise<void>;
+  setSession: (token: string, user: User) => void;
 }
 
 interface SignupData {
@@ -379,6 +380,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await fetchCurrentUser();
   }, [fetchCurrentUser]);
 
+  /**
+   * Set session directly (used by password reset flow)
+   * Stores token and updates state without making a login request
+   */
+  const setSession = useCallback((token: string, user: User) => {
+    setStoredToken(token);
+    setState({
+      user,
+      isLoading: false,
+      isAuthenticated: true,
+      error: null,
+    });
+    clearLegacyStorage();
+    notifyExtension('login', token, user);
+    console.log('[AUTH] Session set directly for user:', user.email);
+  }, []);
+
   // Fetch user on mount
   useEffect(() => {
     fetchCurrentUser();
@@ -422,6 +440,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout,
     logoutEverywhere,
     refreshUser,
+    setSession,
   };
 
   return (

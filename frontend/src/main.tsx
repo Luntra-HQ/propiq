@@ -7,6 +7,8 @@ import { AuthProvider } from './hooks/useAuth'
 // Pages
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
 import App from './App'
 
 // Components
@@ -33,6 +35,14 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 
             {/* Auth routes - redirect to /app if already logged in */}
             <Route
+              path="/auth"
+              element={
+                <AuthRoute>
+                  <LoginPage />
+                </AuthRoute>
+              }
+            />
+            <Route
               path="/login"
               element={
                 <AuthRoute>
@@ -48,6 +58,10 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                 </AuthRoute>
               }
             />
+
+            {/* Password reset routes - public (no auth required) */}
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
 
             {/* Protected routes - require authentication */}
             <Route
