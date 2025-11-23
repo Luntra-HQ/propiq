@@ -39,4 +39,29 @@ export {
 } from './Celebration';
 
 // Analysis Progress
-export { AnalysisProgress } from './AnalysisProgress';
+export {
+  AnalysisProgress,
+  AnalysisProgressOverlay,
+  useAnalysisProgress,
+} from './AnalysisProgress';
+export type { AnalysisStep } from './AnalysisProgress';
+
+// Streaming Text (AI Experience)
+export {
+  StreamingText,
+  StreamingParagraph,
+  StreamingList,
+  AIThinkingIndicator,
+} from './StreamingText';
+
+// Deal Score & Metrics (AI Experience)
+export {
+  DealScore,
+  RecommendationBadge,
+  ConfidenceIndicator,
+  RiskLevel,
+  MetricCard,
+} from './DealScore';
+
+// Analysis Results
+export { AnalysisResults } from './AnalysisResults';
