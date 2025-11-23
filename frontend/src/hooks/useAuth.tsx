@@ -129,6 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   /**
    * Login with email and password
    * Server sets httpOnly cookie on success
+   * Also notifies Chrome extension via postMessage for session sync
    */
   const login = useCallback(async (email: string, password: string) => {
     try {
@@ -157,6 +158,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Clear any legacy localStorage
         clearLegacyStorage();
 
+        // Notify Chrome extension of login (if extension content script is present)
+        if (data.sessionToken) {
+          notifyExtension('login', data.sessionToken, data.user, data.expiresAt);
+        }
+
         return { success: true };
       } else {
         return { success: false, error: data.error || 'Login failed' };
@@ -170,6 +176,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   /**
    * Signup with email and password
    * Server sets httpOnly cookie on success
+   * Also notifies Chrome extension via postMessage for session sync
    */
   const signup = useCallback(async (data: SignupData) => {
     try {
@@ -198,6 +205,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Clear any legacy localStorage
         clearLegacyStorage();
 
+        // Notify Chrome extension of signup/login
+        if (result.sessionToken) {
+          notifyExtension('login', result.sessionToken, result.user, result.expiresAt);
+        }
+
         return { success: true };
       } else {
         return { success: false, error: result.error || 'Signup failed' };
@@ -210,6 +222,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   /**
    * Logout - clears server session and cookie
+   * Also notifies Chrome extension to clear its session
    */
   const logout = useCallback(async () => {
     try {
@@ -229,6 +242,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Clear any legacy localStorage
       clearLegacyStorage();
+
+      // Notify Chrome extension of logout
+      notifyExtension('logout');
     } catch (error) {
       console.error('[AUTH] Logout error:', error);
       // Still clear local state on error
@@ -238,11 +254,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: false,
         error: null,
       });
+
+      // Still notify extension
+      notifyExtension('logout');
     }
   }, []);
 
   /**
    * Logout from all devices - clears ALL sessions for this user
+   * Also notifies Chrome extension to clear its session
    */
   const logoutEverywhere = useCallback(async () => {
     try {
@@ -264,6 +284,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       clearLegacyStorage();
 
+      // Notify Chrome extension of logout
+      notifyExtension('logout');
+
       if (result.success) {
         return { success: true, deletedCount: result.deletedCount };
       } else {
@@ -277,6 +300,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: false,
         error: null,
       });
+
+      // Still notify extension
+      notifyExtension('logout');
+
       return { success: false, error: 'Network error' };
     }
   }, []);
@@ -339,6 +366,47 @@ export function useAuth(): AuthContextType {
 export function useCurrentUser(): User | null {
   const { user } = useAuth();
   return user;
+}
+
+/**
+ * Notify Chrome extension of auth state changes via postMessage
+ * The extension's content script (auth-sync.ts) listens for these messages
+ */
+function notifyExtension(
+  type: 'login' | 'logout',
+  sessionToken?: string,
+  user?: User,
+  expiresAt?: number
+): void {
+  try {
+    if (type === 'login' && sessionToken && user) {
+      window.postMessage({
+        type: 'PROPIQ_AUTH_LOGIN',
+        payload: {
+          sessionToken,
+          user: {
+            _id: user._id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            subscriptionTier: user.subscriptionTier,
+            analysesUsed: user.analysesUsed,
+            analysesLimit: user.analysesLimit,
+          },
+          expiresAt: expiresAt || Date.now() + 30 * 24 * 60 * 60 * 1000,
+        },
+      }, '*');
+      console.log('[AUTH] Extension notified of login');
+    } else if (type === 'logout') {
+      window.postMessage({
+        type: 'PROPIQ_AUTH_LOGOUT',
+      }, '*');
+      console.log('[AUTH] Extension notified of logout');
+    }
+  } catch (e) {
+    // Ignore postMessage errors (extension may not be installed)
+    console.log('[AUTH] Could not notify extension:', e);
+  }
 }
 
 /**

@@ -167,10 +167,14 @@ http.route({
       // Set session cookie
       const setCookie = buildSessionCookie(result.sessionToken!);
 
+      // Return sessionToken for extension sync (extension uses postMessage to receive this)
+      // The httpOnly cookie protects the web app, but we also pass token for extension sync
       return new Response(
         JSON.stringify({
           success: true,
           user: result.user,
+          sessionToken: result.sessionToken, // For extension sync via postMessage
+          expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
         }),
         {
           status: 200,
@@ -230,10 +234,13 @@ http.route({
       // Set session cookie
       const setCookie = buildSessionCookie(result.sessionToken!);
 
+      // Return sessionToken for extension sync
       return new Response(
         JSON.stringify({
           success: true,
           user: result.user,
+          sessionToken: result.sessionToken, // For extension sync via postMessage
+          expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
         }),
         {
           status: 200,
@@ -606,6 +613,244 @@ http.route({
         headers: { "Content-Type": "application/json" },
       }
     );
+  }),
+});
+
+// ============================================
+// EXTENSION-SPECIFIC AUTH ENDPOINTS
+// These return tokens in response body (not cookies)
+// for Chrome extension which can't use httpOnly cookies
+// ============================================
+
+// Extension CORS headers (more permissive for extension context)
+const extensionCorsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Credentials": "true",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+
+// OPTIONS handlers for extension endpoints
+http.route({
+  path: "/auth/extension-login",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, { status: 204, headers: extensionCorsHeaders });
+  }),
+});
+
+http.route({
+  path: "/auth/extension-signup",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, { status: 204, headers: extensionCorsHeaders });
+  }),
+});
+
+http.route({
+  path: "/auth/validate",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, { status: 204, headers: extensionCorsHeaders });
+  }),
+});
+
+http.route({
+  path: "/auth/extension-logout",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, { status: 204, headers: extensionCorsHeaders });
+  }),
+});
+
+/**
+ * POST /auth/extension-login
+ * Login for Chrome extension - returns token in response body (not cookie)
+ * Extension stores token in chrome.storage.local
+ */
+http.route({
+  path: "/auth/extension-login",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    try {
+      const body = await request.json();
+      const { email, password } = body;
+
+      if (!email || !password) {
+        return new Response(
+          JSON.stringify({ success: false, error: "Email and password required" }),
+          { status: 400, headers: { ...extensionCorsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const result = await ctx.runMutation(api.auth.loginWithSession, {
+        email,
+        password,
+        userAgent: request.headers.get("User-Agent") || "Chrome Extension",
+      });
+
+      if (!result.success) {
+        return new Response(
+          JSON.stringify({ success: false, error: result.error }),
+          { status: 401, headers: { ...extensionCorsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Return token in body (extension will store in chrome.storage)
+      return new Response(
+        JSON.stringify({
+          success: true,
+          sessionToken: result.sessionToken,
+          user: result.user,
+          expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+        }),
+        {
+          status: 200,
+          headers: { ...extensionCorsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    } catch (error) {
+      console.error("[AUTH] Extension login error:", error);
+      return new Response(
+        JSON.stringify({ success: false, error: "Login failed" }),
+        { status: 500, headers: { ...extensionCorsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+  }),
+});
+
+/**
+ * POST /auth/extension-signup
+ * Signup for Chrome extension - returns token in response body
+ */
+http.route({
+  path: "/auth/extension-signup",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    try {
+      const body = await request.json();
+      const { email, password, firstName, lastName } = body;
+
+      if (!email || !password) {
+        return new Response(
+          JSON.stringify({ success: false, error: "Email and password required" }),
+          { status: 400, headers: { ...extensionCorsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const result = await ctx.runMutation(api.auth.signupWithSession, {
+        email,
+        password,
+        firstName,
+        lastName,
+        userAgent: request.headers.get("User-Agent") || "Chrome Extension",
+      });
+
+      if (!result.success) {
+        return new Response(
+          JSON.stringify({ success: false, error: result.error }),
+          { status: 400, headers: { ...extensionCorsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          sessionToken: result.sessionToken,
+          user: result.user,
+          expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+        }),
+        {
+          status: 200,
+          headers: { ...extensionCorsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    } catch (error) {
+      console.error("[AUTH] Extension signup error:", error);
+      return new Response(
+        JSON.stringify({ success: false, error: "Signup failed" }),
+        { status: 500, headers: { ...extensionCorsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+  }),
+});
+
+/**
+ * GET /auth/validate
+ * Validate session token from Authorization header
+ * Used by extension to check if session is still valid
+ */
+http.route({
+  path: "/auth/validate",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    try {
+      const authHeader = request.headers.get("Authorization");
+      let token: string | null = null;
+
+      // Try Authorization header first (for extension)
+      if (authHeader?.startsWith("Bearer ")) {
+        token = authHeader.substring(7);
+      }
+
+      // Fall back to cookie (for web app)
+      if (!token) {
+        token = getSessionToken(request);
+      }
+
+      if (!token) {
+        return new Response(
+          JSON.stringify({ valid: false }),
+          { status: 200, headers: { ...extensionCorsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const result = await ctx.runQuery(api.sessions.validateSession, { token });
+
+      return new Response(
+        JSON.stringify({
+          valid: !!result,
+          user: result?.user || null,
+        }),
+        { status: 200, headers: { ...extensionCorsHeaders, "Content-Type": "application/json" } }
+      );
+    } catch (error) {
+      console.error("[AUTH] Validate error:", error);
+      return new Response(
+        JSON.stringify({ valid: false }),
+        { status: 200, headers: { ...extensionCorsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+  }),
+});
+
+/**
+ * POST /auth/extension-logout
+ * Logout for extension - uses Authorization header
+ */
+http.route({
+  path: "/auth/extension-logout",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    try {
+      const authHeader = request.headers.get("Authorization");
+
+      if (authHeader?.startsWith("Bearer ")) {
+        const token = authHeader.substring(7);
+        await ctx.runMutation(api.sessions.deleteSession, { token });
+      }
+
+      return new Response(
+        JSON.stringify({ success: true }),
+        { status: 200, headers: { ...extensionCorsHeaders, "Content-Type": "application/json" } }
+      );
+    } catch (error) {
+      console.error("[AUTH] Extension logout error:", error);
+      return new Response(
+        JSON.stringify({ success: true }),
+        { status: 200, headers: { ...extensionCorsHeaders, "Content-Type": "application/json" } }
+      );
+    }
   }),
 });
 
