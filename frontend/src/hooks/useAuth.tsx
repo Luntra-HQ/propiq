@@ -1,12 +1,14 @@
 /**
  * Server-Side Session Authentication Hook & Context
  *
- * This replaces localStorage-based auth with proper httpOnly cookie sessions:
+ * UPDATED: Uses localStorage + Authorization header instead of httpOnly cookies
+ * Because Convex is on a different domain (convex.site), cookies don't work.
+ * This is the approach Convex officially recommends.
+ *
  * - Sessions stored server-side in Convex
- * - Session token in httpOnly cookie (never accessible to JS)
- * - Automatic session refresh
- * - Works in private browsing
- * - Can be revoked server-side
+ * - Session token stored in localStorage
+ * - Token sent via Authorization header
+ * - Works across page loads and browser restarts
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
@@ -14,6 +16,9 @@ import React, { createContext, useContext, useState, useEffect, useCallback, Rea
 // Convex HTTP API base URL
 // HTTP endpoints use .convex.site (not .convex.cloud which is for WebSocket)
 const CONVEX_HTTP_URL = import.meta.env.VITE_CONVEX_URL?.replace('.convex.cloud', '.convex.site') || '';
+
+// localStorage key for session token
+const TOKEN_STORAGE_KEY = 'propiq_session_token';
 
 // API endpoints
 const AUTH_ENDPOINTS = {
@@ -26,6 +31,31 @@ const AUTH_ENDPOINTS = {
 };
 
 console.log('[AUTH] Endpoints configured:', AUTH_ENDPOINTS);
+
+// Helper to get/set token from localStorage
+function getStoredToken(): string | null {
+  try {
+    return localStorage.getItem(TOKEN_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function setStoredToken(token: string): void {
+  try {
+    localStorage.setItem(TOKEN_STORAGE_KEY, token);
+  } catch {
+    console.error('[AUTH] Failed to store token');
+  }
+}
+
+function clearStoredToken(): void {
+  try {
+    localStorage.removeItem(TOKEN_STORAGE_KEY);
+  } catch {
+    // Ignore
+  }
+}
 
 // User type matching Convex schema
 export interface User {
@@ -83,17 +113,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   /**
    * Fetch current user from /auth/me endpoint
-   * Uses httpOnly cookie for authentication
+   * Uses Authorization header with token from localStorage
    */
   const fetchCurrentUser = useCallback(async () => {
     try {
-      console.log('[AUTH] Fetching current user...');
+      const token = getStoredToken();
+
+      if (!token) {
+        console.log('[AUTH] No token stored, not authenticated');
+        setState({
+          user: null,
+          isLoading: false,
+          isAuthenticated: false,
+          error: null,
+        });
+        return;
+      }
+
+      console.log('[AUTH] Fetching current user with token...');
 
       const response = await fetch(AUTH_ENDPOINTS.me, {
         method: 'GET',
-        credentials: 'include', // Send cookies!
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
       });
 
@@ -108,6 +151,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           error: null,
         });
       } else {
+        // Token invalid, clear it
+        clearStoredToken();
         setState({
           user: null,
           isLoading: false,
@@ -128,7 +173,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   /**
    * Login with email and password
-   * Server sets httpOnly cookie on success
+   * Stores session token in localStorage
    * Also notifies Chrome extension via postMessage for session sync
    */
   const login = useCallback(async (email: string, password: string) => {
@@ -137,7 +182,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const response = await fetch(AUTH_ENDPOINTS.login, {
         method: 'POST',
-        credentials: 'include', // Receive and store cookies
         headers: {
           'Content-Type': 'application/json',
         },
@@ -147,7 +191,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await response.json();
       console.log('[AUTH] Login response:', data);
 
-      if (data.success && data.user) {
+      if (data.success && data.user && data.sessionToken) {
+        // Store token in localStorage
+        setStoredToken(data.sessionToken);
+        console.log('[AUTH] Token stored in localStorage');
+
         setState({
           user: data.user,
           isLoading: false,
@@ -159,9 +207,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         clearLegacyStorage();
 
         // Notify Chrome extension of login (if extension content script is present)
-        if (data.sessionToken) {
-          notifyExtension('login', data.sessionToken, data.user, data.expiresAt);
-        }
+        notifyExtension('login', data.sessionToken, data.user, data.expiresAt);
 
         return { success: true };
       } else {
@@ -175,7 +221,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   /**
    * Signup with email and password
-   * Server sets httpOnly cookie on success
+   * Stores session token in localStorage
    * Also notifies Chrome extension via postMessage for session sync
    */
   const signup = useCallback(async (data: SignupData) => {
@@ -184,7 +230,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const response = await fetch(AUTH_ENDPOINTS.signup, {
         method: 'POST',
-        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -194,7 +239,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const result = await response.json();
       console.log('[AUTH] Signup response:', result);
 
-      if (result.success && result.user) {
+      if (result.success && result.user && result.sessionToken) {
+        // Store token in localStorage
+        setStoredToken(result.sessionToken);
+        console.log('[AUTH] Token stored in localStorage');
+
         setState({
           user: result.user,
           isLoading: false,
@@ -206,9 +255,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         clearLegacyStorage();
 
         // Notify Chrome extension of signup/login
-        if (result.sessionToken) {
-          notifyExtension('login', result.sessionToken, result.user, result.expiresAt);
-        }
+        notifyExtension('login', result.sessionToken, result.user, result.expiresAt);
 
         return { success: true };
       } else {
@@ -221,17 +268,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   /**
-   * Logout - clears server session and cookie
+   * Logout - clears server session and localStorage
    * Also notifies Chrome extension to clear its session
    */
   const logout = useCallback(async () => {
     try {
       console.log('[AUTH] Logging out...');
 
-      await fetch(AUTH_ENDPOINTS.logout, {
-        method: 'POST',
-        credentials: 'include',
-      });
+      const token = getStoredToken();
+
+      // Call logout endpoint with token
+      if (token) {
+        await fetch(AUTH_ENDPOINTS.logout, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+      }
+
+      // Clear localStorage
+      clearStoredToken();
 
       setState({
         user: null,
@@ -248,6 +305,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('[AUTH] Logout error:', error);
       // Still clear local state on error
+      clearStoredToken();
       setState({
         user: null,
         isLoading: false,
@@ -268,12 +326,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       console.log('[AUTH] Logging out from all devices...');
 
+      const token = getStoredToken();
+
       const response = await fetch(AUTH_ENDPOINTS.logoutEverywhere, {
         method: 'POST',
-        credentials: 'include',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
       });
 
       const result = await response.json();
+
+      // Clear localStorage
+      clearStoredToken();
 
       setState({
         user: null,
@@ -294,6 +357,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       console.error('[AUTH] Logout everywhere error:', error);
+      clearStoredToken();
       setState({
         user: null,
         isLoading: false,

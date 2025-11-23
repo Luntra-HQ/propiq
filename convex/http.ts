@@ -26,7 +26,7 @@ const corsHeaders = {
     : "http://localhost:5173",
   "Access-Control-Allow-Credentials": "true",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
 /**
@@ -263,14 +263,25 @@ http.route({
 
 /**
  * GET /auth/me
- * Validate session cookie and return user data
+ * Validate session and return user data
+ * Accepts token via Authorization header (preferred) or cookie (legacy)
  */
 http.route({
   path: "/auth/me",
   method: "GET",
   handler: httpAction(async (ctx, request) => {
     try {
-      const token = getSessionToken(request);
+      // Try Authorization header first (recommended approach)
+      let token: string | null = null;
+      const authHeader = request.headers.get("Authorization");
+      if (authHeader?.startsWith("Bearer ")) {
+        token = authHeader.substring(7);
+      }
+
+      // Fall back to cookie (legacy)
+      if (!token) {
+        token = getSessionToken(request);
+      }
 
       if (!token) {
         return new Response(
@@ -283,17 +294,9 @@ http.route({
       const result = await ctx.runQuery(api.sessions.validateSession, { token });
 
       if (!result) {
-        // Invalid/expired session - clear cookie
         return new Response(
           JSON.stringify({ authenticated: false, user: null }),
-          {
-            status: 200,
-            headers: {
-              ...corsHeaders,
-              "Content-Type": "application/json",
-              "Set-Cookie": buildClearCookie(),
-            },
-          }
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
@@ -321,44 +324,38 @@ http.route({
 
 /**
  * POST /auth/logout
- * Clear session and cookie
+ * Clear session - accepts Authorization header or cookie
  */
 http.route({
   path: "/auth/logout",
   method: "POST",
   handler: httpAction(async (ctx, request) => {
     try {
-      const token = getSessionToken(request);
+      // Try Authorization header first
+      let token: string | null = null;
+      const authHeader = request.headers.get("Authorization");
+      if (authHeader?.startsWith("Bearer ")) {
+        token = authHeader.substring(7);
+      }
+      // Fall back to cookie
+      if (!token) {
+        token = getSessionToken(request);
+      }
 
       if (token) {
         // Delete server-side session
         await ctx.runMutation(api.sessions.deleteSession, { token });
       }
 
-      // Clear cookie
       return new Response(
         JSON.stringify({ success: true }),
-        {
-          status: 200,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-            "Set-Cookie": buildClearCookie(),
-          },
-        }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     } catch (error) {
       console.error("[AUTH] Logout error:", error);
       return new Response(
-        JSON.stringify({ success: true }), // Still clear cookie on error
-        {
-          status: 200,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-            "Set-Cookie": buildClearCookie(),
-          },
-        }
+        JSON.stringify({ success: true }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
   }),
