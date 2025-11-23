@@ -294,6 +294,14 @@ try:
 except ImportError as e:
     logger.warning(f"Portfolio router not available: {e}")
 
+# Import and include Comps Analysis router (Pillar 4: Platform Expansion)
+try:
+    from routers.comps import router as comps_router
+    app.include_router(comps_router)
+    logger.info("Comps Analysis router registered (comparables + market reports)")
+except ImportError as e:
+    logger.warning(f"Comps router not available: {e}")
+
 # Import and include Onboarding campaign router (email onboarding sequence)
 try:
     from routers.onboarding import router as onboarding_router

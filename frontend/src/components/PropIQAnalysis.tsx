@@ -1,11 +1,12 @@
 import { useState, useCallback } from 'react';
-import { Target, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, X, Loader2, FileText, MapPin, DollarSign, BarChart3, Lightbulb, ArrowRight, Zap, Share2, Bookmark, BookmarkCheck } from 'lucide-react';
+import { Target, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, X, Loader2, FileText, MapPin, DollarSign, BarChart3, Lightbulb, ArrowRight, Zap, Share2, Bookmark, BookmarkCheck, Home } from 'lucide-react';
 import { apiClient, API_ENDPOINTS } from '../config/api';
 import { PrintButton } from './PrintButton';
 import { PDFExportButton } from './PDFExportButton';
 import { Tooltip } from './Tooltip';
 import { PropertyImageGallery } from './PropertyImageGallery';
 import { ShareAnalysisModal } from './ShareAnalysisModal';
+import { CompsAnalysis } from './CompsAnalysis';
 import './PropIQAnalysis.css';
 
 interface PropIQAnalysisProps {
@@ -74,6 +75,7 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
   const [analysisId, setAnalysisId] = useState<string | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [savingToPortfolio, setSavingToPortfolio] = useState(false);
+  const [showComps, setShowComps] = useState(false);
 
   // Callback to handle when property images are loaded
   const handleImagesLoaded = useCallback((images: PropertyImage[], primaryUrl: string | null) => {
@@ -646,6 +648,36 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
                 ))}
               </ol>
             </div>
+
+            {/* Comparable Properties Toggle */}
+            <div className="propiq-comps-toggle">
+              <button
+                onClick={() => setShowComps(!showComps)}
+                className="propiq-btn-comps"
+              >
+                <Home className="h-4 w-4" />
+                {showComps ? 'Hide Comparable Properties' : 'View Comparable Properties & Market Data'}
+              </button>
+            </div>
+
+            {/* Comps Analysis */}
+            {showComps && analysis && (
+              <div className="propiq-comps-section">
+                <CompsAnalysis
+                  address={analysis._metadata?.address || address}
+                  city={analysis.location.city}
+                  state={analysis.location.state}
+                  zipCode={analysis._metadata?.address?.match(/\d{5}(?:-\d{4})?/)?.[0] || '78705'}
+                  propertyType={propertyType}
+                  bedrooms={3}
+                  bathrooms={2}
+                  sqft={1500}
+                  yearBuilt={2000}
+                  targetPrice={purchasePrice ? Number(purchasePrice) : analysis.financials.estimatedValue}
+                  compact={true}
+                />
+              </div>
+            )}
 
             {/* Actions */}
             <div className="propiq-actions">

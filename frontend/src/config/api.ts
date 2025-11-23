@@ -122,6 +122,11 @@ export const API_ENDPOINTS = {
   PORTFOLIO_NOTIFICATIONS: '/portfolio/notifications',
   PORTFOLIO_NOTIFICATION_READ: (notificationId: string) => `/portfolio/notifications/${notificationId}/read`,
   PORTFOLIO_NOTIFICATIONS_READ_ALL: '/portfolio/notifications/read-all',
+
+  // Comps & Market Analysis (Pillar 4: Platform Expansion)
+  COMPS_ANALYZE: '/comps/analyze',
+  COMPS_MARKET_REPORT: '/comps/market-report',
+  COMPS_HEALTH: '/comps/health',
 };
 
 // Export type for TypeScript autocompletion
