@@ -1,12 +1,12 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { Settings, BarChart, Clock, Zap, Target, Shield, Users, Mail, Search, Calculator, Send, Lock, CreditCard, X, DollarSign, Loader2, ArrowRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Zap, Target, Lock, CreditCard, X, DollarSign, Loader2, BarChart } from 'lucide-react';
 import PricingPage from './components/PricingPage';
 import { SupportChat } from './components/SupportChat';
-import { DealCalculator } from './components/DealCalculator';
 import { FeedbackWidget } from './components/FeedbackWidget';
 import { PropIQAnalysis } from './components/PropIQAnalysis';
 import { ProductTour, useShouldShowTour } from './components/ProductTour';
 import { CookieConsent } from './components/CookieConsent';
+import { Dashboard } from './components/Dashboard';
 
 // --- BACKEND AUTH IMPORTS (Server-side sessions with httpOnly cookies) ---
 import { AuthModal } from './components/AuthModal';
@@ -92,7 +92,7 @@ const PaywallModal = ({ isOpen, onUpgradeClick }: { isOpen: boolean; onUpgradeCl
   );
 };
 
-// Header (Re-used, stable component)
+// Header (2025 Glassmorphism Design)
 const Header = ({
   propIqUsed,
   propIqLimit,
@@ -109,30 +109,34 @@ const Header = ({
   onLogout: () => void;
 }) => {
   const tierConfig = PRICING_TIERS[currentTier] || PRICING_TIERS.free;
-  const remaining = getRemainingRuns(propIqUsed, propIqLimit);
 
   return (
-    <header className="flex justify-between items-center p-4 md:p-6 bg-slate-800 border-b border-violet-900 shadow-2xl sticky top-0 z-10">
+    <header className="flex justify-between items-center p-4 md:px-6 md:py-4 bg-slate-800/80 backdrop-blur-glass border-b border-glass-border shadow-card sticky top-0 z-20">
       <div className="flex items-center space-x-3">
-        <Zap className={`h-7 w-7 text-${PRIMARY_ACCENT}-400 drop-shadow-lg`} />
-        <h1 className="text-xl md:text-2xl font-extrabold text-gray-50 tracking-wide">
-          PropIQ - AI Property Analysis
-        </h1>
+        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
+          <Zap className="h-5 w-5 text-white" />
+        </div>
+        <div>
+          <h1 className="text-lg md:text-xl font-bold text-gray-50 tracking-tight">
+            PropIQ
+          </h1>
+          <p className="text-[10px] text-gray-400 hidden sm:block">AI Property Analysis</p>
+        </div>
       </div>
-      <div className="flex items-center space-x-4">
-        <div className="hidden md:flex items-center space-x-2 bg-slate-700 px-3 py-1.5 rounded-lg">
-          <CreditCard className="h-4 w-4 text-violet-300" />
-          <span className="text-xs font-semibold text-gray-200">{tierConfig.displayName}</span>
+      <div className="flex items-center space-x-3">
+        <div className="hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-glass border border-glass-border">
+          <CreditCard className="h-4 w-4 text-violet-400" />
+          <span className="text-xs font-medium text-gray-200">{tierConfig.displayName}</span>
         </div>
         <UsageBadge used={propIqUsed} limit={propIqLimit} />
         {userId && (
           <div className="flex items-center space-x-2">
-            <div className="hidden lg:block text-xs text-gray-300 truncate max-w-[150px]" title={userEmail || userId}>
+            <div className="hidden lg:block text-xs text-gray-400 truncate max-w-[120px]" title={userEmail || userId}>
               {userEmail || 'Logged In'}
             </div>
             <button
               onClick={onLogout}
-              className="text-xs px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-gray-300 hover:text-white rounded-lg transition-colors"
+              className="btn-ghost text-xs"
               title="Logout"
             >
               Logout
@@ -144,139 +148,29 @@ const Header = ({
   );
 };
 
-// Usage Badge Component
+// Usage Badge Component (2025 Design)
 const UsageBadge = ({ used, limit }: { used: number; limit: number }) => {
   const remaining = getRemainingRuns(used, limit);
   const percentage = (used / limit) * 100;
 
-  let statusColor = 'bg-emerald-900 text-emerald-200';
+  let statusColor = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
   if (percentage >= 90) {
-    statusColor = 'bg-red-900 text-red-200';
+    statusColor = 'bg-red-500/20 text-red-300 border-red-500/30';
   } else if (percentage >= 75) {
-    statusColor = 'bg-yellow-900 text-yellow-200';
+    statusColor = 'bg-amber-500/20 text-amber-300 border-amber-500/30';
   }
 
-  const text = remaining > 0 ? `${remaining}/${limit} Runs Left` : 'LIMIT REACHED';
+  const text = remaining > 0 ? `${remaining} left` : 'Limit reached';
 
   return (
-    <div className={`px-3 py-1 text-xs font-semibold rounded-full ${statusColor} flex items-center shadow-inner`}>
-      <BarChart className="h-3 w-3 mr-1" />
-      {text}
+    <div className={`px-3 py-1.5 text-xs font-medium rounded-full ${statusColor} border flex items-center gap-1.5 transition-colors`}>
+      <BarChart className="h-3.5 w-3.5" />
+      <span>{text}</span>
     </div>
   );
 };
 
-// PropIQ Feature Card
-const DealIqFeatureCard = ({
-  used,
-  limit,
-  onClick,
-  currentTier
-}: {
-  used: number;
-  limit: number;
-  onClick: () => void;
-  currentTier: string;
-}) => {
-  const isAtLimit = isAtHardCap(used, limit);
-  const remaining = getRemainingRuns(used, limit);
-  const progressPercent = useMemo(() => (used / limit) * 100, [used, limit]);
-  const tierConfig = PRICING_TIERS[currentTier] || PRICING_TIERS.free;
-
-  // Determine progress bar color
-  let progressColor = 'from-emerald-500 to-emerald-400';
-  if (progressPercent >= 90) {
-    progressColor = 'from-red-500 to-red-400';
-  } else if (progressPercent >= 75) {
-    progressColor = 'from-yellow-500 to-yellow-400';
-  }
-
-  return (
-    <div className={`p-6 bg-slate-800 rounded-xl shadow-2xl transition-shadow duration-300 h-full flex flex-col justify-between ${isAtLimit ? 'opacity-60' : `hover:shadow-${PRIMARY_ACCENT}-500/30`}`}>
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-2xl font-bold text-gray-50">PropIQ Analysis</h2>
-          <Target className="h-6 w-6 text-violet-300" />
-        </div>
-        <p className="text-gray-300 mb-4">
-          AI-powered property analysis with risk scoring and market insights. Each analysis consumes one PropIQ run.
-        </p>
-        <div className="bg-slate-700 p-3 rounded-lg mb-4">
-          <p className="text-sm text-gray-300">
-            <span className="font-bold text-violet-300">{tierConfig.displayName} Plan:</span> {tierConfig.propIqLimit} runs/month
-          </p>
-        </div>
-      </div>
-
-      <div className={`mb-6 p-4 rounded-lg bg-slate-900 shadow-inner border border-slate-700`}>
-        <div className="flex justify-between items-center mb-2">
-          <span className={`text-sm font-medium text-${PRIMARY_ACCENT}-400`}>Monthly Usage</span>
-          <span className={`text-sm font-bold ${remaining > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-            {remaining} of {limit} left
-          </span>
-        </div>
-        <div className="w-full bg-slate-700 rounded-full h-3">
-          <div
-            className={`h-3 rounded-full bg-gradient-to-r ${progressColor} transition-all duration-500`}
-            style={{ width: `${progressPercent}%` }}
-          ></div>
-        </div>
-        <div className="flex justify-between mt-2 text-xs text-gray-400">
-          <span>Used: {used}</span>
-          <span>{progressPercent.toFixed(0)}%</span>
-        </div>
-      </div>
-
-      <button
-        onClick={onClick}
-        disabled={isAtLimit}
-        className={`w-full py-3 px-4 rounded-lg font-bold text-white transition-all duration-200 flex items-center justify-center space-x-2
-          ${isAtLimit
-            ? 'bg-gray-600 cursor-not-allowed'
-            : `bg-${PRIMARY_ACCENT}-600 hover:bg-${PRIMARY_ACCENT}-500 active:scale-[0.99] shadow-lg shadow-${PRIMARY_ACCENT}-500/50 focus:outline-none focus:ring-4 focus:ring-${PRIMARY_ACCENT}-300`
-          }`}
-      >
-        {isAtLimit ? (
-          <>
-            <Lock className="h-5 w-5" />
-            <span>Limit Reached - Upgrade or Top Up</span>
-          </>
-        ) : (
-          <>
-            <Zap className="h-5 w-5" />
-            <span>Run PropIQ Analysis ({remaining} left)</span>
-          </>
-        )}
-      </button>
-    </div>
-  );
-};
-
-// Simple Stat Card
-const StatCard = ({ title, value, icon: Icon, color }: { title: string; value: string; icon: React.ElementType; color: string }) => (
-  <div className="p-5 bg-slate-800 rounded-xl shadow-xl border border-slate-700 transition-transform duration-300 hover:scale-[1.02]">
-    <div className="flex items-center">
-      <Icon className={`h-7 w-7 text-${color}-400 mr-3`} />
-      <div>
-        <p className="text-sm font-medium text-gray-300">{title}</p>
-        <p className="text-3xl font-extrabold text-gray-50">{value}</p>
-      </div>
-    </div>
-  </div>
-);
-
-// Feature Showcase List Item
-const FeatureListItem = ({ title, description, icon: Icon }: { title: string; description: string; icon: React.ElementType }) => (
-  <div className="flex items-start space-x-4 p-4 rounded-lg hover:bg-slate-700 transition-colors cursor-pointer">
-    <Icon className={`h-6 w-6 flex-shrink-0 text-${PRIMARY_ACCENT}-400`} />
-    <div>
-      <h3 className="text-md font-semibold text-gray-50">{title}</h3>
-      <p className="text-sm text-gray-300">{description}</p>
-    </div>
-  </div>
-);
-
-// Upgrade Prompt Banner Component (90% threshold)
+// Upgrade Prompt Banner Component (90% threshold - 2025 Glassmorphism)
 const UpgradePromptBanner = ({
   used,
   limit,
@@ -297,46 +191,46 @@ const UpgradePromptBanner = ({
 
   return (
     <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-40 w-full max-w-4xl px-4 animate-slideInDown">
-      <div className="bg-gradient-to-r from-violet-900 to-purple-900 border border-violet-500 rounded-lg shadow-2xl p-4">
+      <div className="bg-gradient-to-r from-violet-900/90 to-purple-900/90 backdrop-blur-glass border border-violet-500/50 rounded-2xl shadow-glow p-5">
         <div className="flex items-start justify-between">
-          <div className="flex items-start space-x-3 flex-1">
-            <div className="flex-shrink-0 bg-violet-500 rounded-full p-2">
+          <div className="flex items-start space-x-4 flex-1">
+            <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/30">
               <Target className="h-6 w-6 text-white" />
             </div>
             <div className="flex-1">
               <h3 className="text-lg font-bold text-white mb-1">
                 {CONVERSION_COPY.warningBanner.title.replace('{used}', used.toString()).replace('{total}', limit.toString())}
               </h3>
-              <p className="text-sm text-violet-200">
+              <p className="text-sm text-violet-200/80">
                 {CONVERSION_COPY.warningBanner.description}
               </p>
-              <div className="flex flex-wrap gap-2 mt-3">
+              <div className="flex flex-wrap gap-2 mt-4">
                 <button
                   onClick={onTopUp}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold rounded-lg transition-colors"
+                  className="btn-press px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-emerald-500/30"
                 >
-                  💰 Buy 10 More ($5)
+                  Buy 10 More ($5)
                 </button>
                 {nextTier && (
                   <button
                     onClick={onUpgrade}
-                    className="px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold rounded-lg transition-colors"
+                    className="btn-press px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-violet-500/30"
                   >
-                    ⚡ Upgrade to {nextTier.name} ({formatCurrency(nextTier.price)}/mo)
+                    Upgrade to {nextTier.name} ({formatCurrency(nextTier.price)}/mo)
                   </button>
                 )}
                 <button
                   onClick={onDismiss}
-                  className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-sm font-medium rounded-lg transition-colors"
+                  className="btn-ghost px-4 py-2 text-violet-200 text-sm font-medium"
                 >
-                  Remind Me Later
+                  Later
                 </button>
               </div>
             </div>
           </div>
           <button
             onClick={onDismiss}
-            className="flex-shrink-0 ml-3 text-violet-300 hover:text-white transition-colors"
+            className="flex-shrink-0 ml-3 p-1 text-violet-300 hover:text-white hover:bg-white/10 rounded-lg transition-all"
           >
             <X className="h-5 w-5" />
           </button>
@@ -625,7 +519,6 @@ const App = () => {
   }
 
   return (
-    // Note: The classes here rely on the statically compiled Tailwind CSS
     <div className="min-h-screen bg-slate-900 text-gray-100 flex flex-col font-sans antialiased">
       {/* Header with tier and usage info */}
       <Header
@@ -649,112 +542,18 @@ const App = () => {
         />
       )}
 
-      <main className="flex-grow container mx-auto px-4 py-10 md:px-8 md:py-16">
-        {/* Hero Section - SEO Optimized */}
-        <section className="mb-12 text-center" role="banner">
-          <h1 className="text-4xl font-extrabold text-gray-50 sm:text-5xl mb-3 drop-shadow-md">
-            AI-Powered Real Estate Investment Analysis
-          </h1>
-          <p className="text-xl text-gray-300 mb-2">
-            Analyze any property in 30 seconds with PropIQ by LUNTRA
-          </p>
-          <p className="text-lg text-gray-400">
-            {CONVERSION_COPY.trialEnd.description}
-          </p>
-        </section>
-
-        {/* PropIQ AI Analysis - PRIMARY FEATURE (Revenue Generator) */}
-        <section className="bg-gradient-to-br from-violet-900/40 to-purple-900/40 p-8 md:p-10 rounded-xl shadow-2xl border-2 border-violet-500/30 mb-16" aria-labelledby="propiq-heading">
-          <div className="flex items-center justify-between mb-6">
-            <h2 id="propiq-heading" className="text-3xl font-bold text-gray-50">
-              PropIQ AI Analysis
-            </h2>
-            <span className="px-4 py-2 bg-violet-600/20 border border-violet-500/50 rounded-full text-violet-300 text-sm font-semibold">
-              {propIqRemaining} analyses remaining
-            </span>
-          </div>
-          <p className="text-gray-300 mb-6 text-lg">
-            Get instant AI-powered property analysis with market insights, investment recommendations, and risk assessment in seconds.
-          </p>
-
-          {/* PropIQ Feature Card */}
-          <DealIqFeatureCard
-            used={propIqUsed}
-            limit={propIqLimit}
-            onClick={handleUsePropIq}
-            currentTier={currentTier}
-          />
-
-          {/* Prominent CTA */}
-          <div className="mt-6 flex justify-center">
-            <button
-              onClick={() => setShowPropIQAnalysis(true)}
-              className="group flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white text-xl font-bold rounded-xl shadow-2xl transition-all duration-300 hover:shadow-violet-500/50 hover:scale-105"
-            >
-              <Target className="h-7 w-7" />
-              Analyze a Property Now
-              <ArrowRight className="h-6 w-6 group-hover:translate-x-1 transition-transform" />
-            </button>
-          </div>
-        </section>
-
-        {/* Deal Calculator Section - Free Tool */}
-        <section className="bg-slate-800 p-8 md:p-10 rounded-xl shadow-xl border border-slate-700 mb-16" aria-labelledby="calculator-heading">
-          <div className="flex items-center justify-between mb-6">
-            <h2 id="calculator-heading" className="text-2xl font-bold text-gray-50">
-              Real Estate Investment Calculator
-            </h2>
-            <span className="px-3 py-1 bg-emerald-600/20 border border-emerald-500/50 rounded-full text-emerald-300 text-sm font-semibold">
-              Free Tool
-            </span>
-          </div>
-          <p className="text-gray-400 mb-6">
-            Run quick calculations on any property. For deeper insights, use PropIQ AI Analysis above.
-          </p>
-          <DealCalculator />
-        </section>
-
-        {/* Quick Stats Dashboard */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-          <StatCard
-            title="Properties Analyzed"
-            value={propIqUsed.toString()}
-            icon={Target}
-            color={PRIMARY_ACCENT}
-          />
-        </section>
-
-        {/* Tier Benefits Showcase */}
-        <section className="bg-slate-800 p-8 md:p-10 rounded-xl shadow-2xl border border-slate-700" aria-labelledby="benefits-heading">
-          <div className="flex items-center justify-between mb-6 border-b border-slate-700 pb-3">
-            <h2 id="benefits-heading" className="text-2xl font-bold text-gray-50">
-              Your {tierConfig.displayName} Benefits
-            </h2>
-            <button
-              onClick={handleUpgradeClick}
-              className="px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold rounded-lg transition-colors"
-            >
-              Upgrade Plan
-            </button>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-10 gap-y-6">
-            {tierConfig.features.map((feature, index) => (
-              <div key={index} className="flex items-start space-x-3">
-                <Shield className="h-5 w-5 flex-shrink-0 text-emerald-400 mt-0.5" />
-                <p className="text-sm text-gray-300">{feature}</p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-6 bg-slate-700 p-4 rounded-lg">
-            <p className="text-xs text-gray-300 text-center">
-              💡 Best for: <span className="font-semibold text-gray-200">{tierConfig.bestFor}</span>
-            </p>
-          </div>
-        </section>
-      </main>
+      {/* Main Dashboard - 2025 Bento Grid Design */}
+      <Dashboard
+        propIqUsed={propIqUsed}
+        propIqLimit={propIqLimit}
+        currentTier={currentTier}
+        userEmail={userEmail}
+        onAnalyzeClick={() => setShowPropIQAnalysis(true)}
+        onUpgradeClick={handleUpgradeClick}
+      />
 
       {/* Footer - SEO Optimized */}
-      <footer className="mt-12 py-8 text-center text-sm text-gray-300 bg-slate-800 border-t border-slate-700" role="contentinfo">
+      <footer className="py-8 text-center text-sm text-gray-300 bg-slate-800/50 border-t border-slate-700/50 backdrop-blur-sm" role="contentinfo">
         <div className="container mx-auto px-4">
           <nav aria-label="Footer navigation" className="mb-4">
             <p className="mb-2">
