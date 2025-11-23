@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Target, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, X, Loader2, FileText, MapPin, DollarSign, BarChart3, Lightbulb, ArrowRight, Zap, Share2 } from 'lucide-react';
+import { Target, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, X, Loader2, FileText, MapPin, DollarSign, BarChart3, Lightbulb, ArrowRight, Zap, Share2, Bookmark, BookmarkCheck } from 'lucide-react';
 import { apiClient, API_ENDPOINTS } from '../config/api';
 import { PrintButton } from './PrintButton';
 import { PDFExportButton } from './PDFExportButton';
@@ -72,6 +72,8 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
   const [primaryImageUrl, setPrimaryImageUrl] = useState<string | null>(null);
   const [showShareModal, setShowShareModal] = useState(false);
   const [analysisId, setAnalysisId] = useState<string | null>(null);
+  const [isSaved, setIsSaved] = useState(false);
+  const [savingToPortfolio, setSavingToPortfolio] = useState(false);
 
   // Callback to handle when property images are loaded
   const handleImagesLoaded = useCallback((images: PropertyImage[], primaryUrl: string | null) => {
@@ -158,6 +160,37 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
       }
 
       setStep('input');
+    }
+  };
+
+  const handleSaveToPortfolio = async () => {
+    if (!analysis || isSaved) return;
+
+    setSavingToPortfolio(true);
+
+    try {
+      const response = await apiClient.post(API_ENDPOINTS.PORTFOLIO_PROPERTIES, {
+        address: analysis._metadata?.address || address,
+        city: analysis.location.city,
+        state: analysis.location.state,
+        purchase_price: purchasePrice || analysis.financials.estimatedValue,
+        current_value: analysis.financials.estimatedValue,
+        monthly_rent: analysis.financials.estimatedRent,
+        status: 'watching',
+        property_type: propertyType,
+        analysis_id: analysisId,
+        deal_score: analysis.investment.confidenceScore,
+        notes: `AI Recommendation: ${analysis.investment.recommendation}. Cap Rate: ${analysis.financials.capRate.toFixed(2)}%, ROI: ${analysis.financials.roi.toFixed(2)}%`
+      });
+
+      if (response.data.success || response.data.property) {
+        setIsSaved(true);
+      }
+    } catch (err: any) {
+      console.error('Failed to save to portfolio:', err);
+      alert(err.response?.data?.detail || 'Failed to save property to portfolio');
+    } finally {
+      setSavingToPortfolio(false);
     }
   };
 
@@ -655,6 +688,21 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
                 >
                   <Share2 className="h-4 w-4" />
                   Share
+                </button>
+                <button
+                  onClick={handleSaveToPortfolio}
+                  disabled={isSaved || savingToPortfolio}
+                  className={`propiq-btn-save flex-1 min-w-[120px] ${isSaved ? 'saved' : ''}`}
+                  title={isSaved ? "Saved to portfolio" : "Save to portfolio"}
+                >
+                  {savingToPortfolio ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : isSaved ? (
+                    <BookmarkCheck className="h-4 w-4" />
+                  ) : (
+                    <Bookmark className="h-4 w-4" />
+                  )}
+                  {isSaved ? 'Saved' : 'Save'}
                 </button>
               </div>
               <div className="flex gap-3 mt-3 w-full">

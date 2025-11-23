@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Settings, BarChart, Clock, Zap, Target, Shield, Users, Mail, Search, Calculator, Send, Lock, CreditCard, X, DollarSign, Loader2, ArrowRight } from 'lucide-react';
+import { Settings, BarChart, Clock, Zap, Target, Shield, Users, Mail, Search, Calculator, Send, Lock, CreditCard, X, DollarSign, Loader2, ArrowRight, Briefcase } from 'lucide-react';
 import PricingPage from './components/PricingPage';
 import { SupportChat } from './components/SupportChat';
 import { DealCalculator } from './components/DealCalculator';
@@ -7,6 +7,7 @@ import { FeedbackWidget } from './components/FeedbackWidget';
 import { PropIQAnalysis } from './components/PropIQAnalysis';
 import { ProductTour, useShouldShowTour } from './components/ProductTour';
 import { CookieConsent } from './components/CookieConsent';
+import { PortfolioDashboard } from './components/PortfolioDashboard';
 
 // --- BACKEND AUTH IMPORTS (Server-side sessions with httpOnly cookies) ---
 import { AuthModal } from './components/AuthModal';
@@ -99,7 +100,8 @@ const Header = ({
   currentTier,
   userId,
   userEmail,
-  onLogout
+  onLogout,
+  onPortfolioClick
 }: {
   propIqUsed: number;
   propIqLimit: number;
@@ -107,6 +109,7 @@ const Header = ({
   userId: string | null;
   userEmail: string | null;
   onLogout: () => void;
+  onPortfolioClick: () => void;
 }) => {
   const tierConfig = PRICING_TIERS[currentTier] || PRICING_TIERS.free;
   const remaining = getRemainingRuns(propIqUsed, propIqLimit);
@@ -120,6 +123,14 @@ const Header = ({
         </h1>
       </div>
       <div className="flex items-center space-x-4">
+        <button
+          onClick={onPortfolioClick}
+          className="hidden md:flex items-center space-x-2 bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-lg transition-colors"
+          title="My Portfolio"
+        >
+          <Briefcase className="h-4 w-4 text-amber-400" />
+          <span className="text-xs font-semibold text-gray-200">Portfolio</span>
+        </button>
         <div className="hidden md:flex items-center space-x-2 bg-slate-700 px-3 py-1.5 rounded-lg">
           <CreditCard className="h-4 w-4 text-violet-300" />
           <span className="text-xs font-semibold text-gray-200">{tierConfig.displayName}</span>
@@ -427,6 +438,7 @@ const App = () => {
   const [showTopUpModal, setShowTopUpModal] = useState(false);
   const [showPricingPage, setShowPricingPage] = useState(false);
   const [showPropIQAnalysis, setShowPropIQAnalysis] = useState(false);
+  const [showPortfolio, setShowPortfolio] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
@@ -635,6 +647,7 @@ const App = () => {
         userId={userId}
         userEmail={userEmail}
         onLogout={handleLogout}
+        onPortfolioClick={() => setShowPortfolio(true)}
       />
 
       {/* Upgrade Prompt Banner (90% threshold) */}
@@ -834,6 +847,25 @@ const App = () => {
 
       {/* Cookie Consent Banner - GDPR/CCPA Compliance */}
       <CookieConsent />
+
+      {/* Portfolio Dashboard Modal */}
+      {showPortfolio && (
+        <div className="fixed inset-0 z-50 bg-slate-900/95 backdrop-blur-sm overflow-y-auto">
+          <div className="sticky top-0 z-10 bg-slate-800 border-b border-slate-700 p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Briefcase className="h-6 w-6 text-amber-400" />
+              <h2 className="text-xl font-bold text-white">My Portfolio</h2>
+            </div>
+            <button
+              onClick={() => setShowPortfolio(false)}
+              className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
+            >
+              <X className="h-6 w-6 text-gray-400 hover:text-white" />
+            </button>
+          </div>
+          <PortfolioDashboard />
+        </div>
+      )}
     </div>
   );
 };

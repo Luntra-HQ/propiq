@@ -112,6 +112,16 @@ export const API_ENDPOINTS = {
   SHARE_COMMENTS: (shareId: string) => `/share/${shareId}/comments`,
   SHARE_ADD_COMMENT: (shareId: string) => `/share/${shareId}/comments`,
   SHARE_DELETE_COMMENT: (shareId: string, commentId: string) => `/share/${shareId}/comments/${commentId}`,
+
+  // Portfolio & Deal Alerts (Pillar 3: Intelligence Layer)
+  PORTFOLIO_PROPERTIES: '/portfolio/properties',
+  PORTFOLIO_PROPERTY: (propertyId: string) => `/portfolio/properties/${propertyId}`,
+  PORTFOLIO_SUMMARY: '/portfolio/summary',
+  PORTFOLIO_ALERTS: '/portfolio/alerts',
+  PORTFOLIO_ALERT: (alertId: string) => `/portfolio/alerts/${alertId}`,
+  PORTFOLIO_NOTIFICATIONS: '/portfolio/notifications',
+  PORTFOLIO_NOTIFICATION_READ: (notificationId: string) => `/portfolio/notifications/${notificationId}/read`,
+  PORTFOLIO_NOTIFICATIONS_READ_ALL: '/portfolio/notifications/read-all',
 };
 
 // Export type for TypeScript autocompletion

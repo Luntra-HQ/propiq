@@ -286,6 +286,14 @@ try:
 except ImportError as e:
     logger.warning(f"Sharing router not available: {e}")
 
+# Import and include Portfolio & Deal Alerts router (Pillar 3: Intelligence Layer)
+try:
+    from routers.portfolio import router as portfolio_router
+    app.include_router(portfolio_router)
+    logger.info("Portfolio & Deal Alerts router registered (saved properties + alerts)")
+except ImportError as e:
+    logger.warning(f"Portfolio router not available: {e}")
+
 # Import and include Onboarding campaign router (email onboarding sequence)
 try:
     from routers.onboarding import router as onboarding_router

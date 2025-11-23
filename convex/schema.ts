@@ -270,4 +270,169 @@ export default defineSchema({
     .index("by_team", ["teamId"])
     .index("by_user", ["userId"])
     .index("by_team_and_user", ["teamId", "userId"]),
+
+  // ============================================================================
+  // PILLAR 3: INTELLIGENCE LAYER - Portfolio Tracking & Deal Alerts
+  // ============================================================================
+
+  // Saved Properties - Properties users want to track/watch
+  savedProperties: defineTable({
+    userId: v.string(),
+
+    // Property info
+    address: v.string(),
+    city: v.optional(v.string()),
+    state: v.optional(v.string()),
+    zipCode: v.optional(v.string()),
+
+    // Current valuation (can be updated)
+    purchasePrice: v.optional(v.number()),
+    currentValue: v.optional(v.number()),
+    monthlyRent: v.optional(v.number()),
+
+    // Status
+    status: v.string(), // "watching" | "owned" | "under_contract" | "sold"
+    propertyType: v.optional(v.string()),
+
+    // Related analysis
+    analysisId: v.optional(v.string()),
+    dealScore: v.optional(v.number()),
+
+    // User notes
+    notes: v.optional(v.string()),
+    tags: v.optional(v.array(v.string())),
+
+    // Dates
+    purchaseDate: v.optional(v.number()),
+    saleDate: v.optional(v.number()),
+
+    // Timestamps
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_and_status", ["userId", "status"])
+    .index("by_address", ["address"]),
+
+  // Portfolio Snapshots - Historical portfolio value tracking
+  portfolioSnapshots: defineTable({
+    userId: v.string(),
+
+    // Snapshot date (daily/weekly/monthly)
+    snapshotDate: v.number(),
+    snapshotType: v.string(), // "daily" | "weekly" | "monthly"
+
+    // Aggregated values
+    totalProperties: v.number(),
+    totalValue: v.number(),
+    totalEquity: v.number(),
+    totalMonthlyIncome: v.number(),
+    totalMonthlyExpenses: v.number(),
+    totalCashFlow: v.number(),
+
+    // Performance metrics
+    avgCapRate: v.optional(v.number()),
+    avgCashOnCash: v.optional(v.number()),
+    portfolioScore: v.optional(v.number()), // 0-100
+
+    // Breakdown by status
+    ownedCount: v.number(),
+    watchingCount: v.number(),
+
+    // Timestamps
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_and_date", ["userId", "snapshotDate"])
+    .index("by_user_and_type", ["userId", "snapshotType"]),
+
+  // Deal Alerts - Saved search criteria for notifications
+  dealAlerts: defineTable({
+    userId: v.string(),
+    userEmail: v.string(),
+
+    // Alert name and status
+    name: v.string(),
+    isActive: v.boolean(),
+
+    // Search criteria
+    cities: v.optional(v.array(v.string())),
+    states: v.optional(v.array(v.string())),
+    zipCodes: v.optional(v.array(v.string())),
+
+    // Price range
+    minPrice: v.optional(v.number()),
+    maxPrice: v.optional(v.number()),
+
+    // Deal criteria
+    minDealScore: v.optional(v.number()), // Minimum deal score (0-100)
+    minCapRate: v.optional(v.number()),
+    minCashFlow: v.optional(v.number()),
+    propertyTypes: v.optional(v.array(v.string())),
+
+    // Notification settings
+    notifyEmail: v.boolean(),
+    notifyInApp: v.boolean(),
+    frequency: v.string(), // "instant" | "daily" | "weekly"
+
+    // Stats
+    matchCount: v.number(),
+    lastMatchAt: v.optional(v.number()),
+    lastNotifiedAt: v.optional(v.number()),
+
+    // Timestamps
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_active", ["isActive"]),
+
+  // Alert Matches - Properties that matched deal alerts
+  alertMatches: defineTable({
+    alertId: v.id("dealAlerts"),
+    userId: v.string(),
+
+    // Matched property
+    analysisId: v.string(),
+    address: v.string(),
+    dealScore: v.number(),
+    capRate: v.optional(v.number()),
+    cashFlow: v.optional(v.number()),
+
+    // Match status
+    status: v.string(), // "new" | "viewed" | "saved" | "dismissed"
+    notified: v.boolean(),
+
+    // Timestamps
+    matchedAt: v.number(),
+    viewedAt: v.optional(v.number()),
+  })
+    .index("by_alert", ["alertId"])
+    .index("by_user", ["userId"])
+    .index("by_user_and_status", ["userId", "status"]),
+
+  // User Notifications - In-app notification system
+  notifications: defineTable({
+    userId: v.string(),
+
+    // Notification content
+    type: v.string(), // "deal_alert" | "share_view" | "comment" | "system"
+    title: v.string(),
+    message: v.string(),
+    actionUrl: v.optional(v.string()),
+
+    // Related entities
+    relatedId: v.optional(v.string()),
+    relatedType: v.optional(v.string()),
+
+    // Status
+    isRead: v.boolean(),
+
+    // Timestamps
+    createdAt: v.number(),
+    readAt: v.optional(v.number()),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_and_read", ["userId", "isRead"])
+    .index("by_user_and_type", ["userId", "type"]),
 });
