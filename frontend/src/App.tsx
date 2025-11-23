@@ -557,16 +557,24 @@ const App = () => {
   };
 
   const handleTopUpPurchase = async (packageId: string) => {
-    console.log(`Purchasing top-up package: ${packageId}`);
+    console.log(`Top-up package selected: ${packageId}`);
 
-    // In production, this would:
-    // 1. Open Stripe checkout
-    // 2. Process payment
-    // 3. Update usage limits via backend webhook
+    // Top-ups coming soon - for now, suggest upgrading
+    const pkg = TOP_UP_PACKAGES.find(p => p.id === packageId);
+    const runsText = pkg ? `${pkg.runs} runs` : 'additional runs';
 
     setShowTopUpModal(false);
     setShowUpgradeBanner(false);
-    // TODO: Integrate Stripe checkout for top-ups
+
+    // Show upgrade suggestion
+    const shouldUpgrade = window.confirm(
+      `Top-up purchases (${runsText}) are coming soon!\n\n` +
+      `In the meantime, would you like to upgrade your plan for more monthly analyses?`
+    );
+
+    if (shouldUpgrade) {
+      setShowPricingPage(true);
+    }
   };
 
   const handleAuthSuccess = () => {
