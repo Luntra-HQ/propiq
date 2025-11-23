@@ -278,6 +278,14 @@ try:
 except ImportError as e:
     logger.warning(f"Onboarding router not available: {e}")
 
+# Import and include Password Reset router (forgot password email flow)
+try:
+    from routers.password_reset import router as password_reset_router
+    app.include_router(password_reset_router)
+    logger.info("Password reset router registered (forgot password emails)")
+except ImportError as e:
+    logger.warning(f"Password reset router not available: {e}")
+
 # Pydantic models
 class EmailRequest(BaseModel):
     to: str

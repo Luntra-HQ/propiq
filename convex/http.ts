@@ -469,14 +469,21 @@ http.route({
         );
       }
 
-      // If we have internal data (token was created), we should send email
-      // For now, return the token info for email sending
-      // In production, this would call an email service
+      // If we have internal data (token was created), send the email
       if (result._internal) {
         console.log("[AUTH] Password reset token generated for:", result._internal.email);
-        // TODO: Integrate with email service to send reset email
-        // For development, you can log the token
-        // console.log("[DEV] Reset token:", result._internal.token);
+
+        // Send password reset email via FastAPI backend
+        try {
+          await ctx.runAction(api.passwordReset.sendPasswordResetEmail, {
+            email: result._internal.email,
+            resetToken: result._internal.token,
+            userName: result._internal.firstName,
+          });
+        } catch (emailError) {
+          // Log error but don't fail the request - token is still valid
+          console.error("[AUTH] Failed to send reset email:", emailError);
+        }
       }
 
       // Always return same message (prevents email enumeration)

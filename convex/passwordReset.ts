@@ -426,3 +426,62 @@ export const cleanupExpiredTokens = mutation({
     return { deletedCount: expiredTokens.length };
   },
 });
+
+// ============================================
+// EMAIL SENDING ACTION
+// ============================================
+
+// FastAPI backend URL for sending emails
+const FASTAPI_URL = process.env.FASTAPI_URL || "https://propiq-api.luntra.one";
+
+/**
+ * Send password reset email via FastAPI backend
+ *
+ * This action calls the FastAPI /password-reset/send-email endpoint
+ * which uses SendGrid to send the email.
+ */
+export const sendPasswordResetEmail = action({
+  args: {
+    email: v.string(),
+    resetToken: v.string(),
+    userName: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    try {
+      const response = await fetch(`${FASTAPI_URL}/password-reset/send-email`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: args.email,
+          reset_token: args.resetToken,
+          user_name: args.userName || "there",
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("[PASSWORD_RESET] Email API error:", response.status, errorData);
+        return {
+          success: false,
+          error: errorData.detail || "Failed to send email",
+        };
+      }
+
+      const result = await response.json();
+      console.log("[PASSWORD_RESET] Email sent successfully to:", args.email);
+
+      return {
+        success: true,
+        message: "Password reset email sent",
+      };
+    } catch (error) {
+      console.error("[PASSWORD_RESET] Failed to send email:", error);
+      return {
+        success: false,
+        error: "Email service unavailable",
+      };
+    }
+  },
+});
