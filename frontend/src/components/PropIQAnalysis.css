@@ -166,6 +166,15 @@
   }
 }
 
+/* Property Image Section */
+.propiq-image-section {
+  margin-bottom: 20px;
+}
+
+.propiq-results-images {
+  margin-bottom: 24px;
+}
+
 /* Error Message */
 .propiq-error {
   display: flex;

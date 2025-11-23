@@ -125,4 +125,37 @@ export default defineSchema({
     .index("by_token", ["token"])
     .index("by_user", ["userId"])
     .index("by_expires", ["expiresAt"]),
+
+  // Property Images cache - Stores fetched property images
+  // Used to reduce API calls and improve performance
+  propertyImages: defineTable({
+    // Address hash for efficient lookup
+    addressHash: v.string(),
+    address: v.string(),
+    formattedAddress: v.optional(v.string()),
+
+    // Geocoding results
+    lat: v.optional(v.number()),
+    lng: v.optional(v.number()),
+    placeId: v.optional(v.string()),
+
+    // Image URLs (from Google Street View, satellite, etc.)
+    images: v.array(
+      v.object({
+        url: v.string(),
+        type: v.string(), // "street_view" | "satellite" | "hybrid"
+        width: v.number(),
+        height: v.number(),
+        heading: v.optional(v.number()),
+        source: v.string(),
+      })
+    ),
+
+    // Cache metadata
+    fetchedAt: v.number(),
+    expiresAt: v.number(),
+    source: v.string(), // "google" | "bing" | "placeholder"
+  })
+    .index("by_address_hash", ["addressHash"])
+    .index("by_expires", ["expiresAt"]),
 });

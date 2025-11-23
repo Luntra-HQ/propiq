@@ -87,6 +87,11 @@ export const API_ENDPOINTS = {
   PROPIQ_ANALYZE: '/propiq/analyze',
   PROPIQ_HEALTH: '/propiq/health',
 
+  // Property Images (Street View, Satellite)
+  PROPERTY_IMAGES: '/property/images',
+  PROPERTY_STREETVIEW: '/property/streetview',
+  PROPERTY_IMAGES_HEALTH: '/property/health',
+
   // Payments
   STRIPE_CHECKOUT: '/stripe/create-checkout-session',
   STRIPE_WEBHOOK: '/stripe/webhook',

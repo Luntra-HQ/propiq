@@ -1,15 +1,25 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Target, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, X, Loader2, FileText, MapPin, DollarSign, BarChart3, Lightbulb, ArrowRight, Zap } from 'lucide-react';
 import { apiClient, API_ENDPOINTS } from '../config/api';
 import { PrintButton } from './PrintButton';
 import { PDFExportButton } from './PDFExportButton';
 import { Tooltip } from './Tooltip';
+import { PropertyImageGallery } from './PropertyImageGallery';
 import './PropIQAnalysis.css';
 
 interface PropIQAnalysisProps {
   onClose: () => void;
   userId: string | null;
   authToken: string | null;
+}
+
+interface PropertyImage {
+  url: string;
+  type: string;
+  width: number;
+  height: number;
+  heading?: number;
+  source: string;
 }
 
 interface AnalysisData {
@@ -57,6 +67,14 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
   const [analysis, setAnalysis] = useState<AnalysisData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [usesRemaining, setUsesRemaining] = useState<number | null>(null);
+  const [propertyImages, setPropertyImages] = useState<PropertyImage[]>([]);
+  const [primaryImageUrl, setPrimaryImageUrl] = useState<string | null>(null);
+
+  // Callback to handle when property images are loaded
+  const handleImagesLoaded = useCallback((images: PropertyImage[], primaryUrl: string | null) => {
+    setPropertyImages(images);
+    setPrimaryImageUrl(primaryUrl);
+  }, []);
 
   const loadSampleProperty = () => {
     // Sample property: Realistic Austin rental for demo
@@ -218,6 +236,18 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
                 Try Sample Property
               </button>
             </div>
+
+            {/* Property Image Gallery - Shows images as user types address */}
+            {authToken && (
+              <div className="propiq-image-section">
+                <PropertyImageGallery
+                  address={address}
+                  onImagesLoaded={handleImagesLoaded}
+                  compact={true}
+                  showControls={true}
+                />
+              </div>
+            )}
 
             {error && (
               <div className="propiq-error">
@@ -390,6 +420,18 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
         {/* Results */}
         {step === 'results' && analysis && (
           <div className="propiq-results" id="propiq-analysis-results">
+            {/* Property Images at top of results */}
+            {propertyImages.length > 0 && (
+              <div className="propiq-results-images">
+                <PropertyImageGallery
+                  address={analysis._metadata?.address || address}
+                  onImagesLoaded={handleImagesLoaded}
+                  compact={false}
+                  showControls={true}
+                />
+              </div>
+            )}
+
             {/* Executive Summary */}
             <div className="propiq-section propiq-summary">
               <FileText className="h-5 w-5 text-violet-300" />
@@ -594,7 +636,8 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
                     cons: analysis.cons,
                     keyInsights: analysis.keyInsights,
                     nextSteps: analysis.nextSteps,
-                    analyzedAt: analysis._metadata?.analyzedAt
+                    analyzedAt: analysis._metadata?.analyzedAt,
+                    propertyImageUrl: primaryImageUrl || undefined
                   }}
                   variant="secondary"
                   size="md"

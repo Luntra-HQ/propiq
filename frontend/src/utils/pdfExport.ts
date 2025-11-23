@@ -37,6 +37,7 @@ export interface PropertyAnalysis {
   nextSteps?: string[];
   dealCalculator?: DealCalculatorData;
   analyzedAt?: string;
+  propertyImageUrl?: string;
 }
 
 export interface DealCalculatorData {
@@ -58,6 +59,52 @@ export interface DealCalculatorData {
   onePercentRule: boolean;
   totalCashInvested: number;
   monthlyPITI: number;
+}
+
+/**
+ * Load an image from URL and convert to base64 for PDF embedding
+ */
+async function loadImageAsBase64(url: string): Promise<string | null> {
+  try {
+    // Use fetch to get the image with CORS
+    const response = await fetch(url, { mode: 'cors' });
+    if (!response.ok) return null;
+
+    const blob = await response.blob();
+
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        resolve(reader.result as string);
+      };
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    // If CORS fails, try creating an image element
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0);
+            resolve(canvas.toDataURL('image/jpeg', 0.8));
+          } else {
+            resolve(null);
+          }
+        } catch {
+          resolve(null);
+        }
+      };
+      img.onerror = () => resolve(null);
+      img.src = url;
+    });
+  }
 }
 
 /**
@@ -101,6 +148,41 @@ export const generatePDF = async (analysis: PropertyAnalysis): Promise<void> => 
   const analysisDate = analysis.analyzedAt || new Date().toLocaleDateString();
   pdf.text(`Analyzed on: ${analysisDate}`, margin, yPosition);
   yPosition += 15;
+
+  // Property Image Section
+  if (analysis.propertyImageUrl) {
+    try {
+      const imageData = await loadImageAsBase64(analysis.propertyImageUrl);
+      if (imageData) {
+        // Add image with proper aspect ratio
+        const imgWidth = contentWidth;
+        const imgHeight = imgWidth * 0.6; // 5:3 aspect ratio
+
+        // Check if we need a page break
+        if (yPosition + imgHeight > pageHeight - 30) {
+          pdf.addPage();
+          yPosition = margin;
+        }
+
+        // Add a subtle border/frame
+        pdf.setDrawColor(139, 92, 246); // violet-500
+        pdf.setLineWidth(0.5);
+        pdf.roundedRect(margin - 2, yPosition - 2, imgWidth + 4, imgHeight + 4, 3, 3, 'S');
+
+        // Add the image
+        pdf.addImage(imageData, 'JPEG', margin, yPosition, imgWidth, imgHeight);
+        yPosition += imgHeight + 5;
+
+        // Add caption
+        pdf.setFontSize(8);
+        pdf.setTextColor(107, 114, 128);
+        pdf.text('Property Street View', margin, yPosition);
+        yPosition += 10;
+      }
+    } catch (error) {
+      console.warn('Could not load property image for PDF:', error);
+    }
+  }
 
   // Executive Summary Section
   if (analysis.summary) {

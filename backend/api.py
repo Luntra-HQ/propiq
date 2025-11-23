@@ -270,6 +270,14 @@ try:
 except ImportError as e:
     logger.warning(f"Slack test router not available: {e}")
 
+# Import and include Property Images router (Street View, satellite imagery)
+try:
+    from routers.property_images import router as property_images_router
+    app.include_router(property_images_router)
+    logger.info("Property Images router registered (Street View + satellite)")
+except ImportError as e:
+    logger.warning(f"Property Images router not available: {e}")
+
 # Import and include Onboarding campaign router (email onboarding sequence)
 try:
     from routers.onboarding import router as onboarding_router
