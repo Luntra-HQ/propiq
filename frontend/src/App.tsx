@@ -19,6 +19,7 @@ import {
   TOP_UP_PACKAGES,
   USAGE_THRESHOLDS,
   CONVERSION_COPY,
+  STRIPE_PRICE_IDS,
   shouldShowWarning,
   shouldShowUpgradePrompt,
   isAtHardCap,
@@ -28,6 +29,7 @@ import {
   getNextTier,
   type PricingTier
 } from './config/pricing';
+import { apiClient, API_ENDPOINTS } from './config/api';
 // ------------------------
 
 // --- CONFIGURATION ---
@@ -515,14 +517,43 @@ const App = () => {
   const handleSelectTier = async (tierId: string) => {
     console.log(`Upgrading to tier: ${tierId}`);
 
-    // In production, this would:
-    // 1. Open Stripe checkout
-    // 2. Process payment
-    // 3. Update subscription via backend webhook
+    // Validate tier has a price ID
+    const priceId = STRIPE_PRICE_IDS[tierId];
+    if (!priceId) {
+      console.error(`No Stripe price ID found for tier: ${tierId}`);
+      alert('Unable to process upgrade. Please try again or contact support.');
+      return;
+    }
 
-    // For now, just log and close
-    setShowPricingPage(false);
-    // TODO: Integrate Stripe checkout
+    try {
+      // Show loading state
+      setShowPricingPage(false);
+
+      // Call backend to create Stripe checkout session
+      const response = await apiClient.post(API_ENDPOINTS.STRIPE_CHECKOUT, {
+        priceId: priceId,
+        tier: tierId
+      });
+
+      if (response.data.success && response.data.checkoutUrl) {
+        // Redirect to Stripe Checkout
+        console.log('Redirecting to Stripe checkout:', response.data.sessionId);
+        window.location.href = response.data.checkoutUrl;
+      } else {
+        throw new Error(response.data.message || 'Failed to create checkout session');
+      }
+    } catch (error: any) {
+      console.error('Stripe checkout error:', error);
+
+      // Show user-friendly error message
+      const errorMessage = error.response?.data?.detail ||
+                          error.message ||
+                          'Unable to start checkout. Please try again.';
+      alert(`Checkout Error: ${errorMessage}`);
+
+      // Reopen pricing page so user can try again
+      setShowPricingPage(true);
+    }
   };
 
   const handleTopUpPurchase = async (packageId: string) => {

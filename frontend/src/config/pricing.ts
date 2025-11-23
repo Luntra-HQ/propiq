@@ -19,7 +19,16 @@ export interface PricingTier {
   features: string[];
   bestFor: string;
   isPopular?: boolean;
+  stripePriceId?: string; // Stripe price ID for checkout
 }
+
+// Stripe Price IDs (from Stripe Dashboard)
+// These are LIVE price IDs - update if you recreate products
+export const STRIPE_PRICE_IDS: Record<string, string> = {
+  starter: 'price_1SL50hJogOchEFxvxYpymxoT',
+  pro: 'price_1SL51sJogOchEFxvVounuNcK',
+  elite: 'price_1SL52dJogOchEFxvVC7797Tw'
+};
 
 export interface TopUpPackage {
   id: string;
