@@ -1,12 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Zap, Target, Lock, CreditCard, X, DollarSign, Loader2, BarChart } from 'lucide-react';
-import PricingPage from './components/PricingPage';
-import { SupportChat } from './components/SupportChat';
-import { FeedbackWidget } from './components/FeedbackWidget';
-import { PropIQAnalysis } from './components/PropIQAnalysis';
-import { ProductTour, useShouldShowTour } from './components/ProductTour';
 import { CookieConsent } from './components/CookieConsent';
 import { Dashboard } from './components/Dashboard';
+import {
+  SkipLink,
+  CommandPalette,
+  useCommandPalette,
+  ThemeToggle,
+  getDefaultCommands,
+} from './components/ui';
+
+// Lazy load heavy components for better initial load performance
+const PricingPage = lazy(() => import('./components/PricingPage'));
+const SupportChat = lazy(() => import('./components/SupportChat').then(m => ({ default: m.SupportChat })));
+const FeedbackWidget = lazy(() => import('./components/FeedbackWidget').then(m => ({ default: m.FeedbackWidget })));
+const PropIQAnalysis = lazy(() => import('./components/PropIQAnalysis').then(m => ({ default: m.PropIQAnalysis })));
+const ProductTour = lazy(() => import('./components/ProductTour').then(m => ({ default: m.ProductTour })));
+
+// Import hook directly (small, needed for initial render logic)
+import { useShouldShowTour } from './components/ProductTour';
+
+// Suspense fallback component
+const SuspenseFallback: React.FC<{ minHeight?: string }> = ({ minHeight = '100px' }) => (
+  <div
+    className="flex items-center justify-center suspense-pulse"
+    style={{ minHeight }}
+    role="status"
+    aria-label="Loading..."
+  >
+    <Loader2 className="h-6 w-6 text-violet-500 animate-spin" />
+  </div>
+);
 
 // --- BACKEND AUTH IMPORTS (Server-side sessions with httpOnly cookies) ---
 import { AuthModal } from './components/AuthModal';
@@ -331,6 +355,12 @@ const App = () => {
   const shouldShowTour = useShouldShowTour();
   const [showTour, setShowTour] = useState(false);
 
+  // Command palette state (Cmd+K)
+  const { isOpen: isCommandPaletteOpen, close: closeCommandPalette } = useCommandPalette();
+
+  // Theme state (for now, dark mode only - light mode toggle prepared)
+  const [currentTheme] = useState<'dark' | 'light'>('dark');
+
   // Derived state
   const tierConfig = PRICING_TIERS[currentTier] || PRICING_TIERS.free;
   const propIqLimit = tierConfig.propIqLimit;
@@ -499,6 +529,23 @@ const App = () => {
     }
   }, [userId, shouldShowTour, showAuthModal]);
 
+  // Command palette commands
+  const commandPaletteCommands = getDefaultCommands({
+    onAnalyze: () => setShowPropIQAnalysis(true),
+    onCalculator: () => {
+      // Scroll to calculator section
+      document.getElementById('calculator-section')?.scrollIntoView({ behavior: 'smooth' });
+    },
+    onPricing: () => setShowPricingPage(true),
+    onHelp: () => window.open('https://luntra.one/support', '_blank'),
+    onLogout: handleLogout,
+    onThemeToggle: () => {
+      // Theme toggle - currently dark mode only, prepared for future
+      console.log('Theme toggle - light mode coming soon');
+    },
+    currentTheme,
+  });
+
   if (isLoading) {
     return <LoadingScreen />;
   }
@@ -520,6 +567,9 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-slate-900 text-gray-100 flex flex-col font-sans antialiased">
+      {/* Skip Link for Keyboard Navigation (Accessibility) */}
+      <SkipLink targetId="main-content" />
+
       {/* Header with tier and usage info */}
       <Header
         propIqUsed={propIqUsed}
@@ -543,14 +593,16 @@ const App = () => {
       )}
 
       {/* Main Dashboard - 2025 Bento Grid Design */}
-      <Dashboard
-        propIqUsed={propIqUsed}
-        propIqLimit={propIqLimit}
-        currentTier={currentTier}
-        userEmail={userEmail}
-        onAnalyzeClick={() => setShowPropIQAnalysis(true)}
-        onUpgradeClick={handleUpgradeClick}
-      />
+      <div id="main-content" role="main" tabIndex={-1}>
+        <Dashboard
+          propIqUsed={propIqUsed}
+          propIqLimit={propIqLimit}
+          currentTier={currentTier}
+          userEmail={userEmail}
+          onAnalyzeClick={() => setShowPropIQAnalysis(true)}
+          onUpgradeClick={handleUpgradeClick}
+        />
+      </div>
 
       {/* Footer - SEO Optimized */}
       <footer className="py-8 text-center text-sm text-gray-300 bg-slate-800/50 border-t border-slate-700/50 backdrop-blur-sm" role="contentinfo">
@@ -588,48 +640,59 @@ const App = () => {
         isOpen={showPaywall}
         onUpgradeClick={handleUpgradeClick}
       />
-      {/* Support Chat Widget (shows for logged-in users) */}
-      {userId && <SupportChat />}
 
-      {/* Feedback Widget (shows for logged-in users) */}
-      {userId && (
-        <FeedbackWidget
-          tallyFormId="wkD6rj"
-          hiddenFields={{
-            user_tier: currentTier,
-            user_id: userId,
-            feedback_source: 'general'
-          }}
-          position="bottom-right"
-        />
-      )}
+      {/* Lazy-loaded components with Suspense */}
+      <Suspense fallback={null}>
+        {/* Support Chat Widget (shows for logged-in users) */}
+        {userId && <SupportChat />}
 
-      {/* Product Tour - shows after login for new users */}
-      {showTour && (
-        <ProductTour
-          onComplete={() => setShowTour(false)}
-          onSkip={() => setShowTour(false)}
-          autoStart={true}
-        />
-      )}
+        {/* Feedback Widget (shows for logged-in users) */}
+        {userId && (
+          <FeedbackWidget
+            tallyFormId="wkD6rj"
+            hiddenFields={{
+              user_tier: currentTier,
+              user_id: userId,
+              feedback_source: 'general'
+            }}
+            position="bottom-right"
+          />
+        )}
 
-      {/* Pricing Page */}
-      {showPricingPage && (
-        <PricingPage
-          currentTier={currentTier}
-          onSelectTier={handleSelectTier}
-          onClose={() => setShowPricingPage(false)}
-        />
-      )}
+        {/* Product Tour - shows after login for new users */}
+        {showTour && (
+          <ProductTour
+            onComplete={() => setShowTour(false)}
+            onSkip={() => setShowTour(false)}
+            autoStart={true}
+          />
+        )}
 
-      {/* PropIQ Analysis Modal */}
-      {showPropIQAnalysis && (
-        <PropIQAnalysis
-          onClose={() => setShowPropIQAnalysis(false)}
-          userId={userId}
-          authToken={authToken}
-        />
-      )}
+        {/* Pricing Page */}
+        {showPricingPage && (
+          <PricingPage
+            currentTier={currentTier}
+            onSelectTier={handleSelectTier}
+            onClose={() => setShowPricingPage(false)}
+          />
+        )}
+
+        {/* PropIQ Analysis Modal */}
+        {showPropIQAnalysis && (
+          <PropIQAnalysis
+            onClose={() => setShowPropIQAnalysis(false)}
+            userId={userId}
+            authToken={authToken}
+          />
+        )}
+      </Suspense>
+
+      {/* Command Palette (Cmd+K / Ctrl+K) */}
+      <CommandPalette
+        commands={commandPaletteCommands}
+        isOpen={isCommandPaletteOpen}
+        onClose={closeCommandPalette}
+      />
 
       {/* Cookie Consent Banner - GDPR/CCPA Compliance */}
       <CookieConsent />

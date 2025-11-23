@@ -10,6 +10,25 @@ export type { GlassCardVariant, GlassCardSize } from './GlassCard';
 
 export { BentoGrid, BentoItem, BentoDashboard, BentoBackground } from './BentoGrid';
 
+// Accessibility Components
+export {
+  SkipLink,
+  VisuallyHidden,
+  LiveRegion,
+  FocusTrap,
+  useReducedMotion,
+  useAnnounce,
+  useFocusReturn,
+} from './Accessibility';
+
+// Command Palette & Theme
+export {
+  CommandPalette,
+  useCommandPalette,
+  ThemeToggle,
+  getDefaultCommands,
+} from './CommandPalette';
+
 // Interactive Components
 export { Button, IconButton } from './Button';
 export type { ButtonVariant, ButtonSize } from './Button';
