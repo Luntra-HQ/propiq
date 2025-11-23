@@ -125,4 +125,29 @@ export default defineSchema({
     .index("by_token", ["token"])
     .index("by_user", ["userId"])
     .index("by_expires", ["expiresAt"]),
+
+  // Password reset tokens - Secure token-based password reset
+  // Tokens are stored as SHA-256 hashes, never plaintext
+  passwordResetTokens: defineTable({
+    userId: v.id("users"),
+
+    // SHA-256 hash of the reset token (never store plaintext)
+    tokenHash: v.string(),
+
+    // Token expires 1 hour after creation
+    expiresAt: v.number(),
+
+    // Single-use enforcement - marked true after password is reset
+    used: v.boolean(),
+
+    // Metadata for security auditing
+    ipAddress: v.optional(v.string()),
+    userAgent: v.optional(v.string()),
+
+    // Timestamps
+    createdAt: v.number(),
+  })
+    .index("by_token_hash", ["tokenHash"])
+    .index("by_user", ["userId"])
+    .index("by_expires", ["expiresAt"]),
 });

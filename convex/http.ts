@@ -5,10 +5,18 @@
  * Cookies don't work because Convex is on a different domain (.convex.site)
  * and browsers block third-party cookies.
  *
+ * Auth Endpoints:
  * - POST /auth/login - Authenticate, returns session token in response body
+ * - POST /auth/signup - Create account, returns session token
  * - GET /auth/me - Validate session via Authorization header
  * - POST /auth/logout - Clear session via Authorization header
  * - POST /auth/refresh - Extend session expiration
+ * - POST /auth/logout-everywhere - Clear all sessions for user
+ *
+ * Password Reset Endpoints:
+ * - POST /auth/forgot-password - Request password reset email
+ * - GET /auth/validate-reset-token - Check if reset token is valid
+ * - POST /auth/reset-password - Reset password with valid token
  */
 
 import { httpRouter } from "convex/server";
@@ -382,6 +390,217 @@ http.route({
       console.error("[AUTH] Logout everywhere error:", error);
       return new Response(
         JSON.stringify({ success: false, error: "Failed to logout from all devices" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+  }),
+});
+
+// ============================================
+// PASSWORD RESET ENDPOINTS
+// ============================================
+
+// OPTIONS handlers for password reset endpoints
+http.route({
+  path: "/auth/forgot-password",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }),
+});
+
+http.route({
+  path: "/auth/validate-reset-token",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }),
+});
+
+http.route({
+  path: "/auth/reset-password",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }),
+});
+
+/**
+ * POST /auth/forgot-password
+ * Request a password reset email
+ * Returns success regardless of whether email exists (prevents enumeration)
+ */
+http.route({
+  path: "/auth/forgot-password",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    try {
+      const body = await request.json();
+      const { email } = body;
+
+      if (!email) {
+        return new Response(
+          JSON.stringify({ success: false, error: "Email is required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return new Response(
+          JSON.stringify({ success: false, error: "Invalid email format" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Request password reset
+      const result = await ctx.runMutation(api.passwordReset.requestPasswordReset, {
+        email,
+        ipAddress: request.headers.get("X-Forwarded-For") || undefined,
+        userAgent: request.headers.get("User-Agent") || undefined,
+      });
+
+      // If rate limited, return error
+      if (!result.success) {
+        return new Response(
+          JSON.stringify({ success: false, error: result.error }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // If we have internal data (token was created), we should send email
+      // For now, return the token info for email sending
+      // In production, this would call an email service
+      if (result._internal) {
+        console.log("[AUTH] Password reset token generated for:", result._internal.email);
+        // TODO: Integrate with email service to send reset email
+        // For development, you can log the token
+        // console.log("[DEV] Reset token:", result._internal.token);
+      }
+
+      // Always return same message (prevents email enumeration)
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: "If an account exists with this email, you will receive a reset link.",
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    } catch (error) {
+      console.error("[AUTH] Forgot password error:", error);
+      return new Response(
+        JSON.stringify({ success: false, error: "Failed to process request" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+  }),
+});
+
+/**
+ * GET /auth/validate-reset-token
+ * Validate a password reset token
+ * Used to check if token is valid before showing reset form
+ */
+http.route({
+  path: "/auth/validate-reset-token",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    try {
+      const url = new URL(request.url);
+      const token = url.searchParams.get("token");
+
+      if (!token) {
+        return new Response(
+          JSON.stringify({ valid: false, error: "Token is required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Validate token
+      const result = await ctx.runQuery(api.passwordReset.validateResetToken, { token });
+
+      if (!result) {
+        return new Response(
+          JSON.stringify({ valid: false, error: "Invalid or expired reset link" }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({
+          valid: true,
+          email: result.email,
+          expiresAt: result.expiresAt,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    } catch (error) {
+      console.error("[AUTH] Validate reset token error:", error);
+      return new Response(
+        JSON.stringify({ valid: false, error: "Failed to validate token" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+  }),
+});
+
+/**
+ * POST /auth/reset-password
+ * Reset password using a valid token
+ * Returns session token for auto-login on success
+ */
+http.route({
+  path: "/auth/reset-password",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    try {
+      const body = await request.json();
+      const { token, newPassword } = body;
+
+      if (!token) {
+        return new Response(
+          JSON.stringify({ success: false, error: "Reset token is required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (!newPassword) {
+        return new Response(
+          JSON.stringify({ success: false, error: "New password is required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Reset password
+      const result = await ctx.runMutation(api.passwordReset.resetPassword, {
+        token,
+        newPassword,
+        userAgent: request.headers.get("User-Agent") || undefined,
+      });
+
+      if (!result.success) {
+        return new Response(
+          JSON.stringify({ success: false, error: result.error }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Return session token for auto-login
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: result.message,
+          sessionToken: result.sessionToken,
+          user: result.user,
+          expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    } catch (error) {
+      console.error("[AUTH] Reset password error:", error);
+      return new Response(
+        JSON.stringify({ success: false, error: "Failed to reset password" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
