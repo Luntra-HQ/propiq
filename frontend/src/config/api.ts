@@ -127,6 +127,16 @@ export const API_ENDPOINTS = {
   COMPS_ANALYZE: '/comps/analyze',
   COMPS_MARKET_REPORT: '/comps/market-report',
   COMPS_HEALTH: '/comps/health',
+
+  // Monetization (Pillar 5: Monetization Expansion)
+  API_KEYS: '/monetization/api-keys',
+  API_KEY: (keyId: string) => `/monetization/api-keys/${keyId}`,
+  API_USAGE: '/monetization/api-keys/usage',
+  REFERRAL_CODE: '/monetization/referral/code',
+  REFERRAL_STATS: '/monetization/referral/stats',
+  REFERRAL_LIST: '/monetization/referral/list',
+  REFERRAL_VALIDATE: (code: string) => `/monetization/referral/validate/${code}`,
+  BILLING_SUMMARY: '/monetization/billing/summary',
 };
 
 // Export type for TypeScript autocompletion

@@ -302,6 +302,14 @@ try:
 except ImportError as e:
     logger.warning(f"Comps router not available: {e}")
 
+# Import and include Monetization router (Pillar 5: Monetization Expansion)
+try:
+    from routers.monetization import router as monetization_router
+    app.include_router(monetization_router)
+    logger.info("Monetization router registered (API keys + referrals + billing)")
+except ImportError as e:
+    logger.warning(f"Monetization router not available: {e}")
+
 # Import and include Onboarding campaign router (email onboarding sequence)
 try:
     from routers.onboarding import router as onboarding_router
