@@ -6,6 +6,7 @@ import { DealCalculator } from './components/DealCalculator';
 import { FeedbackWidget } from './components/FeedbackWidget';
 import { PropIQAnalysis } from './components/PropIQAnalysis';
 import { ProductTour, useShouldShowTour } from './components/ProductTour';
+import { CookieConsent } from './components/CookieConsent';
 
 // --- BACKEND AUTH IMPORTS (Server-side sessions with httpOnly cookies) ---
 import { AuthModal } from './components/AuthModal';
@@ -791,6 +792,9 @@ const App = () => {
           authToken={authToken}
         />
       )}
+
+      {/* Cookie Consent Banner - GDPR/CCPA Compliance */}
+      <CookieConsent />
     </div>
   );
 };

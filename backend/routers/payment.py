@@ -10,6 +10,17 @@ import stripe
 import os
 import jwt
 from dotenv import load_dotenv
+from config.logging_config import get_logger
+
+logger = get_logger(__name__)
+
+# Import subscription update function from database
+try:
+    from database_supabase import update_user_subscription, get_user_by_email
+    DATABASE_AVAILABLE = True
+except ImportError:
+    logger.warning("Database module not available for subscription updates")
+    DATABASE_AVAILABLE = False
 
 # Load environment variables
 load_dotenv()
@@ -266,7 +277,7 @@ async def stripe_webhook(request: Request):
             tier = metadata.get("tier", "unknown")
             amount_total = event_data.get("amount_total", 0) / 100  # Convert cents to dollars
 
-            print(f"✅ Checkout completed: {customer_email} → {tier} (${amount_total})")
+            logger.info(f"Checkout completed: {customer_email} → {tier} (${amount_total})")
 
             # Send Slack notification
             if slack_available and customer_email:
@@ -277,9 +288,21 @@ async def stripe_webhook(request: Request):
                     amount=amount_total
                 )
 
-            # TODO: Update user tier in database
-            # from database_supabase import update_user_subscription
-            # update_user_subscription(user_id, tier, "active")
+            # Update user subscription in database
+            if DATABASE_AVAILABLE and customer_email:
+                try:
+                    user = get_user_by_email(customer_email)
+                    if user:
+                        update_user_subscription(
+                            user_id=user["id"],
+                            tier=tier,
+                            status="active"
+                        )
+                        logger.info(f"Updated subscription for {customer_email} to {tier}")
+                    else:
+                        logger.warning(f"User not found for email: {customer_email}")
+                except Exception as e:
+                    logger.error(f"Failed to update subscription in DB: {e}")
 
         # Invoice payment succeeded - Recurring payment
         elif event_type == "invoice.payment_succeeded":
@@ -327,7 +350,7 @@ async def stripe_webhook(request: Request):
                 charge_obj = stripe.Charge.retrieve(charge)
                 failure_message = charge_obj.get("failure_message", "Card declined")
 
-            print(f"⚠️  Payment failed: {customer_email} - {tier} (${amount_due}) - {failure_message}")
+            logger.warning(f"Payment failed: {customer_email} - {tier} (${amount_due}) - {failure_message}")
 
             # Send Slack notification (URGENT)
             if slack_available and customer_email:
@@ -338,8 +361,19 @@ async def stripe_webhook(request: Request):
                     amount=amount_due
                 )
 
-            # TODO: Email user about failed payment
-            # TODO: Update user status to "payment_failed" in database
+            # Update user status to "past_due" in database
+            if DATABASE_AVAILABLE and customer_email:
+                try:
+                    user = get_user_by_email(customer_email)
+                    if user:
+                        update_user_subscription(
+                            user_id=user["id"],
+                            tier=tier,  # Keep current tier
+                            status="past_due"
+                        )
+                        logger.info(f"Marked subscription as past_due for {customer_email}")
+                except Exception as e:
+                    logger.error(f"Failed to update payment_failed status: {e}")
 
         # Customer subscription deleted - User canceled
         elif event_type == "customer.subscription.deleted":
@@ -351,10 +385,21 @@ async def stripe_webhook(request: Request):
             customer_email = customer.get("email")
             tier = event_data.get("metadata", {}).get("tier", "unknown")
 
-            print(f"📉 Subscription canceled: {customer_email} - {tier}")
+            logger.info(f"Subscription canceled: {customer_email} - {tier}")
 
-            # TODO: Update user tier to "free" in database
-            # TODO: Send cancellation confirmation email
+            # Downgrade user to free tier in database
+            if DATABASE_AVAILABLE and customer_email:
+                try:
+                    user = get_user_by_email(customer_email)
+                    if user:
+                        update_user_subscription(
+                            user_id=user["id"],
+                            tier="free",
+                            status="canceled"
+                        )
+                        logger.info(f"Downgraded {customer_email} to free tier")
+                except Exception as e:
+                    logger.error(f"Failed to downgrade subscription: {e}")
 
         else:
             print(f"ℹ️  Unhandled event type: {event_type}")
