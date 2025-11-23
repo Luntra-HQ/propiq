@@ -13,13 +13,10 @@ import { v } from "convex/values";
 import { mutation, query, internalMutation } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 
-// Session duration: 30 days idle timeout in milliseconds
+// Session duration: 30 days sliding window in milliseconds
 const SESSION_IDLE_TIMEOUT_MS = 30 * 24 * 60 * 60 * 1000;
 
-// Absolute max session lifetime: 1 year (even with activity, must re-auth)
-const SESSION_ABSOLUTE_MAX_MS = 365 * 24 * 60 * 60 * 1000;
-
-// Session refresh threshold: 7 days (refresh if less than this remaining)
+// Session refresh threshold: 7 days (auto-extend if less than this remaining)
 const SESSION_REFRESH_THRESHOLD_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
@@ -35,9 +32,7 @@ function generateSessionToken(): string {
  * Create a new session for a user
  * Called after successful login
  *
- * Session expires after:
- * - 30 days of inactivity (idle timeout)
- * - OR 1 year from creation (absolute max, even with activity)
+ * Session expires after 30 days of inactivity (sliding window)
  */
 export const createSession = mutation({
   args: {
@@ -52,8 +47,7 @@ export const createSession = mutation({
     const sessionId = await ctx.db.insert("sessions", {
       userId: args.userId,
       token,
-      expiresAt: now + SESSION_IDLE_TIMEOUT_MS, // 30 day idle timeout
-      absoluteExpiresAt: now + SESSION_ABSOLUTE_MAX_MS, // 1 year max
+      expiresAt: now + SESSION_IDLE_TIMEOUT_MS, // 30 day sliding window
       userAgent: args.userAgent,
       ipAddress: args.ipAddress,
       createdAt: now,
@@ -74,11 +68,15 @@ export const createSession = mutation({
  * Validate a session token and return user data
  * Called by the /auth/me HTTP endpoint
  *
- * Checks both idle timeout and absolute max expiry
+ * SIMPLIFIED: Only checks sliding 30-day expiry, auto-extends on activity
  */
 export const validateSession = query({
   args: { token: v.string() },
   handler: async (ctx, args) => {
+    if (!args.token) {
+      return null;
+    }
+
     const now = Date.now();
 
     // Find session by token
@@ -88,37 +86,22 @@ export const validateSession = query({
       .first();
 
     if (!session) {
-      console.log("[SESSION] Token not found");
       return null;
     }
 
-    // Check if idle timeout expired (30 days of inactivity)
+    // Check if session expired (30-day sliding window)
     if (session.expiresAt < now) {
-      console.log("[SESSION] Session idle timeout expired");
-      return null;
-    }
-
-    // Check if absolute max expired (1 year from creation)
-    const absoluteExpiry = (session as any).absoluteExpiresAt;
-    if (absoluteExpiry && absoluteExpiry < now) {
-      console.log("[SESSION] Session absolute max expired - user must re-authenticate");
+      console.log("[SESSION] Session expired, cleaning up");
       return null;
     }
 
     // Get user data
     const user = await ctx.db.get(session.userId);
-    if (!user) {
-      console.log("[SESSION] User not found for session");
+    if (!user || !user.active) {
       return null;
     }
 
-    // Check if user is active
-    if (!user.active) {
-      console.log("[SESSION] User account is inactive");
-      return null;
-    }
-
-    // Check if refresh is needed (within 7 days of idle expiry)
+    // Check if refresh is needed (within 7 days of expiry)
     const needsRefresh = session.expiresAt - now < SESSION_REFRESH_THRESHOLD_MS;
 
     // Return user data (without password hash) and session info
@@ -138,7 +121,6 @@ export const validateSession = query({
       },
       session: {
         expiresAt: session.expiresAt,
-        absoluteExpiresAt: absoluteExpiry,
         needsRefresh,
       },
     };
@@ -149,7 +131,7 @@ export const validateSession = query({
  * Refresh a session (extend idle expiration)
  * Called when user is active and session is close to expiring
  *
- * Will not extend past the absolute max expiry (1 year)
+ * SIMPLIFIED: Always extends by 30 days from now
  */
 export const refreshSession = mutation({
   args: { token: v.string() },
@@ -165,19 +147,9 @@ export const refreshSession = mutation({
       return { success: false, error: "Invalid or expired session" };
     }
 
-    // Check absolute max
-    const absoluteExpiry = (session as any).absoluteExpiresAt;
-    if (absoluteExpiry && absoluteExpiry < now) {
-      return { success: false, error: "Session has reached maximum lifetime. Please log in again." };
-    }
+    // Extend session by 30 days
+    const newExpiresAt = now + SESSION_IDLE_TIMEOUT_MS;
 
-    // Calculate new expiry - don't extend past absolute max
-    let newExpiresAt = now + SESSION_IDLE_TIMEOUT_MS;
-    if (absoluteExpiry && newExpiresAt > absoluteExpiry) {
-      newExpiresAt = absoluteExpiry;
-    }
-
-    // Extend session
     await ctx.db.patch(session._id, {
       expiresAt: newExpiresAt,
       lastActivityAt: now,

@@ -617,6 +617,79 @@ http.route({
 });
 
 // ============================================
+// PROPERTY ANALYSIS ENDPOINTS
+// ============================================
+
+http.route({
+  path: "/propiq/analyze",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, { status: 204, headers: extensionCorsHeaders });
+  }),
+});
+
+/**
+ * POST /propiq/analyze
+ * Run property analysis - works for both web app and extension
+ * Accepts session via cookie OR Authorization header
+ */
+http.route({
+  path: "/propiq/analyze",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    try {
+      // Authenticate - try cookie first, then Authorization header
+      let token = getSessionToken(request);
+      const authHeader = request.headers.get("Authorization");
+      if (!token && authHeader?.startsWith("Bearer ")) {
+        token = authHeader.substring(7);
+      }
+
+      if (!token) {
+        return new Response(
+          JSON.stringify({ success: false, error: "Not authenticated" }),
+          { status: 401, headers: { ...extensionCorsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Validate session
+      const sessionData = await ctx.runQuery(api.sessions.validateSession, { token });
+      if (!sessionData || !sessionData.user) {
+        return new Response(
+          JSON.stringify({ success: false, error: "Invalid session" }),
+          { status: 401, headers: { ...extensionCorsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const body = await request.json();
+
+      // Run the analysis action
+      const result = await ctx.runAction(api.propiq.analyzeProperty, {
+        userId: sessionData.user._id,
+        address: body.address,
+        city: body.city,
+        state: body.state,
+        zipCode: body.zipCode,
+        purchasePrice: body.purchasePrice,
+        downPayment: body.downPayment,
+        monthlyRent: body.monthlyRent,
+      });
+
+      return new Response(
+        JSON.stringify(result),
+        { status: 200, headers: { ...extensionCorsHeaders, "Content-Type": "application/json" } }
+      );
+    } catch (error: any) {
+      console.error("[PROPIQ] Analysis error:", error);
+      return new Response(
+        JSON.stringify({ success: false, error: error.message || "Analysis failed" }),
+        { status: 500, headers: { ...extensionCorsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+  }),
+});
+
+// ============================================
 // EXTENSION-SPECIFIC AUTH ENDPOINTS
 // These return tokens in response body (not cookies)
 // for Chrome extension which can't use httpOnly cookies
