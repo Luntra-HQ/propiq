@@ -1,10 +1,13 @@
 /**
  * HTTP endpoints for webhooks, external integrations, and auth
  *
- * Auth endpoints use httpOnly cookies for secure session management:
- * - POST /auth/login - Authenticate and set session cookie
- * - GET /auth/me - Validate session and return user data
- * - POST /auth/logout - Clear session and cookie
+ * Auth uses localStorage + Authorization Bearer header (not cookies).
+ * Cookies don't work because Convex is on a different domain (.convex.site)
+ * and browsers block third-party cookies.
+ *
+ * - POST /auth/login - Authenticate, returns session token in response body
+ * - GET /auth/me - Validate session via Authorization header
+ * - POST /auth/logout - Clear session via Authorization header
  * - POST /auth/refresh - Extend session expiration
  */
 
@@ -14,74 +17,26 @@ import { api } from "./_generated/api";
 
 const http = httpRouter();
 
-// Cookie configuration
-const COOKIE_NAME = "propiq_session";
-const COOKIE_MAX_AGE = 30 * 24 * 60 * 60; // 30 days in seconds
 const IS_PRODUCTION = true; // Set based on environment
 
 // CORS headers for cross-origin requests from frontend
+// No credentials needed since we use Bearer tokens (not cookies)
 const corsHeaders = {
   "Access-Control-Allow-Origin": IS_PRODUCTION
     ? "https://propiq.luntra.one"
     : "http://localhost:5173",
-  "Access-Control-Allow-Credentials": "true",
+  "Access-Control-Allow-Credentials": "false",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
 /**
- * Build Set-Cookie header for session
+ * Extract Bearer token from Authorization header
  */
-function buildSessionCookie(token: string, maxAge: number = COOKIE_MAX_AGE): string {
-  const parts = [
-    `${COOKIE_NAME}=${token}`,
-    `Max-Age=${maxAge}`,
-    "Path=/",
-    "HttpOnly",
-    "SameSite=Lax",
-  ];
-
-  if (IS_PRODUCTION) {
-    parts.push("Secure");
-    parts.push("Domain=.luntra.one"); // Works for subdomains
-  }
-
-  return parts.join("; ");
-}
-
-/**
- * Build Set-Cookie header to clear session
- */
-function buildClearCookie(): string {
-  const parts = [
-    `${COOKIE_NAME}=`,
-    "Max-Age=0",
-    "Path=/",
-    "HttpOnly",
-    "SameSite=Lax",
-  ];
-
-  if (IS_PRODUCTION) {
-    parts.push("Secure");
-    parts.push("Domain=.luntra.one");
-  }
-
-  return parts.join("; ");
-}
-
-/**
- * Parse session token from cookie header
- */
-function getSessionToken(request: Request): string | null {
-  const cookieHeader = request.headers.get("Cookie");
-  if (!cookieHeader) return null;
-
-  const cookies = cookieHeader.split(";").map((c) => c.trim());
-  for (const cookie of cookies) {
-    const [name, value] = cookie.split("=");
-    if (name === COOKIE_NAME) {
-      return value;
-    }
+function getBearerToken(request: Request): string | null {
+  const authHeader = request.headers.get("Authorization");
+  if (authHeader?.startsWith("Bearer ")) {
+    return authHeader.substring(7);
   }
   return null;
 }
@@ -164,25 +119,18 @@ http.route({
         );
       }
 
-      // Set session cookie
-      const setCookie = buildSessionCookie(result.sessionToken!);
-
-      // Return sessionToken for extension sync (extension uses postMessage to receive this)
-      // The httpOnly cookie protects the web app, but we also pass token for extension sync
+      // Return sessionToken in response body
+      // Frontend stores in localStorage and sends via Authorization header
       return new Response(
         JSON.stringify({
           success: true,
           user: result.user,
-          sessionToken: result.sessionToken, // For extension sync via postMessage
+          sessionToken: result.sessionToken,
           expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
         }),
         {
           status: 200,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-            "Set-Cookie": setCookie,
-          },
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
     } catch (error) {
@@ -197,7 +145,7 @@ http.route({
 
 /**
  * POST /auth/signup
- * Create user and set session cookie
+ * Create user and return session token
  */
 http.route({
   path: "/auth/signup",
@@ -231,24 +179,18 @@ http.route({
         );
       }
 
-      // Set session cookie
-      const setCookie = buildSessionCookie(result.sessionToken!);
-
-      // Return sessionToken for extension sync
+      // Return sessionToken in response body
+      // Frontend stores in localStorage and sends via Authorization header
       return new Response(
         JSON.stringify({
           success: true,
           user: result.user,
-          sessionToken: result.sessionToken, // For extension sync via postMessage
+          sessionToken: result.sessionToken,
           expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
         }),
         {
           status: 200,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-            "Set-Cookie": setCookie,
-          },
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
     } catch (error) {
@@ -264,29 +206,19 @@ http.route({
 /**
  * GET /auth/me
  * Validate session and return user data
- * Accepts token via Authorization header (preferred) or cookie (legacy)
+ * Token must be sent via Authorization: Bearer <token> header
  */
 http.route({
   path: "/auth/me",
   method: "GET",
   handler: httpAction(async (ctx, request) => {
     try {
-      // Try Authorization header first (recommended approach)
-      let token: string | null = null;
-      const authHeader = request.headers.get("Authorization");
-      if (authHeader?.startsWith("Bearer ")) {
-        token = authHeader.substring(7);
-      }
-
-      // Fall back to cookie (legacy)
-      if (!token) {
-        token = getSessionToken(request);
-      }
+      const token = getBearerToken(request);
 
       if (!token) {
         return new Response(
           JSON.stringify({ authenticated: false, user: null }),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
@@ -324,23 +256,14 @@ http.route({
 
 /**
  * POST /auth/logout
- * Clear session - accepts Authorization header or cookie
+ * Clear session - requires Authorization: Bearer <token> header
  */
 http.route({
   path: "/auth/logout",
   method: "POST",
   handler: httpAction(async (ctx, request) => {
     try {
-      // Try Authorization header first
-      let token: string | null = null;
-      const authHeader = request.headers.get("Authorization");
-      if (authHeader?.startsWith("Bearer ")) {
-        token = authHeader.substring(7);
-      }
-      // Fall back to cookie
-      if (!token) {
-        token = getSessionToken(request);
-      }
+      const token = getBearerToken(request);
 
       if (token) {
         // Delete server-side session
@@ -363,14 +286,14 @@ http.route({
 
 /**
  * POST /auth/refresh
- * Extend session expiration
+ * Extend session expiration - requires Authorization: Bearer <token> header
  */
 http.route({
   path: "/auth/refresh",
   method: "POST",
   handler: httpAction(async (ctx, request) => {
     try {
-      const token = getSessionToken(request);
+      const token = getBearerToken(request);
 
       if (!token) {
         return new Response(
@@ -384,28 +307,13 @@ http.route({
       if (!result.success) {
         return new Response(
           JSON.stringify({ success: false, error: result.error }),
-          {
-            status: 401,
-            headers: {
-              ...corsHeaders,
-              "Content-Type": "application/json",
-              "Set-Cookie": buildClearCookie(),
-            },
-          }
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      // Update cookie with new expiration
       return new Response(
         JSON.stringify({ success: true, expiresAt: result.expiresAt }),
-        {
-          status: 200,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-            "Set-Cookie": buildSessionCookie(token),
-          },
-        }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     } catch (error) {
       console.error("[AUTH] Refresh error:", error);
@@ -429,13 +337,14 @@ http.route({
 /**
  * POST /auth/logout-everywhere
  * Clear ALL sessions for the current user (logout from all devices)
+ * Requires Authorization: Bearer <token> header
  */
 http.route({
   path: "/auth/logout-everywhere",
   method: "POST",
   handler: httpAction(async (ctx, request) => {
     try {
-      const token = getSessionToken(request);
+      const token = getBearerToken(request);
 
       if (!token) {
         return new Response(
@@ -450,14 +359,7 @@ http.route({
       if (!sessionData) {
         return new Response(
           JSON.stringify({ success: false, error: "Invalid session" }),
-          {
-            status: 401,
-            headers: {
-              ...corsHeaders,
-              "Content-Type": "application/json",
-              "Set-Cookie": buildClearCookie(),
-            },
-          }
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
@@ -474,14 +376,7 @@ http.route({
           message: `Logged out from ${result.deletedCount} device(s)`,
           deletedCount: result.deletedCount,
         }),
-        {
-          status: 200,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-            "Set-Cookie": buildClearCookie(),
-          },
-        }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     } catch (error) {
       console.error("[AUTH] Logout everywhere error:", error);
@@ -628,19 +523,14 @@ http.route({
 /**
  * POST /propiq/analyze
  * Run property analysis - works for both web app and extension
- * Accepts session via cookie OR Authorization header
+ * Requires Authorization: Bearer <token> header
  */
 http.route({
   path: "/propiq/analyze",
   method: "POST",
   handler: httpAction(async (ctx, request) => {
     try {
-      // Authenticate - try cookie first, then Authorization header
-      let token = getSessionToken(request);
-      const authHeader = request.headers.get("Authorization");
-      if (!token && authHeader?.startsWith("Bearer ")) {
-        token = authHeader.substring(7);
-      }
+      const token = getBearerToken(request);
 
       if (!token) {
         return new Response(
@@ -692,10 +582,11 @@ http.route({
 // for Chrome extension which can't use httpOnly cookies
 // ============================================
 
-// Extension CORS headers (more permissive for extension context)
+// Extension CORS headers - more permissive for extension context
+// No credentials needed since we use Bearer tokens (not cookies)
 const extensionCorsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Credentials": "true",
+  "Access-Control-Allow-Credentials": "false",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
@@ -849,24 +740,14 @@ http.route({
  * GET /auth/validate
  * Validate session token from Authorization header
  * Used by extension to check if session is still valid
+ * Requires Authorization: Bearer <token> header
  */
 http.route({
   path: "/auth/validate",
   method: "GET",
   handler: httpAction(async (ctx, request) => {
     try {
-      const authHeader = request.headers.get("Authorization");
-      let token: string | null = null;
-
-      // Try Authorization header first (for extension)
-      if (authHeader?.startsWith("Bearer ")) {
-        token = authHeader.substring(7);
-      }
-
-      // Fall back to cookie (for web app)
-      if (!token) {
-        token = getSessionToken(request);
-      }
+      const token = getBearerToken(request);
 
       if (!token) {
         return new Response(

@@ -500,17 +500,18 @@ export const loginWithSession = mutation({
       });
     }
 
-    // Create session
-    const token = generateSessionToken();
-
-    await ctx.db.insert("sessions", {
+    // Create session - use _id as the token (matches validateSession logic)
+    const sessionId = await ctx.db.insert("sessions", {
       userId: user._id,
-      token,
+      token: "", // Legacy field, kept for schema compatibility
       expiresAt: now + SESSION_DURATION_MS,
       userAgent: args.userAgent,
       createdAt: now,
       lastActivityAt: now,
     });
+
+    // The session _id IS the token - this is what validateSession expects
+    const sessionToken = sessionId.toString();
 
     // Update last login timestamp
     await ctx.db.patch(user._id, {
@@ -518,11 +519,11 @@ export const loginWithSession = mutation({
       updatedAt: now,
     });
 
-    console.log("[AUTH] Login with session for user:", user.email);
+    console.log("[AUTH] Login with session for user:", user.email, "token:", sessionToken);
 
     return {
       success: true,
-      sessionToken: token,
+      sessionToken,
       user: {
         _id: user._id,
         email: user.email,
@@ -585,23 +586,24 @@ export const signupWithSession = mutation({
       lastLogin: now,
     });
 
-    // Create session
-    const token = generateSessionToken();
-
-    await ctx.db.insert("sessions", {
+    // Create session - use _id as the token (matches validateSession logic)
+    const sessionId = await ctx.db.insert("sessions", {
       userId,
-      token,
+      token: "", // Legacy field, kept for schema compatibility
       expiresAt: now + SESSION_DURATION_MS,
       userAgent: args.userAgent,
       createdAt: now,
       lastActivityAt: now,
     });
 
-    console.log("[AUTH] Signup with session for user:", email);
+    // The session _id IS the token - this is what validateSession expects
+    const sessionToken = sessionId.toString();
+
+    console.log("[AUTH] Signup with session for user:", email, "token:", sessionToken);
 
     return {
       success: true,
-      sessionToken: token,
+      sessionToken,
       user: {
         _id: userId,
         email,
