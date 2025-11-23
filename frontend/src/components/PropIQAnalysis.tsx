@@ -1,10 +1,11 @@
 import { useState, useCallback } from 'react';
-import { Target, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, X, Loader2, FileText, MapPin, DollarSign, BarChart3, Lightbulb, ArrowRight, Zap } from 'lucide-react';
+import { Target, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, X, Loader2, FileText, MapPin, DollarSign, BarChart3, Lightbulb, ArrowRight, Zap, Share2 } from 'lucide-react';
 import { apiClient, API_ENDPOINTS } from '../config/api';
 import { PrintButton } from './PrintButton';
 import { PDFExportButton } from './PDFExportButton';
 import { Tooltip } from './Tooltip';
 import { PropertyImageGallery } from './PropertyImageGallery';
+import { ShareAnalysisModal } from './ShareAnalysisModal';
 import './PropIQAnalysis.css';
 
 interface PropIQAnalysisProps {
@@ -69,6 +70,8 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
   const [usesRemaining, setUsesRemaining] = useState<number | null>(null);
   const [propertyImages, setPropertyImages] = useState<PropertyImage[]>([]);
   const [primaryImageUrl, setPrimaryImageUrl] = useState<string | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [analysisId, setAnalysisId] = useState<string | null>(null);
 
   // Callback to handle when property images are loaded
   const handleImagesLoaded = useCallback((images: PropertyImage[], primaryUrl: string | null) => {
@@ -136,6 +139,8 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
       if (response.data.success) {
         setAnalysis(response.data.analysis);
         setUsesRemaining(response.data.usesRemaining);
+        // Store analysis ID for sharing functionality
+        setAnalysisId(response.data.analysis?.analysisId || response.data.analysisId || null);
         setStep('results');
       } else {
         setError(response.data.error || 'Analysis failed');
@@ -621,7 +626,7 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
                   }}
                   variant="outline"
                   size="md"
-                  className="flex-1 min-w-[160px]"
+                  className="flex-1 min-w-[120px]"
                 />
                 <PDFExportButton
                   analysis={{
@@ -641,8 +646,16 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
                   }}
                   variant="secondary"
                   size="md"
-                  className="flex-1 min-w-[160px]"
+                  className="flex-1 min-w-[120px]"
                 />
+                <button
+                  onClick={() => setShowShareModal(true)}
+                  className="propiq-btn-share flex-1 min-w-[120px]"
+                  title="Share this analysis"
+                >
+                  <Share2 className="h-4 w-4" />
+                  Share
+                </button>
               </div>
               <div className="flex gap-3 mt-3 w-full">
                 <button onClick={() => setStep('input')} className="propiq-btn-secondary flex-1">
@@ -662,6 +675,15 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
           </div>
         )}
       </div>
+
+      {/* Share Modal */}
+      {showShareModal && analysisId && (
+        <ShareAnalysisModal
+          analysisId={analysisId}
+          address={analysis?._metadata?.address || address}
+          onClose={() => setShowShareModal(false)}
+        />
+      )}
     </div>
   );
 };

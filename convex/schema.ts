@@ -158,4 +158,116 @@ export default defineSchema({
   })
     .index("by_address_hash", ["addressHash"])
     .index("by_expires", ["expiresAt"]),
+
+  // ============================================================================
+  // PILLAR 2: NETWORK EFFECTS - Deal Sharing & Collaboration
+  // ============================================================================
+
+  // Shared Analyses - Allows users to share deals via link or with specific users
+  sharedAnalyses: defineTable({
+    // The analysis being shared
+    analysisId: v.string(), // ID from property_analyses table in Supabase
+    ownerId: v.string(), // User ID who owns the analysis
+
+    // Share settings
+    shareToken: v.string(), // Unique token for public link sharing
+    shareType: v.string(), // "public" | "private" | "team"
+
+    // Access control
+    allowedEmails: v.optional(v.array(v.string())), // Emails with access (for private shares)
+    teamId: v.optional(v.string()), // Team ID (for team shares)
+
+    // Permissions
+    canComment: v.boolean(),
+    canExport: v.boolean(),
+
+    // Share metadata
+    title: v.optional(v.string()), // Custom title for shared view
+    description: v.optional(v.string()), // Owner's notes about the deal
+
+    // Expiration
+    expiresAt: v.optional(v.number()), // Optional expiration timestamp
+
+    // Analytics
+    viewCount: v.number(),
+    lastViewedAt: v.optional(v.number()),
+
+    // Timestamps
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_share_token", ["shareToken"])
+    .index("by_analysis", ["analysisId"])
+    .index("by_owner", ["ownerId"])
+    .index("by_team", ["teamId"]),
+
+  // Analysis Comments - Collaborative comments on shared analyses
+  analysisComments: defineTable({
+    // Reference to shared analysis or direct analysis
+    sharedAnalysisId: v.optional(v.id("sharedAnalyses")),
+    analysisId: v.string(), // Direct reference to analysis
+
+    // Comment author
+    authorId: v.string(), // User ID
+    authorEmail: v.string(),
+    authorName: v.optional(v.string()),
+
+    // Comment content
+    content: v.string(),
+
+    // Threading (for replies)
+    parentCommentId: v.optional(v.id("analysisComments")),
+
+    // Status
+    isEdited: v.boolean(),
+    isDeleted: v.boolean(),
+
+    // Timestamps
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_analysis", ["analysisId"])
+    .index("by_shared_analysis", ["sharedAnalysisId"])
+    .index("by_author", ["authorId"])
+    .index("by_parent", ["parentCommentId"]),
+
+  // Teams - For team-based collaboration
+  teams: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+
+    // Owner/admin
+    ownerId: v.string(),
+
+    // Team settings
+    isPublic: v.boolean(), // Can be discovered by others
+    inviteCode: v.optional(v.string()), // For invite-only teams
+
+    // Timestamps
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_owner", ["ownerId"])
+    .index("by_invite_code", ["inviteCode"]),
+
+  // Team Members - Junction table for team membership
+  teamMembers: defineTable({
+    teamId: v.id("teams"),
+    userId: v.string(),
+    userEmail: v.string(),
+
+    // Role
+    role: v.string(), // "owner" | "admin" | "member" | "viewer"
+
+    // Status
+    status: v.string(), // "active" | "invited" | "removed"
+    invitedBy: v.optional(v.string()),
+
+    // Timestamps
+    joinedAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_team", ["teamId"])
+    .index("by_user", ["userId"])
+    .index("by_team_and_user", ["teamId", "userId"]),
 });

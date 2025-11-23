@@ -103,6 +103,15 @@ export const API_ENDPOINTS = {
 
   // Marketing
   MARKETING_CAPTURE_EMAIL: '/marketing/capture-email',
+
+  // Sharing & Collaboration (Pillar 2: Network Effects)
+  SHARE_CREATE: '/share/create',
+  SHARE_VIEW: (token: string) => `/share/view/${token}`,
+  SHARE_MY_SHARES: '/share/my-shares',
+  SHARE_REVOKE: (shareId: string) => `/share/${shareId}`,
+  SHARE_COMMENTS: (shareId: string) => `/share/${shareId}/comments`,
+  SHARE_ADD_COMMENT: (shareId: string) => `/share/${shareId}/comments`,
+  SHARE_DELETE_COMMENT: (shareId: string, commentId: string) => `/share/${shareId}/comments/${commentId}`,
 };
 
 // Export type for TypeScript autocompletion

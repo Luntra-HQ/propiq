@@ -278,6 +278,14 @@ try:
 except ImportError as e:
     logger.warning(f"Property Images router not available: {e}")
 
+# Import and include Sharing & Collaboration router (Pillar 2: Network Effects)
+try:
+    from routers.sharing import router as sharing_router
+    app.include_router(sharing_router)
+    logger.info("Sharing & Collaboration router registered (deal sharing + comments)")
+except ImportError as e:
+    logger.warning(f"Sharing router not available: {e}")
+
 # Import and include Onboarding campaign router (email onboarding sequence)
 try:
     from routers.onboarding import router as onboarding_router
