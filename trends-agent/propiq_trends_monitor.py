@@ -7,9 +7,17 @@ Monitors Google Trends for real estate investing keywords and sends alerts via S
 import os
 import sys
 import json
+import logging
 import requests
 from datetime import datetime, timedelta
 from pathlib import Path
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 # Add the google_trends_agent to path
 sys.path.insert(0, str(Path(__file__).parent))
@@ -51,7 +59,7 @@ class TrendsMonitor:
         Check Google Trends for real estate keywords
         Returns list of trending topics that match our keywords
         """
-        print(f"🔍 Checking Google Trends for past {weeks} week(s) in {region}...")
+        logger.info(f"Checking Google Trends for past {weeks} week(s) in {region}...")
 
         try:
             # Import the trends agent
@@ -59,7 +67,7 @@ class TrendsMonitor:
 
             # Query for top trending terms
             query = f"List the top 50 trending terms in {region} for the past {weeks} week(s)"
-            print(f"Query: {query}\n")
+            logger.info(f"Query: {query}")
 
             # Run the agent (note: this queries BigQuery)
             # Use run_live for synchronous execution
@@ -75,9 +83,7 @@ class TrendsMonitor:
             return relevant_trends
 
         except Exception as e:
-            print(f"❌ Error checking trends: {e}")
-            import traceback
-            traceback.print_exc()
+            logger.error(f"Error checking trends: {e}", exc_info=True)
             return []
 
     def _parse_trends_from_result(self, result):
@@ -133,11 +139,11 @@ class TrendsMonitor:
     def send_slack_notification(self, trends):
         """Send Slack notification about trending topics"""
         if not self.slack_webhook:
-            print("⚠️  No Slack webhook configured. Skipping Slack notification.")
+            logger.warning("No Slack webhook configured. Skipping Slack notification.")
             return False
 
         if not trends:
-            print("ℹ️  No relevant trends to notify about.")
+            logger.info("No relevant trends to notify about.")
             return False
 
         # Build Slack message
@@ -151,14 +157,14 @@ class TrendsMonitor:
             )
 
             if response.status_code == 200:
-                print(f"✅ Slack notification sent successfully! ({len(trends)} trends)")
+                logger.info(f"Slack notification sent successfully! ({len(trends)} trends)")
                 return True
             else:
-                print(f"❌ Slack notification failed: {response.status_code} - {response.text}")
+                logger.error(f"Slack notification failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
-            print(f"❌ Error sending Slack notification: {e}")
+            logger.error(f"Error sending Slack notification: {e}")
             return False
 
     def _build_slack_message(self, trends):
@@ -214,7 +220,7 @@ class TrendsMonitor:
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": "🤖 *Auto-generate blog post:*\n`cd ~/Projects/LUNTRA/LUNTRA\\ MVPS/propiq/blog-writer-agent && ./run_blog_generation.sh`"
+                "text": "🤖 *Auto-generate blog post:*\nVisit <https://propiq.luntra.one/dashboard|PropIQ Dashboard> to generate content"
             }
         })
 
@@ -223,14 +229,14 @@ class TrendsMonitor:
     def send_email_notification(self, trends):
         """Send email notification via SendGrid"""
         if not self.sendgrid_key or not self.recipient_email:
-            print("⚠️  SendGrid not configured. Skipping email notification.")
+            logger.warning("SendGrid not configured. Skipping email notification.")
             return False
 
         if not trends:
             return False
 
         # Build email content
-        subject = f"📈 {len(trends)} Real Estate Topics Trending on Google"
+        subject = f"{len(trends)} Real Estate Topics Trending on Google"
         html_content = self._build_email_html(trends)
 
         try:
@@ -258,14 +264,14 @@ class TrendsMonitor:
             )
 
             if response.status_code == 202:
-                print(f"✅ Email sent successfully to {self.recipient_email}!")
+                logger.info(f"Email sent successfully to {self.recipient_email}!")
                 return True
             else:
-                print(f"❌ Email failed: {response.status_code} - {response.text}")
+                logger.error(f"Email failed: {response.status_code} - {response.text}")
                 return False
 
         except Exception as e:
-            print(f"❌ Error sending email: {e}")
+            logger.error(f"Error sending email: {e}")
             return False
 
     def _build_email_html(self, trends):
@@ -358,11 +364,11 @@ class TrendsMonitor:
             with open(output_file, 'w') as f:
                 json.dump(history, f, indent=2)
 
-            print(f"💾 Saved {len(trends)} trends to {output_file}")
+            logger.info(f"Saved {len(trends)} trends to {output_file}")
             return True
 
         except Exception as e:
-            print(f"❌ Error saving trends history: {e}")
+            logger.error(f"Error saving trends history: {e}")
             return False
 
 

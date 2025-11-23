@@ -49,8 +49,6 @@ Read the query results and give insights to the user.
     tools=[execute_bigquery_sql],
 )
 
-print(trends_query_executor_agent.instruction)
-
 # --- 2. Create the SequentialAgent ---
 # This agent orchestrates the pipeline by running the sub_agents in order.
 root_agent = SequentialAgent(

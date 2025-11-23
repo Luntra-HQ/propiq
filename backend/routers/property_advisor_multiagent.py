@@ -18,7 +18,11 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime
 import os
 import json
+import logging
 from openai import AzureOpenAI
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 # Database
 try:
@@ -32,7 +36,7 @@ try:
     else:
         DATABASE_AVAILABLE = False
 except Exception as e:
-    print(f"⚠️  Database not available: {e}")
+    logger.warning(f"Database not available: {e}")
     DATABASE_AVAILABLE = False
     db = None
 
@@ -294,7 +298,11 @@ Provide comprehensive market analysis focusing on investment viability.
         response_format={"type": "json_object"}
     )
 
-    return json.loads(response.choices[0].message.content)
+    try:
+        return json.loads(response.choices[0].message.content)
+    except json.JSONDecodeError as e:
+        logger.error(f"Market Analyst returned invalid JSON: {e}")
+        raise ValueError(f"Market Analyst returned invalid JSON response: {str(e)}")
 
 
 async def run_deal_analyst(
@@ -334,7 +342,11 @@ Create financial scenarios and recommend deal structure.
         response_format={"type": "json_object"}
     )
 
-    return json.loads(response.choices[0].message.content)
+    try:
+        return json.loads(response.choices[0].message.content)
+    except json.JSONDecodeError as e:
+        logger.error(f"Deal Analyst returned invalid JSON: {e}")
+        raise ValueError(f"Deal Analyst returned invalid JSON response: {str(e)}")
 
 
 async def run_risk_analyst(
@@ -368,7 +380,11 @@ Provide comprehensive risk assessment aligned with investor's risk tolerance.
         response_format={"type": "json_object"}
     )
 
-    return json.loads(response.choices[0].message.content)
+    try:
+        return json.loads(response.choices[0].message.content)
+    except json.JSONDecodeError as e:
+        logger.error(f"Risk Analyst returned invalid JSON: {e}")
+        raise ValueError(f"Risk Analyst returned invalid JSON response: {str(e)}")
 
 
 async def run_action_planner(
@@ -404,7 +420,11 @@ Provide step-by-step action plan with timelines and checklists.
         response_format={"type": "json_object"}
     )
 
-    return json.loads(response.choices[0].message.content)
+    try:
+        return json.loads(response.choices[0].message.content)
+    except json.JSONDecodeError as e:
+        logger.error(f"Action Planner returned invalid JSON: {e}")
+        raise ValueError(f"Action Planner returned invalid JSON response: {str(e)}")
 
 
 # ============================================================================
@@ -446,7 +466,7 @@ async def run_property_advisor(
         stages = []
 
         # Stage 1: Market Analysis
-        print("Running Market Analyst...")
+        logger.info("Running Market Analyst...")
         market_analysis = await run_market_analyst(property_data)
         stages.append({
             "stage": "market_analysis",
@@ -456,7 +476,7 @@ async def run_property_advisor(
         })
 
         # Stage 2: Deal Analysis
-        print("Running Deal Analyst...")
+        logger.info("Running Deal Analyst...")
         deal_analysis = await run_deal_analyst(property_data, market_analysis, investor_profile)
         stages.append({
             "stage": "deal_analysis",
@@ -466,7 +486,7 @@ async def run_property_advisor(
         })
 
         # Stage 3: Risk Assessment
-        print("Running Risk Analyst...")
+        logger.info("Running Risk Analyst...")
         risk_analysis = await run_risk_analyst(
             property_data, market_analysis, deal_analysis, investor_profile
         )
@@ -478,7 +498,7 @@ async def run_property_advisor(
         })
 
         # Stage 4: Action Planning
-        print("Running Action Planner...")
+        logger.info("Running Action Planner...")
         action_plan = await run_action_planner(
             property_data, market_analysis, deal_analysis, risk_analysis, investor_profile
         )
