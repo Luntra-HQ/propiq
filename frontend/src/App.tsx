@@ -19,7 +19,6 @@ import {
   TOP_UP_PACKAGES,
   USAGE_THRESHOLDS,
   CONVERSION_COPY,
-  STRIPE_PRICE_IDS,
   shouldShowWarning,
   shouldShowUpgradePrompt,
   isAtHardCap,
@@ -29,7 +28,9 @@ import {
   getNextTier,
   type PricingTier
 } from './config/pricing';
-import { apiClient, API_ENDPOINTS } from './config/api';
+import { useAction } from 'convex/react';
+import { api } from '../convex/_generated/api';
+import { Id } from '../convex/_generated/dataModel';
 // ------------------------
 
 // --- CONFIGURATION ---
@@ -446,6 +447,9 @@ const App = () => {
   // Note: App is wrapped in ProtectedRoute, so user is always authenticated here
   const { user, isLoading: authLoading, logout: authLogout } = useAuth();
 
+  // Convex action for Stripe checkout
+  const createCheckout = useAction(api.payments.createCheckoutSession);
+
   // Sync auth state with local component state
   useEffect(() => {
     // Still loading auth - ProtectedRoute handles the loading state,
@@ -517,11 +521,8 @@ const App = () => {
   const handleSelectTier = async (tierId: string) => {
     console.log(`Upgrading to tier: ${tierId}`);
 
-    // Validate tier has a price ID
-    const priceId = STRIPE_PRICE_IDS[tierId];
-    if (!priceId) {
-      console.error(`No Stripe price ID found for tier: ${tierId}`);
-      alert('Unable to process upgrade. Please try again or contact support.');
+    if (!userId) {
+      alert('Please log in to upgrade your plan.');
       return;
     }
 
@@ -529,26 +530,26 @@ const App = () => {
       // Show loading state
       setShowPricingPage(false);
 
-      // Call backend to create Stripe checkout session
-      const response = await apiClient.post(API_ENDPOINTS.STRIPE_CHECKOUT, {
-        priceId: priceId,
-        tier: tierId
+      // Call Convex action to create Stripe checkout session
+      const result = await createCheckout({
+        userId: userId as Id<"users">,
+        tier: tierId,
+        successUrl: `${window.location.origin}/app?upgrade=success`,
+        cancelUrl: `${window.location.origin}/app?upgrade=cancelled`,
       });
 
-      if (response.data.success && response.data.checkoutUrl) {
+      if (result.success && result.url) {
         // Redirect to Stripe Checkout
-        console.log('Redirecting to Stripe checkout:', response.data.sessionId);
-        window.location.href = response.data.checkoutUrl;
+        console.log('Redirecting to Stripe checkout:', result.sessionId);
+        window.location.href = result.url;
       } else {
-        throw new Error(response.data.message || 'Failed to create checkout session');
+        throw new Error('Failed to create checkout session');
       }
     } catch (error: any) {
       console.error('Stripe checkout error:', error);
 
       // Show user-friendly error message
-      const errorMessage = error.response?.data?.detail ||
-                          error.message ||
-                          'Unable to start checkout. Please try again.';
+      const errorMessage = error.message || 'Unable to start checkout. Please try again.';
       alert(`Checkout Error: ${errorMessage}`);
 
       // Reopen pricing page so user can try again
