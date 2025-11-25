@@ -1,6 +1,10 @@
 """
 Supabase PostgreSQL Database Connection for PropIQ
 Replaces MongoDB with PostgreSQL for better Render compatibility
+
+⚠️  DEPRECATED: This module is being phased out in favor of Convex.
+⚠️  All new development should use Convex (convex/auth.ts, convex/payments.ts)
+⚠️  This file is kept for reference and potential data migration only.
 """
 import os
 from typing import Optional, Dict, Any

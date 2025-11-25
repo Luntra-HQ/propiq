@@ -2,6 +2,10 @@
 """
 Stripe Payment Integration for PropIQ
 Handles checkout session creation and subscription management
+
+⚠️  DEPRECATED: Stripe webhooks now handled by Convex (convex/http.ts)
+⚠️  Checkout sessions now created via Convex (convex/payments.ts:createCheckoutSession)
+⚠️  This FastAPI router is being phased out - use Convex for all payment operations
 """
 
 from fastapi import APIRouter, HTTPException, Header, Depends, Request

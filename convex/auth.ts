@@ -619,3 +619,94 @@ export const signupWithSession = mutation({
     };
   },
 });
+
+
+/**
+ * Query: Get user by email
+ * Used by Stripe webhook to find user and update subscription
+ */
+export const getUserByEmail = query({
+  args: {
+    email: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const email = args.email.toLowerCase().trim();
+    
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .first();
+    
+    return user;
+  },
+});
+
+/**
+ * Mutation: Update user subscription tier
+ * Called by Stripe webhook after successful payment
+ */
+export const updateSubscription = mutation({
+  args: {
+    userId: v.id("users"),
+    tier: v.string(),
+    stripeCustomerId: v.optional(v.string()),
+    stripeSubscriptionId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const { userId, tier, stripeCustomerId, stripeSubscriptionId } = args;
+    
+    // Get current user to determine new limits
+    const user = await ctx.db.get(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    
+    // Set analyses limit based on tier
+    const tierLimits: Record<string, number> = {
+      free: 3,
+      starter: 30,
+      pro: 60,
+      elite: 100,
+    };
+    
+    const analysesLimit = tierLimits[tier] || 3;
+    
+    // Update user with new subscription
+    await ctx.db.patch(userId, {
+      subscriptionTier: tier,
+      analysesLimit,
+      stripeCustomerId,
+      stripeSubscriptionId,
+    });
+    
+    console.log(`[AUTH] Updated subscription for user ${user.email} to ${tier} (limit: ${analysesLimit})`);
+    
+    return {
+      success: true,
+      user: {
+        ...user,
+        subscriptionTier: tier,
+        analysesLimit,
+      },
+    };
+  },
+});
+
+/**
+ * Mutation: Reset monthly usage
+ * Called by cron job to reset usage counts at start of billing cycle
+ */
+export const resetMonthlyUsage = mutation({
+  args: {
+    userId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.userId, {
+      analysesUsed: 0,
+    });
+    
+    console.log(`[AUTH] Reset usage for user ${args.userId}`);
+    
+    return { success: true };
+  },
+});
