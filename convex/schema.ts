@@ -125,4 +125,130 @@ export default defineSchema({
     .index("by_token", ["token"])
     .index("by_user", ["userId"])
     .index("by_expires", ["expiresAt"]),
+
+  // Knowledge base articles - Help center content
+  articles: defineTable({
+    title: v.string(),
+    slug: v.string(), // URL-friendly identifier (e.g., "how-to-analyze-property")
+    content: v.string(), // Markdown content
+    excerpt: v.string(), // Short summary for search results
+    category: v.string(), // "getting-started" | "property-analysis" | "calculator" | "troubleshooting" | "billing" | "advanced" | "education"
+    tags: v.array(v.string()), // ["address", "analysis", "error"] for better search
+
+    // Analytics
+    viewCount: v.number(),
+    helpfulVotes: v.number(),
+    unhelpfulVotes: v.number(),
+
+    // Publishing
+    published: v.boolean(),
+    featured: v.boolean(), // Show in top results
+
+    // Timestamps
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_category", ["category"])
+    .index("by_published", ["published"])
+    .searchIndex("search_content", {
+      searchField: "content",
+      filterFields: ["category", "published"],
+    })
+    .searchIndex("search_title", {
+      searchField: "title",
+      filterFields: ["category", "published"],
+    }),
+
+  // Article feedback - Track helpful/unhelpful votes
+  articleFeedback: defineTable({
+    articleId: v.id("articles"),
+    userId: v.id("users"),
+    vote: v.number(), // 1 = helpful, -1 = unhelpful
+    comment: v.optional(v.string()), // Optional feedback comment
+    createdAt: v.number(),
+  })
+    .index("by_article", ["articleId"])
+    .index("by_user", ["userId"])
+    .index("by_article_and_user", ["articleId", "userId"]),
+
+  // Failed searches - Track searches with no results
+  failedSearches: defineTable({
+    query: v.string(),
+    userId: v.optional(v.id("users")),
+    page: v.optional(v.string()), // Where user was when searching
+    resultsCount: v.number(), // 0 for failed searches
+    createdAt: v.number(),
+  })
+    .index("by_query", ["query"])
+    .index("by_date", ["createdAt"]),
+
+  // User onboarding progress - Track checklist completion
+  onboardingProgress: defineTable({
+    userId: v.id("users"),
+
+    // 7 onboarding tasks
+    analyzedFirstProperty: v.boolean(),
+    exploredCalculator: v.boolean(),
+    triedScenarios: v.boolean(),
+    readKeyMetricsArticle: v.boolean(),
+    setInvestmentCriteria: v.boolean(),
+    exportedReport: v.boolean(),
+    analyzedThreeProperties: v.boolean(),
+
+    // Tour completion
+    completedProductTour: v.boolean(),
+    tourStep: v.optional(v.number()),
+
+    // Checklist state
+    checklistDismissed: v.boolean(),
+    checklistCompletedAt: v.optional(v.number()),
+
+    // Timestamps
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_user", ["userId"]),
+
+  // Support tickets - For human escalation from AI chat
+  supportTickets: defineTable({
+    userId: v.id("users"),
+    conversationId: v.string(), // Links to supportChats
+
+    // Ticket details
+    subject: v.string(),
+    priority: v.string(), // "low" | "medium" | "high" | "urgent"
+    status: v.string(), // "open" | "in_progress" | "waiting_on_user" | "resolved" | "closed"
+    category: v.string(), // "billing" | "technical" | "feature_request" | "bug" | "other"
+
+    // Assignment
+    assignedTo: v.optional(v.string()), // Support agent email/ID
+
+    // Satisfaction
+    satisfactionRating: v.optional(v.number()), // 1-5 stars
+    satisfactionComment: v.optional(v.string()),
+
+    // Timestamps
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    resolvedAt: v.optional(v.number()),
+    closedAt: v.optional(v.number()),
+  })
+    .index("by_user", ["userId"])
+    .index("by_status", ["status"])
+    .index("by_conversation", ["conversationId"])
+    .index("by_assigned", ["assignedTo"]),
+
+  // NPS responses - Net Promoter Score surveys
+  npsResponses: defineTable({
+    userId: v.id("users"),
+    score: v.number(), // 0-10
+    reason: v.optional(v.string()), // Why they gave this score
+    subscriptionTier: v.string(), // Tier at time of response
+    daysSinceSignup: v.number(),
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_score", ["score"])
+    .index("by_date", ["createdAt"]),
 });

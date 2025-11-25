@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Settings, BarChart, Clock, Zap, Target, Shield, Users, Mail, Search, Calculator, Send, Lock, CreditCard, X, DollarSign, Loader2, ArrowRight } from 'lucide-react';
+import { Settings, BarChart, Clock, Zap, Target, Shield, Users, Mail, Search, Calculator, Send, Lock, CreditCard, X, DollarSign, Loader2, ArrowRight, HelpCircle } from 'lucide-react';
 import PricingPage from './components/PricingPage';
 import { SupportChat } from './components/SupportChat';
 import { DealCalculator } from './components/DealCalculator';
@@ -7,6 +7,8 @@ import { FeedbackWidget } from './components/FeedbackWidget';
 import { PropIQAnalysis } from './components/PropIQAnalysis';
 import { ProductTour, useShouldShowTour } from './components/ProductTour';
 import { CookieConsent } from './components/CookieConsent';
+import { HelpCenter } from './components/HelpCenter';
+import { OnboardingChecklist } from './components/OnboardingChecklist';
 
 // --- BACKEND AUTH IMPORTS (Server-side sessions with httpOnly cookies) ---
 import { AuthModal } from './components/AuthModal';
@@ -100,7 +102,8 @@ const Header = ({
   currentTier,
   userId,
   userEmail,
-  onLogout
+  onLogout,
+  onHelpClick
 }: {
   propIqUsed: number;
   propIqLimit: number;
@@ -108,6 +111,7 @@ const Header = ({
   userId: string | null;
   userEmail: string | null;
   onLogout: () => void;
+  onHelpClick: () => void;
 }) => {
   const tierConfig = PRICING_TIERS[currentTier] || PRICING_TIERS.free;
   const remaining = getRemainingRuns(propIqUsed, propIqLimit);
@@ -126,6 +130,14 @@ const Header = ({
           <span className="text-xs font-semibold text-gray-200">{tierConfig.displayName}</span>
         </div>
         <UsageBadge used={propIqUsed} limit={propIqLimit} />
+        <button
+          onClick={onHelpClick}
+          className="flex items-center space-x-1 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-gray-300 hover:text-white rounded-lg transition-colors"
+          title="Help Center"
+        >
+          <HelpCircle className="h-4 w-4" />
+          <span className="hidden md:inline text-xs font-semibold">Help</span>
+        </button>
         {userId && (
           <div className="flex items-center space-x-2">
             <div className="hidden lg:block text-xs text-gray-300 truncate max-w-[150px]" title={userEmail || userId}>
@@ -434,6 +446,9 @@ const App = () => {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [authToken, setAuthToken] = useState<string | null>(null);
 
+  // Help Center state
+  const [showHelpCenter, setShowHelpCenter] = useState(false);
+
   // Product tour state
   const shouldShowTour = useShouldShowTour();
   const [showTour, setShowTour] = useState(false);
@@ -636,7 +651,11 @@ const App = () => {
         userId={userId}
         userEmail={userEmail}
         onLogout={handleLogout}
+        onHelpClick={() => setShowHelpCenter(true)}
       />
+
+      {/* Onboarding Checklist (shows for first 7 days) */}
+      {userId && <OnboardingChecklist userId={userId as any} />}
 
       {/* Upgrade Prompt Banner (90% threshold) */}
       {showUpgradeBanner && (
@@ -835,6 +854,15 @@ const App = () => {
 
       {/* Cookie Consent Banner - GDPR/CCPA Compliance */}
       <CookieConsent />
+
+      {/* Help Center Modal */}
+      {showHelpCenter && (
+        <HelpCenter
+          isOpen={showHelpCenter}
+          onClose={() => setShowHelpCenter(false)}
+          userId={userId as any}
+        />
+      )}
     </div>
   );
 };
