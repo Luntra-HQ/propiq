@@ -661,14 +661,14 @@ export const updateSubscription = mutation({
       throw new Error("User not found");
     }
     
-    // Set analyses limit based on tier
+    // Set analyses limit based on tier (UNLIMITED for all paid tiers)
     const tierLimits: Record<string, number> = {
       free: 3,
-      starter: 30,
-      pro: 60,
-      elite: 100,
+      starter: 999999, // UNLIMITED
+      pro: 999999, // UNLIMITED
+      elite: 999999, // UNLIMITED
     };
-    
+
     const analysesLimit = tierLimits[tier] || 3;
     
     // Update user with new subscription

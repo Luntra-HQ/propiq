@@ -1,11 +1,12 @@
 /**
- * LUNTRA Pricing Tier Configuration
+ * PropIQ Pricing Tier Configuration
  *
- * Based on Product Pro GPT recommendations:
- * - All tiers maintain >75% gross margin
- * - Deal IQ COGS: $0.15 per run
- * - Top-up pricing: $5 for 10 additional runs
- * - Hard caps on tier limits to prevent unprofitable usage
+ * NEW STRATEGY (Based on SaaS Playbook):
+ * - UNLIMITED analyses on all paid tiers (removes friction)
+ * - Value-based pricing by features, not limits
+ * - Focus on Portfolio Paul: Active buy-and-hold investors
+ * - Lower entry price ($49 vs $69) to reduce barrier
+ * - Premium positioning for Elite tier ($199)
  */
 
 export interface PricingTier {
@@ -60,84 +61,66 @@ export const PRICING_TIERS: Record<string, PricingTier> = {
     id: 'starter',
     name: 'Starter',
     displayName: 'Starter',
-    price: 69,
-    propIqLimit: 30,
-    cogs: 4.50, // 30 runs × $0.15
-    grossMargin: 93.5,
+    price: 49, // LOWERED from $69 - reduces barrier to entry
+    propIqLimit: 999999, // UNLIMITED - removes friction
+    cogs: 7.35, // Estimated 49 analyses/mo @ $0.15
+    grossMargin: 85.0, // (49 - 7.35) / 49 = 85%
     features: [
-      '30 Deal IQ analyses/month',
-      'Unlimited Deal Calculator',
-      'Full mobile and desktop access',
-      'Usage dashboard with insights',
-      'Priority email support',
-      'Top-ups: $5 for 10 more runs'
+      '✨ UNLIMITED AI analyses',
+      'All calculator features',
+      'Export reports (PDF)',
+      'Mobile & desktop access',
+      'Email support',
+      'Save analysis history'
     ],
-    bestFor: 'Newer investors testing 5–10 deals/week'
+    bestFor: 'New investors (1-3 properties)'
   },
   pro: {
     id: 'pro',
     name: 'Pro',
     displayName: 'Pro',
     price: 99,
-    propIqLimit: 60,
-    cogs: 9.00, // 60 runs × $0.15
-    grossMargin: 90.9,
+    propIqLimit: 999999, // UNLIMITED - sweet spot tier
+    cogs: 14.85, // Estimated 99 analyses/mo @ $0.15
+    grossMargin: 85.0, // (99 - 14.85) / 99 = 85%
     features: [
-      '60 Deal IQ analyses/month',
-      'Unlimited Deal Calculator',
-      'Full mobile and desktop access',
-      'Advanced usage dashboard',
-      'Priority email + chat support',
-      'Top-ups: $5 for 10 more runs',
-      'Export analysis reports (PDF)'
+      '✨ UNLIMITED AI analyses',
+      'Everything in Starter, plus:',
+      'Market comparisons & trends',
+      'Deal alerts (email notifications)',
+      'Chrome extension (analyze from Zillow)',
+      'Bulk import (analyze 10+ at once)',
+      'Priority email + chat support'
     ],
-    bestFor: 'Active investors evaluating 2+ properties/day',
-    isPopular: true
+    bestFor: 'Active investors (4-10 properties)',
+    isPopular: true // MOST POPULAR - Portfolio Paul's tier
   },
   elite: {
     id: 'elite',
     name: 'Elite',
     displayName: 'Elite',
-    price: 149,
-    propIqLimit: 100,
-    cogs: 15.00, // 100 runs × $0.15
-    grossMargin: 89.9,
+    price: 199, // RAISED from $149 - premium positioning
+    propIqLimit: 999999, // UNLIMITED - no restrictions
+    cogs: 29.85, // Estimated 199 analyses/mo @ $0.15
+    grossMargin: 85.0, // (199 - 29.85) / 199 = 85%
     features: [
-      '100 Deal IQ analyses/month',
-      'Unlimited Deal Calculator',
-      'Full mobile and desktop access',
-      'Premium usage dashboard',
-      'Priority email + chat + phone support',
-      'Top-ups: $5 for 10 more runs',
-      'Export analysis reports (PDF, CSV)',
-      'API access (coming soon)',
-      'Team collaboration (up to 3 users)'
+      '✨ UNLIMITED AI analyses',
+      'Everything in Pro, plus:',
+      'White-label reports (your branding)',
+      'API access (integrate with your tools)',
+      'Bulk import (100+ properties)',
+      'Team collaboration (up to 5 users)',
+      '1-on-1 onboarding call',
+      'Priority phone + email + chat support',
+      'Custom integrations (on request)'
     ],
-    bestFor: 'Power users analyzing >3/day or small teams'
+    bestFor: 'Power users & agents (10+ properties)'
   }
 };
 
-// Top-Up Packages
-export const TOP_UP_PACKAGES: TopUpPackage[] = [
-  {
-    id: 'topup_10',
-    runs: 10,
-    price: 5,
-    pricePerRun: 0.50
-  },
-  {
-    id: 'topup_25',
-    runs: 25,
-    price: 11,
-    pricePerRun: 0.44 // 12% bulk discount
-  },
-  {
-    id: 'topup_50',
-    runs: 50,
-    price: 20,
-    pricePerRun: 0.40 // 20% bulk discount
-  }
-];
+// Top-Up Packages - DEPRECATED (unlimited model, no longer needed)
+// Kept for backwards compatibility, but hidden from UI
+export const TOP_UP_PACKAGES: TopUpPackage[] = [];
 
 // Usage Threshold Configuration
 export const USAGE_THRESHOLDS = {
@@ -146,36 +129,37 @@ export const USAGE_THRESHOLDS = {
   HARD_CAP: 1.0 // Block usage at 100%
 };
 
-// Conversion Micro-Copy
+// Conversion Micro-Copy (Updated for unlimited model)
 export const CONVERSION_COPY = {
   upgrade: {
-    title: "Don't let Deal IQ slow you down",
-    description: "Looks like you're on a roll—add more in one click.",
-    cta: "Upgrade Now"
-  },
-  topUp: {
-    title: "Keep analyzing without limits",
-    description: "Just $0.50 per analysis—cheaper than your daily coffee ☕",
-    cta: "Buy 10 More"
+    title: "Find more deals faster with unlimited analyses",
+    description: "Upgrade to analyze as many properties as you want—no limits, no stress.",
+    cta: "Upgrade to Unlimited"
   },
   trialEnd: {
-    title: "Your next deal is waiting",
-    description: "Unlock full power with Pro and never miss a great opportunity.",
-    cta: "Unlock Full Power"
+    title: "You've used all 3 trial analyses",
+    description: "Upgrade to unlimited analyses and never miss a profitable deal. Start at just $49/month.",
+    cta: "Get Unlimited Access"
   },
-  warningBanner: {
-    title: "You've used {used} of {total} Deal IQ runs this month",
-    description: "Upgrade now or buy 10 more for $5.",
-    cta: "View Options"
+  freeUserPrompt: {
+    title: "Ready to analyze more properties?",
+    description: "Get UNLIMITED AI analyses starting at $49/month. Find better deals, faster.",
+    cta: "See Pricing"
+  },
+  annualDiscount: {
+    title: "Save 20% with annual billing",
+    description: "Get 2 months free when you pay annually. Lock in unlimited analyses at a lower price.",
+    cta: "Switch to Annual"
   }
 };
 
-// Financial Risk Mitigation
-export const RISK_MITIGATION = {
-  HARD_CAP_ENABLED: true, // Enforce hard caps on all tiers
-  SOFT_NUDGE_ENABLED: true, // Show nudges before hitting limit
+// Usage Policy (Updated for unlimited model)
+export const USAGE_POLICY = {
+  FREE_TRIAL_LIMIT: 3, // Free users get 3 analyses
+  PAID_TIERS_UNLIMITED: true, // All paid tiers have unlimited analyses
+  FAIR_USE_POLICY: true, // Prevent abuse (e.g., 1000+ analyses/day)
+  FAIR_USE_DAILY_CAP: 500, // Soft cap to prevent API abuse
   RETROACTIVE_CHARGES_DISABLED: true, // No surprise charges
-  OVERAGE_ALLOWED: false // Must upgrade or buy top-up before continuing
 };
 
 // Helper Functions

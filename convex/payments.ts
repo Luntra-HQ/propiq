@@ -8,12 +8,13 @@ import { action, mutation, query } from "./_generated/server";
 import { api } from "./_generated/api";
 
 // Subscription tier configuration
-// Updated pricing to match current code (pricing.ts and README.md)
+// NEW STRATEGY: Unlimited analyses on all paid tiers (SaaS Playbook model)
+// Lower entry price ($49 vs $69), premium positioning for Elite ($199)
 const SUBSCRIPTION_TIERS = {
   free: { price: 0, analyses: 3, priceId: null },
-  starter: { price: 69, analyses: 30, priceId: process.env.STRIPE_STARTER_PRICE_ID },
-  pro: { price: 99, analyses: 60, priceId: process.env.STRIPE_PRO_PRICE_ID },
-  elite: { price: 149, analyses: 100, priceId: process.env.STRIPE_ELITE_PRICE_ID },
+  starter: { price: 49, analyses: 999999, priceId: process.env.STRIPE_STARTER_PRICE_ID }, // UNLIMITED
+  pro: { price: 99, analyses: 999999, priceId: process.env.STRIPE_PRO_PRICE_ID }, // UNLIMITED
+  elite: { price: 199, analyses: 999999, priceId: process.env.STRIPE_ELITE_PRICE_ID }, // UNLIMITED
 };
 
 // Create Stripe checkout session

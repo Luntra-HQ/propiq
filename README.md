@@ -73,13 +73,15 @@ Visit:
 - 💳 **Subscription Management** - Stripe-powered billing with 4 tiers
 - 📊 **Analytics** - Weights & Biases AI tracking + Microsoft Clarity
 
-### Business Model
-| Tier | Price | Analyses/Month |
-|------|-------|----------------|
-| Free | $0 | 3 trial analyses |
-| Starter | $69/mo | 30 analyses |
-| Pro | $99/mo | 60 analyses |
-| Elite | $149/mo | 100 analyses |
+### Business Model (NEW - Unlimited Model)
+| Tier | Price | Analyses | Key Features |
+|------|-------|----------|--------------|
+| Free | $0 | 3 trial | Test drive the platform |
+| Starter | **$49/mo** | **UNLIMITED** ✨ | Core AI analysis, PDF export |
+| Pro | $99/mo | **UNLIMITED** ✨ | Market trends, Chrome extension, bulk import |
+| Elite | $199/mo | **UNLIMITED** ✨ | White-label, API, team collaboration |
+
+**Why Unlimited?** Real estate investors analyze 20-50 properties to buy ONE. Limits create friction, not value.
 
 ---
 
