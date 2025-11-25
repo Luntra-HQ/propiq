@@ -77,9 +77,9 @@ Visit:
 | Tier | Price | Analyses/Month |
 |------|-------|----------------|
 | Free | $0 | 3 trial analyses |
-| Starter | $29/mo | 20 analyses |
-| Pro | $79/mo | 100 analyses |
-| Elite | $199/mo | Unlimited |
+| Starter | $69/mo | 30 analyses |
+| Pro | $99/mo | 60 analyses |
+| Elite | $149/mo | 100 analyses |
 
 ---
 

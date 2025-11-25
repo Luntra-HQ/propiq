@@ -339,23 +339,25 @@ async def analyze_property(
             if not user:
                 raise HTTPException(status_code=404, detail="User not found")
 
-            # Check if user has a subscription or trial analyses remaining
+            # Check if user has a subscription or analyses remaining
             subscription_tier = user.get("subscription_tier", "free")
             subscription_status = user.get("subscription_status", "inactive")
-            trial_analyses_remaining = user.get("trial_analyses_remaining", 0)
+            usage_count = user.get("propiq_usage_count", 0)
+            usage_limit = user.get("propiq_usage_limit", 0)
+            analyses_remaining = usage_limit - usage_count
 
             # Allow analysis if:
             # 1. User has active paid subscription, OR
-            # 2. User still has trial analyses remaining
+            # 2. User still has analyses remaining
             has_subscription = (
                 subscription_tier in ["starter", "pro", "elite"] and
                 subscription_status == "active"
             )
 
-            if not has_subscription and trial_analyses_remaining <= 0:
+            if not has_subscription and analyses_remaining <= 0:
                 raise HTTPException(
                     status_code=403,
-                    detail="No analyses remaining. Please upgrade to a paid plan."
+                    detail=f"No analyses remaining ({usage_count}/{usage_limit} used). Please upgrade to a paid plan."
                 )
 
         # Build enhanced analysis prompt for OpenAI

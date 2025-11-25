@@ -431,7 +431,7 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [authToken, setAuthToken] = useState<string | null>(null);
+  // authToken is now provided by useAuth hook as sessionToken
 
   // Product tour state
   const shouldShowTour = useShouldShowTour();
@@ -444,7 +444,7 @@ const App = () => {
 
   // Use server-side session auth (httpOnly cookies)
   // Note: App is wrapped in ProtectedRoute, so user is always authenticated here
-  const { user, isLoading: authLoading, logout: authLogout } = useAuth();
+  const { user, isLoading: authLoading, logout: authLogout, sessionToken } = useAuth();
 
   // Sync auth state with local component state
   useEffect(() => {
@@ -828,7 +828,7 @@ const App = () => {
         <PropIQAnalysis
           onClose={() => setShowPropIQAnalysis(false)}
           userId={userId}
-          authToken={authToken}
+          authToken={sessionToken}
         />
       )}
 

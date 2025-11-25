@@ -79,7 +79,7 @@ def create_user(email: str, password: str, full_name: Optional[str] = None) -> D
         "subscription_tier": "free",
         "subscription_status": "active",
         "propiq_usage_count": 0,
-        "propiq_usage_limit": 5,  # Free tier: 5 analyses
+        "propiq_usage_limit": 3,  # Free tier: 3 trial analyses (matches marketing)
         "created_at": datetime.utcnow().isoformat(),
         "last_login": datetime.utcnow().isoformat()
     }

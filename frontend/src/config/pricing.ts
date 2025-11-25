@@ -44,11 +44,11 @@ export const PRICING_TIERS: Record<string, PricingTier> = {
     name: 'Free Trial',
     displayName: 'Free Trial',
     price: 0,
-    propIqLimit: 5,
-    cogs: 0.75, // 5 runs × $0.15
+    propIqLimit: 3,
+    cogs: 0.45, // 3 runs × $0.15
     grossMargin: 100, // No revenue, just COGS
     features: [
-      '5 Deal IQ analyses',
+      '3 trial Deal IQ analyses',
       'Unlimited Deal Calculator',
       'Full mobile and desktop access',
       'Basic usage dashboard',
