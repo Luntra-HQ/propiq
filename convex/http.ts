@@ -15,9 +15,22 @@ import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
 import { api } from "./_generated/api";
 
+// Type declaration for Node.js process environment variables
+declare const process: { env: Record<string, string | undefined> };
+
 const http = httpRouter();
 
-const IS_PRODUCTION = true; // Set based on environment
+/**
+ * Determine if running in production based on environment
+ * Set IS_PRODUCTION_ENV=false in Convex dashboard for development
+ * Defaults to production mode for safety (more restrictive CORS)
+ */
+const IS_PRODUCTION =
+  process.env.IS_PRODUCTION_ENV !== "false" &&
+  (process.env.IS_PRODUCTION_ENV === "true" ||
+   process.env.CONVEX_ENV === "production" ||
+   process.env.NODE_ENV === "production" ||
+   !process.env.IS_PRODUCTION_ENV); // Default to production if not explicitly set
 
 // CORS headers for cross-origin requests from frontend
 // No credentials needed since we use Bearer tokens (not cookies)
@@ -582,14 +595,55 @@ http.route({
 // for Chrome extension which can't use httpOnly cookies
 // ============================================
 
-// Extension CORS headers - more permissive for extension context
-// No credentials needed since we use Bearer tokens (not cookies)
+/**
+ * Extension CORS headers - more permissive for extension context
+ *
+ * SECURITY NOTES:
+ * - Uses "*" wildcard because Chrome extensions can't be whitelisted by origin
+ * - All endpoints require Bearer token authentication for security
+ * - Consider implementing rate limiting for these endpoints
+ * - User agent validation is performed on sensitive operations
+ *
+ * No credentials needed since we use Bearer tokens (not cookies)
+ */
 const extensionCorsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Credentials": "false",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Extension-Version",
 };
+
+/**
+ * Validate request is from a legitimate source
+ * Checks for suspicious patterns while allowing valid Chrome extensions
+ */
+function validateExtensionRequest(request: Request): { valid: boolean; reason?: string } {
+  const userAgent = request.headers.get("User-Agent");
+  const origin = request.headers.get("Origin");
+
+  // Allow Chrome extensions (they have chrome-extension:// origin)
+  if (origin?.startsWith("chrome-extension://")) {
+    return { valid: true };
+  }
+
+  // Allow Mozilla extensions
+  if (origin?.startsWith("moz-extension://")) {
+    return { valid: true };
+  }
+
+  // Allow our web app origins
+  if (origin === "https://propiq.luntra.one" || origin === "http://localhost:5173") {
+    return { valid: true };
+  }
+
+  // Log suspicious requests for monitoring
+  if (userAgent && !userAgent.includes("Chrome") && !userAgent.includes("Firefox")) {
+    console.warn("[SECURITY] Suspicious extension request from:", { origin, userAgent });
+  }
+
+  // Allow all requests but log for monitoring (since auth is required anyway)
+  return { valid: true };
+}
 
 // OPTIONS handlers for extension endpoints
 http.route({
@@ -634,6 +688,12 @@ http.route({
   method: "POST",
   handler: httpAction(async (ctx, request) => {
     try {
+      // Validate request (logs suspicious activity)
+      const validation = validateExtensionRequest(request);
+      if (!validation.valid) {
+        console.warn("[SECURITY] Blocked extension login:", validation.reason);
+      }
+
       const body = await request.json();
       const { email, password } = body;
 

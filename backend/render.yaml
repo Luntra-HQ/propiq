@@ -70,9 +70,9 @@ services:
       - key: INTERCOM_API_KEY
         sync: false
 
-      # CORS Origins
+      # CORS Origins (production only - no localhost)
       - key: ALLOWED_ORIGINS
-        value: http://localhost:5173,http://localhost:3000,https://luntra.one,https://propiq.luntra.one
+        value: https://luntra.one,https://propiq.luntra.one
 
       # App URL
       - key: APP_URL
