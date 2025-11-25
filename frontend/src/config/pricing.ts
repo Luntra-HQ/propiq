@@ -23,12 +23,12 @@ export interface PricingTier {
   stripePriceId?: string; // Stripe price ID for checkout
 }
 
-// Stripe Price IDs (from Stripe Dashboard)
-// These are LIVE price IDs - update if you recreate products
+// Stripe Price IDs - UNLIMITED MODEL (Updated Nov 25, 2025)
+// Starter: $49/month unlimited | Pro: $99/month unlimited | Elite: $199/month unlimited
 export const STRIPE_PRICE_IDS: Record<string, string> = {
-  starter: 'price_1SL50hJogOchEFxvxYpymxoT',
-  pro: 'price_1SL51sJogOchEFxvVounuNcK',
-  elite: 'price_1SL52dJogOchEFxvVC7797Tw'
+  starter: 'price_1SXQEsJogOchEFxvG8fT5B0b', // $49/month (was $69)
+  pro: 'price_1SL51sJogOchEFxvVounuNcK', // $99/month (same)
+  elite: 'price_1SXQF2JogOchEFxvRpZ0GGuf' // $199/month (was $149)
 };
 
 export interface TopUpPackage {

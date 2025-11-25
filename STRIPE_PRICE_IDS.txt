@@ -1,0 +1,24 @@
+PropIQ Stripe Price IDs (Unlimited Model)
+==========================================
+
+Created: Tue Nov 25 12:36:14 EST 2025
+
+Starter (9/month - Unlimited):
+  Product ID: 
+  Price ID: 
+
+Pro (9/month - Unlimited):
+  Product ID: 
+  Price ID: 
+
+Elite (99/month - Unlimited):
+  Product ID: 
+  Price ID: 
+
+==========================================
+Next Steps:
+1. Update Convex environment variables
+2. Update frontend/.env.local
+3. Update frontend/src/config/pricing.ts
+4. Deploy to production
+==========================================
