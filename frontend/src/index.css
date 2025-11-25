@@ -2,6 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================
+   PropIQ 2025 Design System - Base Styles
+   ============================================ */
+
+/* CSS Custom Properties for Theming */
+:root {
+  /* Dark theme (default) */
+  --color-bg-primary: 15 23 42; /* slate-900 */
+  --color-bg-secondary: 30 41 59; /* slate-800 */
+  --color-bg-tertiary: 51 65 85; /* slate-700 */
+  --color-text-primary: 249 250 251; /* gray-50 */
+  --color-text-secondary: 156 163 175; /* gray-400 */
+  --color-text-muted: 107 114 128; /* gray-500 */
+  --color-border: 51 65 85; /* slate-700 */
+  --color-accent: 139 92 246; /* violet-500 */
+}
+
+/* Light theme */
+.light {
+  --color-bg-primary: 255 255 255;
+  --color-bg-secondary: 248 250 252; /* slate-50 */
+  --color-bg-tertiary: 241 245 249; /* slate-100 */
+  --color-text-primary: 15 23 42; /* slate-900 */
+  --color-text-secondary: 71 85 105; /* slate-600 */
+  --color-text-muted: 100 116 139; /* slate-500 */
+  --color-border: 226 232 240; /* slate-200 */
+  --color-accent: 124 58 237; /* violet-600 */
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -9,9 +38,92 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Touch-friendly defaults for mobile */
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
-/* Modal and Banner Animations */
+/* Ensure minimum touch target sizes (WCAG 2.5.5) */
+button,
+[role="button"],
+a,
+input[type="checkbox"],
+input[type="radio"],
+select {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Exception for inline links */
+p a,
+li a,
+span a {
+  min-height: auto;
+  min-width: auto;
+}
+
+/* ============================================
+   Custom Utility Classes
+   ============================================ */
+
+@layer utilities {
+  /* Rounded inherit for nested elements */
+  .rounded-inherit {
+    border-radius: inherit;
+  }
+
+  /* Text gradient utility */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-purple-400;
+  }
+
+  /* Glass effect utilities */
+  .glass {
+    @apply bg-glass backdrop-blur-glass border border-glass-border;
+  }
+
+  .glass-heavy {
+    @apply bg-glass-medium backdrop-blur-glass-heavy border border-glass-border;
+  }
+
+  /* Interactive card base */
+  .card-interactive {
+    @apply transition-all duration-300 ease-smooth;
+    @apply hover:translate-y-[-2px] hover:shadow-card-hover;
+    @apply active:translate-y-0 active:scale-[0.99];
+  }
+
+  /* Shimmer loading effect */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.05) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s linear infinite;
+  }
+
+  /* Glow effect on hover */
+  .hover-glow {
+    @apply transition-shadow duration-300;
+  }
+  .hover-glow:hover {
+    @apply shadow-glow;
+  }
+
+  /* Button press effect */
+  .btn-press {
+    @apply transition-all duration-150;
+    @apply active:scale-[0.97] active:shadow-none;
+  }
+}
+
+/* ============================================
+   Modal and Banner Animations
+   ============================================ */
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -53,4 +165,542 @@ body {
 
 .animate-slideInDown {
   animation: slideInDown 0.4s ease-out;
+}
+
+/* ============================================
+   2025 Design System - Enhanced Animations
+   ============================================ */
+
+/* Staggered fade in for lists */
+@keyframes staggerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stagger-fade-in > * {
+  animation: staggerFadeIn 0.4s ease-out forwards;
+  opacity: 0;
+}
+
+.stagger-fade-in > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-fade-in > *:nth-child(2) { animation-delay: 50ms; }
+.stagger-fade-in > *:nth-child(3) { animation-delay: 100ms; }
+.stagger-fade-in > *:nth-child(4) { animation-delay: 150ms; }
+.stagger-fade-in > *:nth-child(5) { animation-delay: 200ms; }
+.stagger-fade-in > *:nth-child(6) { animation-delay: 250ms; }
+
+/* Pulse glow for important elements */
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(139, 92, 246, 0.4);
+  }
+}
+
+.pulse-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+/* Success celebration burst */
+@keyframes celebrateBurst {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.celebrate {
+  animation: celebrateBurst 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Floating animation for hero elements */
+@keyframes floatSoft {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.float-soft {
+  animation: floatSoft 4s ease-in-out infinite;
+}
+
+/* Progress bar fill animation */
+@keyframes progressFill {
+  from {
+    width: 0%;
+  }
+}
+
+.progress-animate {
+  animation: progressFill 1s ease-out;
+}
+
+/* Skeleton loading shimmer */
+@keyframes skeletonShimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0px,
+    rgba(255, 255, 255, 0.08) 40px,
+    rgba(255, 255, 255, 0.03) 80px
+  );
+  background-size: 200px 100%;
+  animation: skeletonShimmer 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+/* Typing cursor for AI responses */
+@keyframes typingCursor {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.typing-cursor::after {
+  content: '|';
+  animation: typingCursor 0.8s ease-in-out infinite;
+  color: rgb(139, 92, 246);
+  margin-left: 2px;
+}
+
+/* ============================================
+   Glass Card Hover Effects
+   ============================================ */
+
+.glass-card-hover {
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card-hover::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.03),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.glass-card-hover:hover::before {
+  left: 100%;
+}
+
+/* ============================================
+   Score Circle Animation
+   ============================================ */
+
+@keyframes scoreCircleFill {
+  from {
+    stroke-dashoffset: 352;
+  }
+}
+
+.score-circle {
+  animation: scoreCircleFill 1s ease-out forwards;
+}
+
+/* ============================================
+   Button Micro-interactions
+   ============================================ */
+
+.btn-primary {
+  @apply relative overflow-hidden;
+  @apply bg-violet-600 hover:bg-violet-500;
+  @apply text-white font-semibold;
+  @apply px-6 py-3 rounded-xl;
+  @apply transition-all duration-200;
+  @apply shadow-lg shadow-violet-500/30;
+  @apply hover:shadow-xl hover:shadow-violet-500/40;
+  @apply hover:translate-y-[-1px];
+  @apply active:translate-y-0 active:scale-[0.98];
+  @apply focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-2 focus:ring-offset-slate-900;
+}
+
+.btn-secondary {
+  @apply relative overflow-hidden;
+  @apply bg-slate-700 hover:bg-slate-600;
+  @apply border border-slate-600 hover:border-slate-500;
+  @apply text-gray-100 font-medium;
+  @apply px-6 py-3 rounded-xl;
+  @apply transition-all duration-200;
+  @apply hover:translate-y-[-1px];
+  @apply active:translate-y-0 active:scale-[0.98];
+  @apply focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-900;
+}
+
+.btn-ghost {
+  @apply text-gray-300 hover:text-white;
+  @apply hover:bg-white/5;
+  @apply px-4 py-2 rounded-lg;
+  @apply transition-all duration-200;
+  @apply active:scale-[0.98];
+}
+
+/* ============================================
+   Focus States (Accessibility)
+   ============================================ */
+
+:focus-visible {
+  outline: 2px solid rgb(139, 92, 246);
+  outline-offset: 2px;
+}
+
+/* Remove focus ring for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ============================================
+   Scrollbar Styling (Dark Theme)
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.7);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100, 116, 139, 0.5) rgba(30, 41, 59, 0.5);
+}
+
+/* ============================================
+   Toast & Notification Animations
+   ============================================ */
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.animate-slideOutRight {
+  animation: slideOutRight 0.2s ease-in forwards;
+}
+
+.animate-fadeOut {
+  animation: fadeOut 0.3s ease-in forwards;
+}
+
+/* ============================================
+   Confetti Animation
+   ============================================ */
+
+@keyframes confetti {
+  0% {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100vh) rotate(720deg);
+  }
+}
+
+.animate-confetti {
+  animation: confetti 3s ease-out forwards;
+}
+
+/* Animation delay utility */
+.animation-delay-200 {
+  animation-delay: 200ms;
+}
+
+.animation-delay-400 {
+  animation-delay: 400ms;
+}
+
+/* ============================================
+   Analysis Progress Animations
+   ============================================ */
+
+@keyframes progressPulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes checkmarkDraw {
+  0% {
+    stroke-dashoffset: 24;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes spinnerRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.progress-pulse {
+  animation: progressPulse 1.5s ease-in-out infinite;
+}
+
+.checkmark-draw {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: checkmarkDraw 0.3s ease-out forwards;
+}
+
+.spinner-rotate {
+  animation: spinnerRotate 1s linear infinite;
+}
+
+/* ============================================
+   Typewriter Effect
+   ============================================ */
+
+@keyframes typewriter {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.typewriter {
+  overflow: hidden;
+  white-space: nowrap;
+  animation: typewriter 2s steps(40) forwards;
+}
+
+/* ============================================
+   Gap inheritance for flex
+   ============================================ */
+
+.gap-inherit {
+  gap: inherit;
+}
+
+/* ============================================
+   Reduced Motion Support (WCAG 2.3.3)
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .float-soft,
+  .pulse-glow,
+  .progress-pulse,
+  .spinner-rotate,
+  .animate-confetti,
+  .shimmer,
+  .skeleton {
+    animation: none !important;
+  }
+}
+
+/* ============================================
+   High Contrast Mode Support
+   ============================================ */
+
+@media (prefers-contrast: high) {
+  :root {
+    --color-text-primary: 255 255 255;
+    --color-text-secondary: 255 255 255;
+    --color-border: 255 255 255;
+  }
+
+  .glass,
+  .glass-heavy,
+  .bg-glass {
+    background: rgba(0, 0, 0, 0.9) !important;
+    border-color: white !important;
+  }
+}
+
+/* ============================================
+   Print Styles
+   ============================================ */
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  .glass,
+  .glass-heavy {
+    background: white !important;
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+  }
+}
+
+/* ============================================
+   Mobile-First Responsive Utilities
+   ============================================ */
+
+/* Safe area insets for notched devices */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* Touch-friendly spacing for mobile */
+@media (pointer: coarse) {
+  .touch-spacing > * + * {
+    margin-top: 0.75rem;
+  }
+}
+
+/* ============================================
+   Performance Optimizations
+   ============================================ */
+
+/* GPU acceleration for animated elements */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Contain paint for complex components */
+.contain-paint {
+  contain: paint;
+}
+
+/* Content visibility for off-screen elements */
+.content-auto {
+  content-visibility: auto;
+}
+
+/* ============================================
+   Loading States
+   ============================================ */
+
+/* Lazy load fade in */
+@keyframes lazyFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.lazy-loaded {
+  animation: lazyFadeIn 0.3s ease-out;
+}
+
+/* Suspense fallback pulse */
+.suspense-pulse {
+  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
