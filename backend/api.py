@@ -115,20 +115,32 @@ All endpoints use the `/api/v1` prefix for versioning. Future API versions will 
             "description": "Service health check endpoints."
         }
     ],
-    servers=[
-        {
-            "url": "https://luntra-outreach-app.azurewebsites.net",
-            "description": "Production server"
-        },
-        {
-            "url": "http://localhost:8000",
-            "description": "Development server"
-        }
-    ],
     openapi_url="/api/v1/openapi.json",
     docs_url="/docs",
     redoc_url="/redoc"
 )
+
+# Conditionally set OpenAPI servers based on environment
+# Only show localhost in development to avoid confusion in production
+environment = os.getenv("ENVIRONMENT", "development")
+if environment == "production":
+    app.servers = [
+        {
+            "url": "https://luntra-outreach-app.azurewebsites.net",
+            "description": "Production server"
+        }
+    ]
+else:
+    app.servers = [
+        {
+            "url": "http://localhost:8000",
+            "description": "Development server"
+        },
+        {
+            "url": "https://luntra-outreach-app.azurewebsites.net",
+            "description": "Production server"
+        }
+    ]
 
 # CORS Configuration - Load from environment for security
 # Get allowed origins from environment variable or use secure defaults

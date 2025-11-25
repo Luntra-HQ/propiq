@@ -2,6 +2,20 @@
 """
 LinkedIn OAuth 2.0 Helper
 Get access token with organization scopes
+
+Environment Variables (optional):
+    LINKEDIN_CLIENT_ID: LinkedIn app client ID
+    LINKEDIN_CLIENT_SECRET: LinkedIn app client secret
+    LINKEDIN_REDIRECT_URI: OAuth redirect URI (default: http://localhost:8000/callback)
+
+Usage:
+    python3 linkedin-oauth.py
+
+Or with custom configuration:
+    export LINKEDIN_CLIENT_ID="your_client_id"
+    export LINKEDIN_CLIENT_SECRET="your_client_secret"
+    export LINKEDIN_REDIRECT_URI="http://localhost:3000/callback"
+    python3 linkedin-oauth.py
 """
 
 import webbrowser
@@ -9,11 +23,16 @@ import urllib.parse
 import requests
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import sys
+import os
+from dotenv import load_dotenv
 
-# Your LinkedIn app credentials
-CLIENT_ID = "788dzgo3z4zmxc"
-CLIENT_SECRET = "WPL_AP1.qi0A6bOf87q9n1ab.M5ETRw=="
-REDIRECT_URI = "http://localhost:8000/callback"
+# Load environment variables
+load_dotenv()
+
+# LinkedIn app credentials - configurable via environment variables
+CLIENT_ID = os.getenv("LINKEDIN_CLIENT_ID", "788dzgo3z4zmxc")
+CLIENT_SECRET = os.getenv("LINKEDIN_CLIENT_SECRET", "WPL_AP1.qi0A6bOf87q9n1ab.M5ETRw==")
+REDIRECT_URI = os.getenv("LINKEDIN_REDIRECT_URI", "http://localhost:8000/callback")
 
 # Scopes needed for posting to personal profile AND organization pages
 SCOPES = [
@@ -80,6 +99,11 @@ def get_access_token():
 
     print("🔐 LinkedIn OAuth 2.0 - Get Access Token with Organization Scopes\n")
     print("=" * 70)
+    print("\n⚙️  Configuration:")
+    print(f"   Client ID: {CLIENT_ID}")
+    print(f"   Redirect URI: {REDIRECT_URI}")
+    print("   (Set via environment variables: LINKEDIN_CLIENT_ID, LINKEDIN_REDIRECT_URI)\n")
+    print("=" * 70)
 
     # Step 1: Build authorization URL
     scope_string = " ".join(SCOPES)
@@ -117,7 +141,10 @@ def get_access_token():
     print("   (Authorize the app in your browser, then come back here)\n")
 
     # Step 2: Start local server to catch callback
-    server = HTTPServer(('localhost', 8000), OAuthCallbackHandler)
+    # Extract port from REDIRECT_URI
+    redirect_parts = urllib.parse.urlparse(REDIRECT_URI)
+    port = redirect_parts.port or 8000
+    server = HTTPServer(('localhost', port), OAuthCallbackHandler)
 
     # Wait for one request (the callback)
     server.handle_request()

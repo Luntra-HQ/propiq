@@ -77,6 +77,7 @@ interface AuthState {
   isLoading: boolean;
   isAuthenticated: boolean;
   error: string | null;
+  sessionToken: string | null;
 }
 
 // Auth context type
@@ -86,6 +87,7 @@ interface AuthContextType extends AuthState {
   logout: () => Promise<void>;
   logoutEverywhere: () => Promise<{ success: boolean; deletedCount?: number; error?: string }>;
   refreshUser: () => Promise<void>;
+  getSessionToken: () => string | null;
 }
 
 interface SignupData {
@@ -109,6 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading: true,
     isAuthenticated: false,
     error: null,
+    sessionToken: getStoredToken(),
   });
 
   /**
@@ -126,6 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           isLoading: false,
           isAuthenticated: false,
           error: null,
+          sessionToken: null,
         });
         return;
       }
@@ -149,6 +153,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           isLoading: false,
           isAuthenticated: true,
           error: null,
+          sessionToken: token,
         });
       } else {
         // Token invalid, clear it
@@ -158,6 +163,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           isLoading: false,
           isAuthenticated: false,
           error: null,
+          sessionToken: null,
         });
       }
     } catch (error) {
@@ -167,6 +173,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading: false,
         isAuthenticated: false,
         error: 'Failed to fetch user',
+        sessionToken: null,
       });
     }
   }, []);
@@ -415,6 +422,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [fetchCurrentUser, state.isLoading]);
 
+  /**
+   * Get current session token from localStorage
+   * Used by API calls that need authentication
+   */
+  const getSessionToken = useCallback(() => {
+    return getStoredToken();
+  }, []);
+
   const contextValue: AuthContextType = {
     ...state,
     login,
@@ -422,6 +437,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout,
     logoutEverywhere,
     refreshUser,
+    getSessionToken,
   };
 
   return (

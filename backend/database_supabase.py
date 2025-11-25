@@ -1,6 +1,10 @@
 """
 Supabase PostgreSQL Database Connection for PropIQ
 Replaces MongoDB with PostgreSQL for better Render compatibility
+
+⚠️  DEPRECATED: This module is being phased out in favor of Convex.
+⚠️  All new development should use Convex (convex/auth.ts, convex/payments.ts)
+⚠️  This file is kept for reference and potential data migration only.
 """
 import os
 from typing import Optional, Dict, Any
@@ -79,7 +83,7 @@ def create_user(email: str, password: str, full_name: Optional[str] = None) -> D
         "subscription_tier": "free",
         "subscription_status": "active",
         "propiq_usage_count": 0,
-        "propiq_usage_limit": 5,  # Free tier: 5 analyses
+        "propiq_usage_limit": 3,  # Free tier: 3 trial analyses (matches marketing)
         "created_at": datetime.utcnow().isoformat(),
         "last_login": datetime.utcnow().isoformat()
     }

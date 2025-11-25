@@ -8,11 +8,12 @@ import { action, mutation, query } from "./_generated/server";
 import { api } from "./_generated/api";
 
 // Subscription tier configuration
+// Updated pricing to match current code (pricing.ts and README.md)
 const SUBSCRIPTION_TIERS = {
   free: { price: 0, analyses: 3, priceId: null },
-  starter: { price: 29, analyses: 20, priceId: process.env.STRIPE_STARTER_PRICE_ID },
-  pro: { price: 79, analyses: 100, priceId: process.env.STRIPE_PRO_PRICE_ID },
-  elite: { price: 199, analyses: 999999, priceId: process.env.STRIPE_ELITE_PRICE_ID },
+  starter: { price: 69, analyses: 30, priceId: process.env.STRIPE_STARTER_PRICE_ID },
+  pro: { price: 99, analyses: 60, priceId: process.env.STRIPE_PRO_PRICE_ID },
+  elite: { price: 149, analyses: 100, priceId: process.env.STRIPE_ELITE_PRICE_ID },
 };
 
 // Create Stripe checkout session

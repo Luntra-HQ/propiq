@@ -2,6 +2,10 @@
 """
 Stripe Payment Integration for PropIQ
 Handles checkout session creation and subscription management
+
+⚠️  DEPRECATED: Stripe webhooks now handled by Convex (convex/http.ts)
+⚠️  Checkout sessions now created via Convex (convex/payments.ts:createCheckoutSession)
+⚠️  This FastAPI router is being phased out - use Convex for all payment operations
 """
 
 from fastapi import APIRouter, HTTPException, Header, Depends, Request
@@ -289,6 +293,10 @@ async def stripe_webhook(request: Request):
                 )
 
             # Update user subscription in database
+            # WARNING: DUAL AUTH SYSTEM ISSUE
+            # Users are created in Convex (convex/auth.ts), but this webhook checks Supabase.
+            # If user signed up via Convex but doesn't exist in Supabase, subscription won't activate.
+            # TODO: Consolidate to single auth system OR add sync mechanism
             if DATABASE_AVAILABLE and customer_email:
                 try:
                     user = get_user_by_email(customer_email)
@@ -300,7 +308,9 @@ async def stripe_webhook(request: Request):
                         )
                         logger.info(f"Updated subscription for {customer_email} to {tier}")
                     else:
-                        logger.warning(f"User not found for email: {customer_email}")
+                        logger.warning(f"⚠️  DUAL AUTH ISSUE: User not found in Supabase for email: {customer_email}")
+                        logger.warning(f"⚠️  User may exist in Convex but not in Supabase - payment succeeded but subscription not activated!")
+                        # TODO: Add Slack/Sentry alert for manual reconciliation
                 except Exception as e:
                     logger.error(f"Failed to update subscription in DB: {e}")
 
