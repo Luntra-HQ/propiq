@@ -8,6 +8,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { validatePassword } from '../utils/passwordValidation';
+import { PasswordStrengthIndicator } from '../components/PasswordStrengthIndicator';
 import {
   Mail,
   Lock,
@@ -53,6 +55,16 @@ const LoginPage: React.FC = () => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
+
+    // Validate password strength for signup
+    if (mode === 'signup') {
+      const passwordCheck = validatePassword(password);
+      if (!passwordCheck.isValid) {
+        setError(passwordCheck.feedback);
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
@@ -194,6 +206,21 @@ const LoginPage: React.FC = () => {
                   placeholder="••••••••"
                 />
               </div>
+
+              {/* Password Strength Indicator (signup only) */}
+              {mode === 'signup' && <PasswordStrengthIndicator password={password} />}
+
+              {/* Forgot Password Link (login only) */}
+              {mode === 'login' && (
+                <div className="mt-2 text-right">
+                  <Link
+                    to="/reset-password"
+                    className="text-sm text-violet-400 hover:text-violet-300 transition"
+                  >
+                    Forgot your password?
+                  </Link>
+                </div>
+              )}
             </div>
 
             {mode === 'signup' && (

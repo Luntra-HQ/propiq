@@ -7,6 +7,7 @@ import { AuthProvider } from './hooks/useAuth'
 // Pages
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
+import WelcomePage from './pages/WelcomePage'
 import App from './App'
 
 // Components
@@ -30,6 +31,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             {/* Public routes - accessible to everyone */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/pricing" element={<LandingPage />} />
+            <Route path="/welcome" element={<WelcomePage />} />
 
             {/* Auth routes - redirect to /app if already logged in */}
             <Route

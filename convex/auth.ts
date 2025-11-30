@@ -6,6 +6,52 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
+// ============================================
+// PASSWORD VALIDATION
+// ============================================
+
+const COMMON_PASSWORDS = [
+  'password', 'password123', '123456', '12345678', 'qwerty', 'abc123',
+  'monkey', '1234567', 'letmein', 'trustno1', 'dragon', 'baseball',
+  'iloveyou', 'master', 'sunshine', 'ashley', 'bailey', 'passw0rd',
+  'shadow', '123123', '654321', 'superman', 'qazwsx', 'michael',
+  'football', 'welcome', 'jesus', 'ninja', 'mustang', 'password1',
+];
+
+/**
+ * Validate password strength (backend validation)
+ * Throws error if password doesn't meet requirements
+ */
+function validatePasswordStrength(password: string): void {
+  const checks = {
+    length: password.length >= 12,
+    uppercase: /[A-Z]/.test(password),
+    lowercase: /[a-z]/.test(password),
+    number: /[0-9]/.test(password),
+    special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+    notCommon: !COMMON_PASSWORDS.includes(password.toLowerCase()),
+  };
+
+  if (!checks.length) {
+    throw new Error("Password must be at least 12 characters long");
+  }
+  if (!checks.uppercase) {
+    throw new Error("Password must contain at least one uppercase letter");
+  }
+  if (!checks.lowercase) {
+    throw new Error("Password must contain at least one lowercase letter");
+  }
+  if (!checks.number) {
+    throw new Error("Password must contain at least one number");
+  }
+  if (!checks.special) {
+    throw new Error("Password must contain at least one special character (!@#$%^&*...)");
+  }
+  if (!checks.notCommon) {
+    throw new Error("This password is too common. Please choose a stronger password");
+  }
+}
+
 // Signup mutation - Create new user account
 export const signup = mutation({
   args: {
@@ -19,6 +65,9 @@ export const signup = mutation({
     // Normalize email to lowercase
     const email = args.email.toLowerCase().trim();
 
+    // Validate password strength
+    validatePasswordStrength(args.password);
+
     // Check if user already exists
     const existingUser = await ctx.db
       .query("users")
@@ -29,7 +78,7 @@ export const signup = mutation({
       throw new Error("User with this email already exists");
     }
 
-    // Hash password (simple hash for now - will upgrade to bcrypt)
+    // Hash password using PBKDF2-SHA256
     const passwordHash = await hashPassword(args.password);
 
     // Create user with free tier defaults
@@ -555,6 +604,13 @@ export const signupWithSession = mutation({
   },
   handler: async (ctx, args) => {
     const email = args.email.toLowerCase().trim();
+
+    // Validate password strength
+    try {
+      validatePasswordStrength(args.password);
+    } catch (e: any) {
+      return { success: false, error: e.message };
+    }
 
     // Check if user already exists
     const existingUser = await ctx.db
