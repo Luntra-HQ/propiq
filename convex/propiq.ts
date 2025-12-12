@@ -20,47 +20,52 @@ export const analyzeProperty = action({
     monthlyRent: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    // Check user's analysis limit
-    const user = await ctx.runQuery(api.auth.getUser, { userId: args.userId });
+    try {
+      // Check user's analysis limit
+      const user = await ctx.runQuery(api.auth.getUser, { userId: args.userId });
 
-    if (!user) {
-      throw new Error("User not found");
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      if (user.analysesUsed >= user.analysesLimit) {
+        throw new Error(
+          `Analysis limit reached. You've used ${user.analysesUsed}/${user.analysesLimit} analyses. Please upgrade your plan.`
+        );
+      }
+
+      // Call OpenAI for property analysis
+      const analysisResult = await generateAIAnalysis(args);
+
+      // Save analysis to database
+      const analysisId = await ctx.runMutation(api.propiq.saveAnalysis, {
+        userId: args.userId,
+        address: args.address,
+        city: args.city,
+        state: args.state,
+        zipCode: args.zipCode,
+        purchasePrice: args.purchasePrice,
+        downPayment: args.downPayment,
+        monthlyRent: args.monthlyRent,
+        analysisResult: JSON.stringify(analysisResult.analysis),
+        aiRecommendation: analysisResult.recommendation,
+        dealScore: analysisResult.dealScore,
+        tokensUsed: analysisResult.tokensUsed,
+      });
+
+      // Increment user's analyses used count
+      await ctx.runMutation(api.propiq.incrementAnalysisCount, { userId: args.userId });
+
+      return {
+        success: true,
+        analysisId: analysisId.toString(),
+        ...analysisResult,
+        analysesRemaining: user.analysesLimit - user.analysesUsed - 1,
+      };
+    } catch (error: any) {
+      console.error("[PropIQ] Analysis error:", error);
+      throw new Error(`Analysis failed: ${error.message || error}`);
     }
-
-    if (user.analysesUsed >= user.analysesLimit) {
-      throw new Error(
-        `Analysis limit reached. You've used ${user.analysesUsed}/${user.analysesLimit} analyses. Please upgrade your plan.`
-      );
-    }
-
-    // Call OpenAI for property analysis
-    const analysisResult = await generateAIAnalysis(args);
-
-    // Save analysis to database
-    const analysisId = await ctx.runMutation(api.propiq.saveAnalysis, {
-      userId: args.userId,
-      address: args.address,
-      city: args.city,
-      state: args.state,
-      zipCode: args.zipCode,
-      purchasePrice: args.purchasePrice,
-      downPayment: args.downPayment,
-      monthlyRent: args.monthlyRent,
-      analysisResult: JSON.stringify(analysisResult.analysis),
-      aiRecommendation: analysisResult.recommendation,
-      dealScore: analysisResult.dealScore,
-      tokensUsed: analysisResult.tokensUsed,
-    });
-
-    // Increment user's analyses used count
-    await ctx.runMutation(api.propiq.incrementAnalysisCount, { userId: args.userId });
-
-    return {
-      success: true,
-      analysisId: analysisId.toString(),
-      ...analysisResult,
-      analysesRemaining: user.analysesLimit - user.analysesUsed - 1,
-    };
   },
 });
 
