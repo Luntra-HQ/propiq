@@ -5,8 +5,8 @@
   # NOTE: NO base directory set - build from project root
   # This allows access to ../convex/_generated/ files
 
-  # Build command - install deps in frontend and run build
-  command = "cd frontend && npm install && npm run build:prod"
+  # Build command - use root script with verbose logging
+  command = "npm run build:frontend"
 
   # Output directory relative to project root
   publish = "frontend/dist"
