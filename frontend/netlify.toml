@@ -2,14 +2,12 @@
 # Fast deployment alternative to Azure Static Web Apps
 
 [build]
-  # NOTE: NO base directory set - build from project root
-  # This allows access to ../convex/_generated/ files
+  # Build command when base directory is set to "frontend" in Netlify UI
+  # Install deps and build (verbose logging)
+  command = "echo '📦 Installing frontend dependencies...' && npm install && echo '🔨 Building frontend...' && npm run build:prod && echo '✅ Frontend build complete!'"
 
-  # Build command - use root script with verbose logging
-  command = "npm run build:frontend"
-
-  # Output directory relative to project root
-  publish = "frontend/dist"
+  # Output directory (relative to base: frontend/)
+  publish = "dist"
 
 [build.environment]
   # Node.js version (Vite 7 requires Node 20+)
