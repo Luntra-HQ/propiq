@@ -3,8 +3,8 @@
 
 [build]
   # Build command when base directory is set to "frontend" in Netlify UI
-  # Install deps and build (verbose logging)
-  command = "echo '📦 Installing frontend dependencies...' && npm install && echo '🔨 Building frontend...' && npm run build:prod && echo '✅ Frontend build complete!'"
+  # Install root deps first (for convex package), then frontend deps and build
+  command = "echo '📦 Installing root dependencies...' && cd .. && npm install && echo '📦 Installing frontend dependencies...' && cd frontend && npm install && echo '🔨 Building frontend...' && npm run build:prod && echo '✅ Frontend build complete!'"
 
   # Output directory (relative to base: frontend/)
   publish = "dist"
