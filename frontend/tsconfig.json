@@ -17,6 +17,7 @@
     "jsx": "react-jsx"   // ✅ Crucial for JSX in TSX
   },
   "include": ["src"],
+  "exclude": ["../convex"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
 

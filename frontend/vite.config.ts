@@ -1,9 +1,16 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import path from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      // Allow importing from convex/_generated outside project root
+      '../convex': path.resolve(__dirname, '../convex'),
+    },
+  },
   optimizeDeps: {
     exclude: ['convex/server'],
   },
@@ -39,6 +46,10 @@ export default defineConfig({
   server: {
     hmr: {
       overlay: true,
+    },
+    fs: {
+      // Allow serving files from parent directory (for convex/_generated)
+      allow: ['..'],
     },
   },
 })
