@@ -11,9 +11,6 @@ export default defineConfig({
       '../convex': path.resolve(__dirname, '../convex'),
     },
   },
-  optimizeDeps: {
-    exclude: ['convex/server'],
-  },
   build: {
     // Optimize bundle size
     target: 'es2015',
@@ -24,12 +21,8 @@ export default defineConfig({
         drop_debugger: true,
       },
     },
-    commonjsOptions: {
-      ignore: ['convex/server'],
-    },
     // Code splitting configuration
     rollupOptions: {
-      external: ['convex/server'],
       output: {
         manualChunks: {
           // Vendor chunks for large libraries
