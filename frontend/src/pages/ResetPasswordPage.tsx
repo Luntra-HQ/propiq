@@ -67,8 +67,12 @@ const ResetPasswordPage: React.FC = () => {
     try {
       const convexUrl = import.meta.env.VITE_CONVEX_URL as string;
       const baseUrl = convexUrl.replace('/api', '');
+      const endpoint = `${baseUrl}/auth/request-password-reset`;
 
-      const response = await fetch(`${baseUrl}/auth/request-password-reset`, {
+      console.log('[Reset Password] Requesting password reset for:', email);
+      console.log('[Reset Password] Endpoint:', endpoint);
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -76,15 +80,22 @@ const ResetPasswordPage: React.FC = () => {
         body: JSON.stringify({ email: email.trim() }),
       });
 
+      console.log('[Reset Password] Response status:', response.status);
       const data = await response.json();
+      console.log('[Reset Password] Response data:', data);
 
       if (!response.ok || !data.success) {
-        setError(data.error || 'Failed to send reset email');
+        const errorMsg = data.error || 'Failed to send reset email';
+        console.error('[Reset Password] Error:', errorMsg);
+        setError(errorMsg);
       } else {
+        console.log('[Reset Password] Success! Check your email.');
         setRequestSuccess(true);
       }
     } catch (err: any) {
-      setError(err.message || 'An error occurred');
+      const errorMsg = err.message || 'An error occurred';
+      console.error('[Reset Password] Exception:', err);
+      setError(errorMsg);
     } finally {
       setRequestLoading(false);
     }
@@ -95,15 +106,20 @@ const ResetPasswordPage: React.FC = () => {
     e.preventDefault();
     setError(null);
 
+    console.log('[Reset Password] Starting password reset with token');
+
     // Validate password match
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
+      const errorMsg = 'Passwords do not match';
+      console.error('[Reset Password] Validation error:', errorMsg);
+      setError(errorMsg);
       return;
     }
 
     // Validate password strength
     const passwordCheck = validatePassword(newPassword);
     if (!passwordCheck.isValid) {
+      console.error('[Reset Password] Password strength validation failed:', passwordCheck.feedback);
       setError(passwordCheck.feedback);
       return;
     }
@@ -113,8 +129,12 @@ const ResetPasswordPage: React.FC = () => {
     try {
       const convexUrl = import.meta.env.VITE_CONVEX_URL as string;
       const baseUrl = convexUrl.replace('/api', '');
+      const endpoint = `${baseUrl}/auth/reset-password`;
 
-      const response = await fetch(`${baseUrl}/auth/reset-password`, {
+      console.log('[Reset Password] Endpoint:', endpoint);
+      console.log('[Reset Password] Token length:', token?.length);
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -125,17 +145,24 @@ const ResetPasswordPage: React.FC = () => {
         }),
       });
 
+      console.log('[Reset Password] Response status:', response.status);
       const data = await response.json();
+      console.log('[Reset Password] Response data:', data);
 
       if (!response.ok || !data.success) {
-        setError(data.error || 'Failed to reset password');
+        const errorMsg = data.error || 'Failed to reset password';
+        console.error('[Reset Password] Error:', errorMsg);
+        setError(errorMsg);
       } else {
+        console.log('[Reset Password] Success! Redirecting to login...');
         setResetSuccess(true);
         // Redirect to login after 2 seconds
         setTimeout(() => navigate('/login'), 2000);
       }
     } catch (err: any) {
-      setError(err.message || 'An error occurred');
+      const errorMsg = err.message || 'An error occurred';
+      console.error('[Reset Password] Exception:', err);
+      setError(errorMsg);
     } finally {
       setResetLoading(false);
     }
