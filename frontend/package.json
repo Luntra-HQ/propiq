@@ -54,7 +54,13 @@
     "test:production:full": "bash scripts/verify-production-integration.sh",
     "test:production:signup": "PLAYWRIGHT_BASE_URL=https://propiq.luntra.one playwright test --grep 'user signup' tests/production-backend-integration.spec.ts",
     "test:production:analysis": "PLAYWRIGHT_BASE_URL=https://propiq.luntra.one playwright test --grep 'Property Analysis' tests/production-backend-integration.spec.ts",
-    "verify:production": "bash scripts/verify-production-integration.sh"
+    "verify:production": "bash scripts/verify-production-integration.sh",
+    "test:password-reset": "playwright test tests/password-reset.spec.ts",
+    "test:password-reset:ui": "playwright test tests/password-reset.spec.ts --ui",
+    "test:password-reset:headed": "playwright test tests/password-reset.spec.ts --headed",
+    "test:password-reset:debug": "playwright test tests/password-reset.spec.ts --debug",
+    "test:password-reset:report": "playwright show-report",
+    "test:password-reset:integration": "ENABLE_INTEGRATION_TESTS=true playwright test tests/password-reset.spec.ts"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.0",

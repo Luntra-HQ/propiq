@@ -143,6 +143,80 @@ Add to your CI pipeline:
 - [ ] No console errors
 - [ ] Performance acceptable
 
+## Password Reset Testing
+
+### Test File: `password-reset.spec.ts`
+
+Comprehensive tests for the forgot password feature including:
+- Email input validation
+- Password reset request flow
+- Token validation (expired, invalid, used)
+- Password strength validation
+- Password confirmation matching
+- Successful password reset
+- Accessibility (keyboard navigation, ARIA labels)
+- Mobile responsiveness
+
+**Quick Start:**
+```bash
+# Run all password reset tests
+npm run test:password-reset
+
+# Run with UI for debugging
+npm run test:password-reset:ui
+
+# Run in headed mode (see browser)
+npm run test:password-reset:headed
+```
+
+### Email Testing Strategies
+
+1. **Mock Testing (Default)** - Fast, no external dependencies
+2. **Mailosaur** - Full integration testing (requires account)
+3. **Ethereal Email** - Free temporary email accounts
+4. **Resend Verification** - Check Resend API directly
+
+See `tests/helpers/email-testing.ts` for helper functions.
+
+### Environment Variables for Password Reset Tests
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `MAILOSAUR_API_KEY` | No | Mailosaur API key for email testing |
+| `MAILOSAUR_SERVER_ID` | No | Mailosaur server ID |
+| `RESEND_API_KEY` | No | Resend API key for integration testing |
+| `ENABLE_INTEGRATION_TESTS` | No | Enable integration tests (default: false) |
+
+### Integration Testing Setup
+
+For full email integration testing with Mailosaur:
+
+1. Sign up at https://mailosaur.com
+2. Create a server and get Server ID
+3. Get API key from account settings
+4. Add to `.env.local`:
+   ```bash
+   MAILOSAUR_API_KEY=your_api_key
+   MAILOSAUR_SERVER_ID=your_server_id
+   ENABLE_INTEGRATION_TESTS=true
+   ```
+5. Run: `npm run test:password-reset:integration`
+
+### Debugging Password Reset Tests
+
+```bash
+# Debug mode (step through tests)
+npm run test:password-reset:debug
+
+# Verbose logging
+DEBUG=pw:api npm run test:password-reset
+
+# Record trace
+npx playwright test tests/password-reset.spec.ts --trace on
+```
+
+See `PASSWORD_RESET_DEBUGGING.md` in the project root for troubleshooting guide.
+
 ## Next Steps
 
 1. Run tests locally: `npm test`
