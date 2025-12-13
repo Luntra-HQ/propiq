@@ -8,6 +8,7 @@ import { AuthProvider } from './hooks/useAuth'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import WelcomePage from './pages/WelcomePage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
 import App from './App'
 
 // Components
@@ -49,6 +50,10 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                   <LoginPage />
                 </AuthRoute>
               }
+            />
+            <Route
+              path="/reset-password"
+              element={<ResetPasswordPage />}
             />
 
             {/* Protected routes - require authentication */}

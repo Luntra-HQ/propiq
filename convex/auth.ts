@@ -230,30 +230,6 @@ export const getUserById = query({
   },
 });
 
-// Get user by email query (for checking if user exists)
-export const getUserByEmail = query({
-  args: { email: v.string() },
-  handler: async (ctx, args) => {
-    const email = args.email.toLowerCase().trim();
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", email))
-      .first();
-
-    if (!user) {
-      return null;
-    }
-
-    // Return minimal user data (for existence check)
-    return {
-      userId: user._id.toString(),
-      email: user.email,
-      subscriptionTier: user.subscriptionTier,
-    };
-  },
-});
-
 // Update user profile mutation
 export const updateProfile = mutation({
   args: {
@@ -484,6 +460,197 @@ async function rehashPassword(password: string): Promise<string> {
   console.log("[AUTH] Rehashing password with PBKDF2");
   return hashPassword(password);
 }
+
+// ============================================
+// PASSWORD RESET
+// ============================================
+
+/**
+ * Generate a cryptographically secure reset token
+ * Returns a 32-byte random hex string (64 characters)
+ */
+function generateResetToken(): string {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return Array.from(array, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/**
+ * Request password reset - creates a reset token
+ * Returns token that needs to be sent via email
+ * Token expires in 15 minutes
+ */
+export const requestPasswordReset = mutation({
+  args: {
+    email: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const email = args.email.toLowerCase().trim();
+
+    // Find user by email
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .first();
+
+    // For security, always return success even if user doesn't exist
+    // This prevents email enumeration attacks
+    if (!user) {
+      return {
+        success: true,
+        message: "If an account exists with that email, a password reset link has been sent.",
+      };
+    }
+
+    // Invalidate any existing reset tokens for this user
+    const existingResets = await ctx.db
+      .query("passwordResets")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+
+    for (const reset of existingResets) {
+      if (!reset.used) {
+        await ctx.db.delete(reset._id);
+      }
+    }
+
+    // Generate new reset token
+    const token = generateResetToken();
+    const now = Date.now();
+    const expiresAt = now + 15 * 60 * 1000; // 15 minutes
+
+    // Store reset token
+    await ctx.db.insert("passwordResets", {
+      userId: user._id,
+      email: user.email,
+      token,
+      expiresAt,
+      used: false,
+      createdAt: now,
+    });
+
+    console.log("[AUTH] Password reset requested for:", email);
+
+    return {
+      success: true,
+      token, // This will be sent via email by the HTTP endpoint
+      email: user.email,
+      expiresAt,
+      message: "If an account exists with that email, a password reset link has been sent.",
+    };
+  },
+});
+
+/**
+ * Reset password using a valid reset token
+ * Validates token and updates user's password
+ */
+export const resetPassword = mutation({
+  args: {
+    token: v.string(),
+    newPassword: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Validate password strength
+    try {
+      validatePasswordStrength(args.newPassword);
+    } catch (e: any) {
+      return { success: false, error: e.message };
+    }
+
+    // Find reset token
+    const resetToken = await ctx.db
+      .query("passwordResets")
+      .withIndex("by_token", (q) => q.eq("token", args.token))
+      .first();
+
+    if (!resetToken) {
+      return { success: false, error: "Invalid or expired reset token" };
+    }
+
+    // Check if token has expired
+    if (Date.now() > resetToken.expiresAt) {
+      return { success: false, error: "Reset token has expired. Please request a new one." };
+    }
+
+    // Check if token has already been used
+    if (resetToken.used) {
+      return { success: false, error: "This reset token has already been used." };
+    }
+
+    // Get user
+    const user = await ctx.db.get(resetToken.userId);
+    if (!user) {
+      return { success: false, error: "User not found" };
+    }
+
+    // Hash new password
+    const newPasswordHash = await hashPassword(args.newPassword);
+
+    // Update user's password
+    const now = Date.now();
+    await ctx.db.patch(user._id, {
+      passwordHash: newPasswordHash,
+      updatedAt: now,
+    });
+
+    // Mark token as used
+    await ctx.db.patch(resetToken._id, {
+      used: true,
+      usedAt: now,
+    });
+
+    // Invalidate all existing sessions for security
+    const sessions = await ctx.db
+      .query("sessions")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+
+    for (const session of sessions) {
+      await ctx.db.delete(session._id);
+    }
+
+    console.log("[AUTH] Password reset successful for:", user.email);
+
+    return {
+      success: true,
+      message: "Password reset successful. Please log in with your new password.",
+    };
+  },
+});
+
+/**
+ * Verify reset token validity (for frontend validation)
+ */
+export const verifyResetToken = query({
+  args: {
+    token: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const resetToken = await ctx.db
+      .query("passwordResets")
+      .withIndex("by_token", (q) => q.eq("token", args.token))
+      .first();
+
+    if (!resetToken) {
+      return { valid: false, error: "Invalid reset token" };
+    }
+
+    if (Date.now() > resetToken.expiresAt) {
+      return { valid: false, error: "Reset token has expired" };
+    }
+
+    if (resetToken.used) {
+      return { valid: false, error: "Reset token has already been used" };
+    }
+
+    return {
+      valid: true,
+      email: resetToken.email,
+      expiresAt: resetToken.expiresAt,
+    };
+  },
+});
 
 // ============================================
 // SESSION-BASED AUTH (httpOnly cookie)

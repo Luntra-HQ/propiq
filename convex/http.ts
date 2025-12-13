@@ -99,6 +99,22 @@ http.route({
   }),
 });
 
+http.route({
+  path: "/auth/request-password-reset",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }),
+});
+
+http.route({
+  path: "/auth/reset-password",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }),
+});
+
 /**
  * POST /auth/login
  * Authenticate user and set session cookie
@@ -332,6 +348,186 @@ http.route({
       console.error("[AUTH] Refresh error:", error);
       return new Response(
         JSON.stringify({ success: false, error: "Refresh failed" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+  }),
+});
+
+/**
+ * POST /auth/request-password-reset
+ * Request a password reset email
+ * Sends email with reset link using Resend
+ */
+http.route({
+  path: "/auth/request-password-reset",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    try {
+      const body = await request.json();
+      const { email } = body;
+
+      if (!email) {
+        return new Response(
+          JSON.stringify({ success: false, error: "Email is required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Create reset token
+      const result = await ctx.runMutation(api.auth.requestPasswordReset, { email });
+
+      if (!result.success) {
+        return new Response(
+          JSON.stringify({ success: false, error: result.message }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Send email using Resend (if token was generated)
+      if (result.token) {
+        const resendApiKey = process.env.RESEND_API_KEY;
+
+        if (resendApiKey) {
+          const frontendUrl = IS_PRODUCTION
+            ? "https://propiq.luntra.one"
+            : "http://localhost:5173";
+
+          const resetLink = `${frontendUrl}/reset-password?token=${result.token}`;
+
+          try {
+            const emailResponse = await fetch("https://api.resend.com/emails", {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${resendApiKey}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                from: "PropIQ <noreply@luntra.one>",
+                to: [result.email],
+                subject: "Reset Your PropIQ Password",
+                html: `
+                  <!DOCTYPE html>
+                  <html>
+                    <head>
+                      <meta charset="utf-8">
+                      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    </head>
+                    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+                      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+                        <h1 style="color: white; margin: 0; font-size: 28px;">Reset Your Password</h1>
+                      </div>
+                      <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+                        <p style="font-size: 16px; margin-bottom: 20px;">Hi there,</p>
+                        <p style="font-size: 16px; margin-bottom: 20px;">
+                          We received a request to reset your PropIQ password. Click the button below to create a new password:
+                        </p>
+                        <div style="text-align: center; margin: 30px 0;">
+                          <a href="${resetLink}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block; font-size: 16px;">
+                            Reset Password
+                          </a>
+                        </div>
+                        <p style="font-size: 14px; color: #666; margin-bottom: 10px;">
+                          Or copy and paste this link into your browser:
+                        </p>
+                        <p style="font-size: 14px; color: #667eea; word-break: break-all; background: white; padding: 10px; border-radius: 4px;">
+                          ${resetLink}
+                        </p>
+                        <p style="font-size: 14px; color: #666; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+                          This link will expire in <strong>15 minutes</strong>.
+                        </p>
+                        <p style="font-size: 14px; color: #666;">
+                          If you didn't request a password reset, you can safely ignore this email.
+                        </p>
+                        <p style="font-size: 14px; color: #666; margin-top: 30px;">
+                          Thanks,<br>
+                          <strong>The PropIQ Team</strong>
+                        </p>
+                      </div>
+                    </body>
+                  </html>
+                `,
+              }),
+            });
+
+            if (!emailResponse.ok) {
+              console.error("[AUTH] Failed to send password reset email:", await emailResponse.text());
+            } else {
+              console.log("[AUTH] Password reset email sent to:", result.email);
+            }
+          } catch (emailError) {
+            console.error("[AUTH] Error sending password reset email:", emailError);
+            // Don't fail the request if email fails - token is still valid
+          }
+        } else {
+          console.warn("[AUTH] RESEND_API_KEY not configured - password reset email not sent");
+        }
+      }
+
+      // Always return success (prevents email enumeration)
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: result.message,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    } catch (error) {
+      console.error("[AUTH] Request password reset error:", error);
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: "If an account exists with that email, a password reset link has been sent.",
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+  }),
+});
+
+/**
+ * POST /auth/reset-password
+ * Reset password using a valid reset token
+ */
+http.route({
+  path: "/auth/reset-password",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    try {
+      const body = await request.json();
+      const { token, newPassword } = body;
+
+      if (!token || !newPassword) {
+        return new Response(
+          JSON.stringify({ success: false, error: "Token and new password are required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Reset password
+      const result = await ctx.runMutation(api.auth.resetPassword, {
+        token,
+        newPassword,
+      });
+
+      if (!result.success) {
+        return new Response(
+          JSON.stringify({ success: false, error: result.error }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: result.message,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    } catch (error) {
+      console.error("[AUTH] Reset password error:", error);
+      return new Response(
+        JSON.stringify({ success: false, error: "Password reset failed" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

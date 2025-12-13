@@ -17,6 +17,7 @@ export default defineSchema({
 
     // Subscription & limits
     subscriptionTier: v.string(), // "free" | "starter" | "pro" | "elite"
+    subscriptionStatus: v.optional(v.string()), // Stripe subscription status
     analysesUsed: v.number(),
     analysesLimit: v.number(),
     stripeCustomerId: v.optional(v.string()),
@@ -125,4 +126,26 @@ export default defineSchema({
     .index("by_token", ["token"])
     .index("by_user", ["userId"])
     .index("by_expires", ["expiresAt"]),
+
+  // Password reset tokens - Temporary tokens for password reset flow
+  passwordResets: defineTable({
+    userId: v.id("users"),
+    email: v.string(),
+
+    // Reset token (cryptographically secure random string)
+    token: v.string(),
+
+    // Expiration (15 minutes from creation)
+    expiresAt: v.number(),
+
+    // Status tracking
+    used: v.boolean(),
+    usedAt: v.optional(v.number()),
+
+    // Timestamps
+    createdAt: v.number(),
+  })
+    .index("by_token", ["token"])
+    .index("by_email", ["email"])
+    .index("by_user", ["userId"]),
 });
