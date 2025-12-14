@@ -7,6 +7,8 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
+      // ShadCN components alias
+      '@': path.resolve(__dirname, './src'),
       // Allow importing from convex/_generated outside project root
       '../convex': path.resolve(__dirname, '../convex'),
     },

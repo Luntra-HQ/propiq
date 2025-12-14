@@ -150,6 +150,16 @@ export const CONVERSION_COPY = {
     title: "Save 20% with annual billing",
     description: "Get 2 months free when you pay annually. Lock in unlimited analyses at a lower price.",
     cta: "Switch to Annual"
+  },
+  warningBanner: {
+    title: "You've used {used} of {total} analyses",
+    description: "You're getting close to your limit. Upgrade for unlimited analyses.",
+    cta: "Upgrade Now"
+  },
+  topUp: {
+    title: "Get More Analyses",
+    description: "Choose a top-up package to continue analyzing properties this month.",
+    cta: "Purchase Top-Up"
   }
 };
 

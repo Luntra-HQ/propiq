@@ -10,7 +10,7 @@ import { test, expect, Page } from '@playwright/test';
 // Test configuration
 const BASE_URL = process.env.VITE_APP_URL || 'http://localhost:5173';
 const TEST_USER_EMAIL = 'test@example.com';
-const TEST_USER_PASSWORD = 'TestPassword123!';
+const TEST_USER_PASSWORD = 'TestPassword#123';
 
 // Helper function to login
 async function login(page: Page) {
@@ -27,11 +27,14 @@ async function login(page: Page) {
   await page.fill('input[type="email"]', TEST_USER_EMAIL);
   await page.fill('input[type="password"]', TEST_USER_PASSWORD);
 
-  // Submit login
-  await page.click('button[type="submit"]');
+  // Submit login and wait for navigation
+  await Promise.all([
+    page.waitForNavigation({ timeout: 15000 }),
+    page.click('button[type="submit"]')
+  ]);
 
-  // Wait for dashboard to load
-  await page.waitForSelector('text=/Good (morning|afternoon|evening)/i', { timeout: 15000 });
+  // Wait for dashboard to load - look for greeting text
+  await page.getByText(/Good/i).waitFor({ timeout: 15000 });
 }
 
 test.describe('Help Center - Basic Functionality', () => {

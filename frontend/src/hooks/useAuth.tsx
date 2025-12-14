@@ -208,6 +208,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           isLoading: false,
           isAuthenticated: true,
           error: null,
+          sessionToken: data.sessionToken,
         });
 
         // Clear any legacy localStorage
@@ -256,6 +257,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           isLoading: false,
           isAuthenticated: true,
           error: null,
+          sessionToken: result.sessionToken,
         });
 
         // Clear any legacy localStorage
@@ -302,6 +304,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading: false,
         isAuthenticated: false,
         error: null,
+        sessionToken: null,
       });
 
       // Clear any legacy localStorage
@@ -318,6 +321,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading: false,
         isAuthenticated: false,
         error: null,
+        sessionToken: null,
       });
 
       // Still notify extension
@@ -350,6 +354,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading: false,
         isAuthenticated: false,
         error: null,
+        sessionToken: null,
       });
 
       clearLegacyStorage();
@@ -370,6 +375,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading: false,
         isAuthenticated: false,
         error: null,
+        sessionToken: null,
       });
 
       // Still notify extension

@@ -8,7 +8,7 @@
 
 /* CSS Custom Properties for Theming */
 :root {
-  /* Dark theme (default) */
+  /* PropIQ Design System - Dark theme (default) */
   --color-bg-primary: 15 23 42; /* slate-900 */
   --color-bg-secondary: 30 41 59; /* slate-800 */
   --color-bg-tertiary: 51 65 85; /* slate-700 */
@@ -17,10 +17,49 @@
   --color-text-muted: 107 114 128; /* gray-500 */
   --color-border: 51 65 85; /* slate-700 */
   --color-accent: 139 92 246; /* violet-500 */
+
+  /* ShadCN Design Tokens - Mapped to PropIQ's Glass Aesthetic */
+  --background: 222 47% 11%; /* slate-900 - matches PropIQ dark bg */
+  --foreground: 210 40% 98%; /* gray-50 - text color */
+
+  --card: 217 33% 17%; /* slate-800 with slight adjustment */
+  --card-foreground: 210 40% 98%; /* gray-50 */
+
+  --popover: 224 71% 4%; /* darker slate for overlays */
+  --popover-foreground: 210 40% 98%; /* gray-50 */
+
+  --primary: 262 83% 58%; /* violet-500 - PropIQ brand color */
+  --primary-foreground: 210 40% 98%; /* white text on violet */
+
+  --secondary: 215 28% 17%; /* slate-800 */
+  --secondary-foreground: 210 40% 98%; /* gray-50 */
+
+  --muted: 215 28% 17%; /* slate-800 */
+  --muted-foreground: 215 16% 47%; /* slate-500 */
+
+  --accent: 217 33% 17%; /* slate-800 */
+  --accent-foreground: 210 40% 98%; /* gray-50 */
+
+  --destructive: 0 63% 31%; /* red-700 for errors/danger */
+  --destructive-foreground: 210 40% 98%; /* white text */
+
+  --border: 217 33% 17%; /* slate-700 - matches glass-border */
+  --input: 217 33% 17%; /* slate-700 for input borders */
+  --ring: 262 83% 58%; /* violet-500 for focus rings */
+
+  --radius: 0.75rem; /* 12px - matches PropIQ's rounded-xl */
+
+  /* Chart colors for data visualization */
+  --chart-1: 262 83% 58%; /* violet */
+  --chart-2: 160 84% 39%; /* emerald */
+  --chart-3: 24 95% 53%; /* orange */
+  --chart-4: 199 89% 48%; /* cyan */
+  --chart-5: 326 78% 58%; /* pink */
 }
 
 /* Light theme */
 .light {
+  /* PropIQ Light Theme */
   --color-bg-primary: 255 255 255;
   --color-bg-secondary: 248 250 252; /* slate-50 */
   --color-bg-tertiary: 241 245 249; /* slate-100 */
@@ -29,6 +68,35 @@
   --color-text-muted: 100 116 139; /* slate-500 */
   --color-border: 226 232 240; /* slate-200 */
   --color-accent: 124 58 237; /* violet-600 */
+
+  /* ShadCN Light Theme Tokens */
+  --background: 0 0% 100%; /* white */
+  --foreground: 222 47% 11%; /* slate-900 */
+
+  --card: 0 0% 100%; /* white */
+  --card-foreground: 222 47% 11%; /* slate-900 */
+
+  --popover: 0 0% 100%; /* white */
+  --popover-foreground: 222 47% 11%; /* slate-900 */
+
+  --primary: 262 83% 58%; /* violet-500 */
+  --primary-foreground: 210 40% 98%; /* white */
+
+  --secondary: 210 40% 96%; /* slate-100 */
+  --secondary-foreground: 222 47% 11%; /* slate-900 */
+
+  --muted: 210 40% 96%; /* slate-100 */
+  --muted-foreground: 215 16% 47%; /* slate-600 */
+
+  --accent: 210 40% 96%; /* slate-100 */
+  --accent-foreground: 222 47% 11%; /* slate-900 */
+
+  --destructive: 0 84% 60%; /* red-500 */
+  --destructive-foreground: 210 40% 98%; /* white */
+
+  --border: 214 32% 91%; /* slate-200 */
+  --input: 214 32% 91%; /* slate-200 */
+  --ring: 262 83% 58%; /* violet-500 */
 }
 
 body {

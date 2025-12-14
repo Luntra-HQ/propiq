@@ -238,7 +238,7 @@ const ResetPasswordPage: React.FC = () => {
                 This link expires in{' '}
                 {Math.max(
                   0,
-                  Math.floor((tokenVerification.expiresAt - Date.now()) / 60000)
+                  Math.floor(((tokenVerification.expiresAt ?? Date.now()) - Date.now()) / 60000)
                 )}{' '}
                 minutes
               </span>

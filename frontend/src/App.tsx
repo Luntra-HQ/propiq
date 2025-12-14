@@ -18,6 +18,7 @@ const PropIQAnalysis = lazy(() => import('./components/PropIQAnalysis').then(m =
 const ProductTour = lazy(() => import('./components/ProductTour').then(m => ({ default: m.ProductTour })));
 const HelpCenter = lazy(() => import('./components/HelpCenter').then(m => ({ default: m.HelpCenter })));
 const OnboardingChecklist = lazy(() => import('./components/OnboardingChecklist').then(m => ({ default: m.OnboardingChecklist })));
+const ComponentTestPage = lazy(() => import('./pages/ComponentTestPage'));
 
 // Import hook directly (small, needed for initial render logic)
 import { useShouldShowTour } from './components/ProductTour';
@@ -578,6 +579,15 @@ const App = () => {
           defaultMode="signup"
         />
       </>
+    );
+  }
+
+  // Component Test Page (accessible at /test for rapid testing)
+  if (window.location.pathname === '/test') {
+    return (
+      <Suspense fallback={<SuspenseFallback minHeight="100vh" />}>
+        <ComponentTestPage />
+      </Suspense>
     );
   }
 

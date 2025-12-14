@@ -10,5 +10,8 @@
   },
   "dependencies": {
     "convex": "^1.17.2"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.11.0"
   }
 }
