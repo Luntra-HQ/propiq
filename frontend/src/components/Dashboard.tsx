@@ -16,6 +16,7 @@ import {
   CreditCard,
   Shield,
   Clock,
+  HelpCircle,
 } from 'lucide-react';
 import { GlassCard, GlassCardHeader } from './ui/GlassCard';
 import { BentoBackground } from './ui/BentoGrid';
@@ -334,6 +335,7 @@ interface DashboardProps {
   userEmail: string | null;
   onAnalyzeClick: () => void;
   onUpgradeClick: () => void;
+  onHelpClick: () => void;
   onCalculatorClick?: () => void;
 }
 
@@ -344,6 +346,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   userEmail,
   onAnalyzeClick,
   onUpgradeClick,
+  onHelpClick,
 }) => {
   const remaining = getRemainingRuns(propIqUsed, propIqLimit);
   const firstName = userEmail?.split('@')[0] || 'there';
@@ -360,15 +363,27 @@ export const Dashboard: React.FC<DashboardProps> = ({
     <BentoBackground>
       <main className="container mx-auto px-4 py-8 md:px-6 lg:px-8 md:py-12">
         {/* Personalized Greeting */}
-        <section className="mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-50 mb-1">
-            {getGreeting()}, <span className="text-gradient">{firstName}</span>
-          </h1>
-          <p className="text-gray-400">
-            {remaining > 0
-              ? `You have ${remaining} AI analyses remaining this month.`
-              : 'Upgrade your plan to continue analyzing properties.'}
-          </p>
+        <section className="mb-8 flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-50 mb-1">
+              {getGreeting()}, <span className="text-gradient">{firstName}</span>
+            </h1>
+            <p className="text-gray-400">
+              {remaining > 0
+                ? `You have ${remaining} AI analyses remaining this month.`
+                : 'Upgrade your plan to continue analyzing properties.'}
+            </p>
+          </div>
+          {/* Help Button */}
+          <button
+            onClick={onHelpClick}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 text-gray-300 hover:text-white rounded-lg border border-glass-border hover:border-glass-border-hover transition-all duration-200 group"
+            title="Help Center - Get answers to your questions"
+            aria-label="Open Help Center"
+          >
+            <HelpCircle className="h-4 w-4 group-hover:text-violet-400 transition-colors" />
+            <span className="text-sm font-medium hidden sm:inline">Help</span>
+          </button>
         </section>
 
         {/* Main Bento Grid Layout */}

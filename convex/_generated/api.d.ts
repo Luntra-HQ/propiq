@@ -8,10 +8,13 @@
  * @module
  */
 
+import type * as articles from "../articles.js";
 import type * as auth from "../auth.js";
 import type * as http from "../http.js";
+import type * as onboarding from "../onboarding.js";
 import type * as payments from "../payments.js";
 import type * as propiq from "../propiq.js";
+import type * as seedArticles from "../seedArticles.js";
 import type * as sessions from "../sessions.js";
 import type * as support from "../support.js";
 
@@ -22,10 +25,13 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  articles: typeof articles;
   auth: typeof auth;
   http: typeof http;
+  onboarding: typeof onboarding;
   payments: typeof payments;
   propiq: typeof propiq;
+  seedArticles: typeof seedArticles;
   sessions: typeof sessions;
   support: typeof support;
 }>;
