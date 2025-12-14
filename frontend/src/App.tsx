@@ -1,5 +1,5 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { Zap, Target, Lock, CreditCard, X, DollarSign, Loader2, BarChart } from 'lucide-react';
+import { Zap, Target, Lock, CreditCard, X, DollarSign, Loader2, BarChart, HelpCircle } from 'lucide-react';
 import { CookieConsent } from './components/CookieConsent';
 import { Dashboard } from './components/Dashboard';
 import {
@@ -16,6 +16,8 @@ const SupportChat = lazy(() => import('./components/SupportChat').then(m => ({ d
 const FeedbackWidget = lazy(() => import('./components/FeedbackWidget').then(m => ({ default: m.FeedbackWidget })));
 const PropIQAnalysis = lazy(() => import('./components/PropIQAnalysis').then(m => ({ default: m.PropIQAnalysis })));
 const ProductTour = lazy(() => import('./components/ProductTour').then(m => ({ default: m.ProductTour })));
+const HelpCenter = lazy(() => import('./components/HelpCenter').then(m => ({ default: m.HelpCenter })));
+const OnboardingChecklist = lazy(() => import('./components/OnboardingChecklist').then(m => ({ default: m.OnboardingChecklist })));
 
 // Import hook directly (small, needed for initial render logic)
 import { useShouldShowTour } from './components/ProductTour';
@@ -124,7 +126,8 @@ const Header = ({
   currentTier,
   userId,
   userEmail,
-  onLogout
+  onLogout,
+  onHelpClick
 }: {
   propIqUsed: number;
   propIqLimit: number;
@@ -132,6 +135,7 @@ const Header = ({
   userId: string | null;
   userEmail: string | null;
   onLogout: () => void;
+  onHelpClick: () => void;
 }) => {
   const tierConfig = PRICING_TIERS[currentTier] || PRICING_TIERS.free;
 
@@ -154,6 +158,14 @@ const Header = ({
           <span className="text-xs font-medium text-gray-200">{tierConfig.displayName}</span>
         </div>
         <UsageBadge used={propIqUsed} limit={propIqLimit} />
+        <button
+          onClick={onHelpClick}
+          className="flex items-center space-x-1 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-gray-300 hover:text-white rounded-lg transition-colors"
+          title="Help Center"
+        >
+          <HelpCircle className="h-4 w-4" />
+          <span className="hidden md:inline text-xs font-semibold">Help</span>
+        </button>
         {userId && (
           <div className="flex items-center space-x-2">
             <div className="hidden lg:block text-xs text-gray-400 truncate max-w-[120px]" title={userEmail || userId}>
@@ -351,6 +363,9 @@ const App = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   // authToken is now provided by useAuth hook as sessionToken
+
+  // Help Center state
+  const [showHelpCenter, setShowHelpCenter] = useState(false);
 
   // Product tour state
   const shouldShowTour = useShouldShowTour();
@@ -579,7 +594,11 @@ const App = () => {
         userId={userId}
         userEmail={userEmail}
         onLogout={handleLogout}
+        onHelpClick={() => setShowHelpCenter(true)}
       />
+
+      {/* Onboarding Checklist (shows for first 7 days) */}
+      {userId && <OnboardingChecklist userId={userId as any} />}
 
       {/* Upgrade Prompt Banner (90% threshold) */}
       {showUpgradeBanner && (
@@ -602,6 +621,7 @@ const App = () => {
           userEmail={userEmail}
           onAnalyzeClick={() => setShowPropIQAnalysis(true)}
           onUpgradeClick={handleUpgradeClick}
+          onHelpClick={() => setShowHelpCenter(true)}
         />
       </div>
 
@@ -697,6 +717,24 @@ const App = () => {
 
       {/* Cookie Consent Banner - GDPR/CCPA Compliance */}
       <CookieConsent />
+
+      {/* Onboarding Checklist - Shows for new users */}
+      {userId && (
+        <Suspense fallback={null}>
+          <OnboardingChecklist userId={userId as any} />
+        </Suspense>
+      )}
+
+      {/* Help Center Modal */}
+      <Suspense fallback={null}>
+        {showHelpCenter && (
+          <HelpCenter
+            isOpen={showHelpCenter}
+            onClose={() => setShowHelpCenter(false)}
+            userId={userId as any}
+          />
+        )}
+      </Suspense>
     </div>
   );
 };
