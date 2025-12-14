@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { Target, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, X, Loader2, FileText, MapPin, DollarSign, BarChart3, Lightbulb, ArrowRight, Zap } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Target, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, X, Loader2, FileText, MapPin, DollarSign, BarChart3, Lightbulb, ArrowRight, Zap, Info } from 'lucide-react';
 import { apiClient, API_ENDPOINTS } from '../config/api';
 import { PrintButton } from './PrintButton';
 import { PDFExportButton } from './PDFExportButton';
 import { Tooltip } from './Tooltip';
+import { validateAddress, type ValidationResult } from '../utils/addressValidation';
 import './PropIQAnalysis.css';
 
 interface PropIQAnalysisProps {
@@ -58,6 +59,23 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
   const [error, setError] = useState<string | null>(null);
   const [usesRemaining, setUsesRemaining] = useState<number | null>(null);
 
+  // Address validation state
+  const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
+  const [showValidation, setShowValidation] = useState(false);
+
+  // Real-time address validation
+  useEffect(() => {
+    if (address.trim().length > 0) {
+      const result = validateAddress(address);
+      setValidationResult(result);
+      // Only show validation after user has typed at least 10 characters
+      setShowValidation(address.trim().length >= 10);
+    } else {
+      setValidationResult(null);
+      setShowValidation(false);
+    }
+  }, [address]);
+
   const loadSampleProperty = () => {
     // Sample property: Realistic Austin rental for demo
     setAddress('2505 Longview St, Austin, TX 78705');
@@ -71,35 +89,26 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
   const handleAnalyze = async () => {
     const trimmedAddress = address.trim();
 
-    // Basic validation
-    if (!trimmedAddress) {
-      setError('Please enter a property address');
-      return;
-    }
-
-    // Enhanced validation: Check for minimum address components
-    // A valid address should have at least: number + street + (city or state)
-    const hasNumber = /\d/.test(trimmedAddress);
-    const hasComma = trimmedAddress.includes(',');
-    const wordCount = trimmedAddress.split(/\s+/).length;
-
-    if (!hasNumber) {
-      setError('Please include a street number (e.g., "123 Main St, City, State")');
-      return;
-    }
-
-    if (wordCount < 3) {
-      setError('Please enter a complete address (e.g., "123 Main St, City, State 12345")');
-      return;
-    }
-
-    if (!hasComma && wordCount < 5) {
-      setError('Please include city and state (e.g., "123 Main St, City, State 12345")');
-      return;
-    }
-
+    // Check authentication first
     if (!authToken) {
       setError('You must be logged in to use PropIQ Analysis');
+      return;
+    }
+
+    // Use comprehensive validation
+    const validation = validateAddress(trimmedAddress);
+
+    if (!validation.valid) {
+      // Show first error message
+      setError(validation.errors[0] || 'Please enter a valid address');
+      setShowValidation(true);
+      return;
+    }
+
+    // Show warnings but allow user to proceed
+    if (validation.warnings.length > 0 && validation.confidence === 'low') {
+      setError('Address may be incomplete. Please verify before continuing.');
+      setShowValidation(true);
       return;
     }
 
@@ -239,11 +248,96 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
                   onChange={(e) => setAddress(e.target.value)}
                   onFocus={(e) => e.target.select()}
                   placeholder="123 Main St, City, State 12345"
-                  className="propiq-input"
+                  className={`propiq-input ${
+                    showValidation && validationResult
+                      ? validationResult.valid
+                        ? 'border-green-500/50'
+                        : 'border-red-500/50'
+                      : ''
+                  }`}
                   autoFocus
                   aria-label="Property Address"
                   aria-required="true"
+                  aria-invalid={showValidation && validationResult ? !validationResult.valid : undefined}
                 />
+
+                {/* Validation Feedback */}
+                {showValidation && validationResult && (
+                  <div className="mt-2 space-y-2">
+                    {/* Validation Errors */}
+                    {validationResult.errors.length > 0 && (
+                      <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
+                        {validationResult.errors.map((error, idx) => (
+                          <div key={idx} className="flex items-start gap-2 text-red-400 text-sm">
+                            <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                            <span>{error}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Validation Warnings */}
+                    {validationResult.warnings.length > 0 && validationResult.errors.length === 0 && (
+                      <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
+                        {validationResult.warnings.map((warning, idx) => (
+                          <div key={idx} className="flex items-start gap-2 text-yellow-400 text-sm">
+                            <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                            <span>{warning}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Success + Suggestions */}
+                    {validationResult.valid && validationResult.suggestions.length > 0 && (
+                      <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+                        {validationResult.suggestions.map((suggestion, idx) => (
+                          <div key={idx} className="flex items-start gap-2 text-blue-400 text-sm">
+                            <Lightbulb className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                            <span>{suggestion}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Validation Success */}
+                    {validationResult.valid &&
+                     validationResult.errors.length === 0 &&
+                     validationResult.warnings.length === 0 &&
+                     validationResult.confidence === 'high' && (
+                      <div className="flex items-center gap-2 text-green-400 text-sm">
+                        <CheckCircle className="h-4 w-4" />
+                        <span>Address looks complete and ready for analysis</span>
+                      </div>
+                    )}
+
+                    {/* Parsed Components Preview */}
+                    {validationResult.components.streetNumber && (
+                      <details className="text-xs text-gray-500">
+                        <summary className="cursor-pointer hover:text-gray-400">
+                          View parsed address components
+                        </summary>
+                        <div className="mt-2 pl-4 space-y-1 font-mono">
+                          {validationResult.components.streetNumber && (
+                            <div>Street #: {validationResult.components.streetNumber}</div>
+                          )}
+                          {validationResult.components.streetName && (
+                            <div>Street: {validationResult.components.streetName}</div>
+                          )}
+                          {validationResult.components.city && (
+                            <div>City: {validationResult.components.city}</div>
+                          )}
+                          {validationResult.components.state && (
+                            <div>State: {validationResult.components.state}</div>
+                          )}
+                          {validationResult.components.zipCode && (
+                            <div>ZIP: {validationResult.components.zipCode}</div>
+                          )}
+                        </div>
+                      </details>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="propiq-form-group">

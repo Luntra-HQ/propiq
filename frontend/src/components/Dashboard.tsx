@@ -380,6 +380,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 text-gray-300 hover:text-white rounded-lg border border-glass-border hover:border-glass-border-hover transition-all duration-200 group"
             title="Help Center - Get answers to your questions"
             aria-label="Open Help Center"
+            data-testid="help-button"
           >
             <HelpCircle className="h-4 w-4 group-hover:text-violet-400 transition-colors" />
             <span className="text-sm font-medium hidden sm:inline">Help</span>

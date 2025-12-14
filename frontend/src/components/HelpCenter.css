@@ -2,7 +2,7 @@
 .help-center-overlay {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: 9999; /* Ensure modal is always on top */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -165,6 +165,42 @@
 .no-results-hint {
   font-size: 0.875rem;
   color: #6b7280;
+  margin-bottom: 0.75rem;
+}
+
+.no-results-suggestions {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+  text-align: left;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.no-results-suggestions li {
+  padding: 0.5rem 0;
+  color: #9ca3af;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: flex-start;
+}
+
+.no-results-suggestions li::before {
+  content: "•";
+  color: #8b5cf6;
+  font-weight: bold;
+  margin-right: 0.75rem;
+  flex-shrink: 0;
+}
+
+.no-results-suggestions a {
+  color: #8b5cf6;
+  text-decoration: underline;
+}
+
+.no-results-suggestions a:hover {
+  color: #a78bfa;
 }
 
 .inline-link {

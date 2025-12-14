@@ -4,6 +4,7 @@ import { api } from '../../convex/_generated/api';
 import { Id } from '../../convex/_generated/dataModel';
 import { Search, BookOpen, X, ThumbsUp, ThumbsDown, ArrowLeft, ExternalLink } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import DOMPurify from 'dompurify';
 import './HelpCenter.css';
 
 interface HelpCenterProps {
@@ -13,12 +14,16 @@ interface HelpCenterProps {
   initialArticleSlug?: string;
 }
 
+// Constants for input validation
+const MAX_SEARCH_LENGTH = 200;
+
 export const HelpCenter = ({ isOpen, onClose, userId, initialArticleSlug }: HelpCenterProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedArticle, setSelectedArticle] = useState<any>(null);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [votedArticles, setVotedArticles] = useState<Set<string>>(new Set());
 
   // Queries
   const allArticles = useQuery(api.articles.getAllArticles, {
@@ -46,9 +51,27 @@ export const HelpCenter = ({ isOpen, onClose, userId, initialArticleSlug }: Help
     }
   }, [initialArticleSlug, allArticles]);
 
+  // Sanitize and validate search input
+  const sanitizeSearchQuery = (input: string): string => {
+    // Trim whitespace
+    let cleaned = input.trim();
+
+    // Limit length
+    if (cleaned.length > MAX_SEARCH_LENGTH) {
+      cleaned = cleaned.substring(0, MAX_SEARCH_LENGTH);
+    }
+
+    // Sanitize with DOMPurify (remove any HTML/script tags)
+    cleaned = DOMPurify.sanitize(cleaned, { ALLOWED_TAGS: [] });
+
+    return cleaned;
+  };
+
   // Handle search
   useEffect(() => {
-    if (searchQuery.length > 2) {
+    const sanitizedQuery = sanitizeSearchQuery(searchQuery);
+
+    if (sanitizedQuery.length > 2) {
       setIsSearching(true);
       // Search results come from the query
       if (searchArticles) {
@@ -58,7 +81,7 @@ export const HelpCenter = ({ isOpen, onClose, userId, initialArticleSlug }: Help
         // Log if no results
         if (searchArticles.length === 0) {
           logFailedSearch({
-            query: searchQuery,
+            query: sanitizedQuery,
             userId: userId || undefined,
             page: "help-center",
             resultsCount: 0,
@@ -85,16 +108,45 @@ export const HelpCenter = ({ isOpen, onClose, userId, initialArticleSlug }: Help
   const handleFeedback = async (articleId: Id<"articles">, vote: number) => {
     if (!userId) return;
 
+    // Prevent duplicate votes
+    const articleIdString = articleId.toString();
+    if (votedArticles.has(articleIdString)) {
+      return; // Already voted on this article
+    }
+
     await submitFeedback({
       articleId,
       userId,
       vote,
     });
+
+    // Mark as voted
+    setVotedArticles(prev => new Set(prev).add(articleIdString));
   };
 
   const handleBack = () => {
     setSelectedArticle(null);
   };
+
+  // Keyboard navigation (Escape key to close)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      // Prevent body scroll when modal is open
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen, onClose]);
 
   const categoryLabels: Record<string, string> = {
     "getting-started": "Getting Started",
@@ -109,20 +161,26 @@ export const HelpCenter = ({ isOpen, onClose, userId, initialArticleSlug }: Help
   if (!isOpen) return null;
 
   return (
-    <div className="help-center-overlay">
-      <div className="help-center-modal">
+    <div className="help-center-overlay" onClick={onClose}>
+      <div
+        className="help-center-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="help-center-title"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="help-center-header">
           <div className="header-left">
             {selectedArticle && (
-              <button onClick={handleBack} className="back-button">
+              <button onClick={handleBack} className="back-button" aria-label="Go back to articles list">
                 <ArrowLeft className="h-5 w-5" />
               </button>
             )}
             <BookOpen className="h-6 w-6 text-violet-400" />
-            <h2>PropIQ Help Center</h2>
+            <h2 id="help-center-title">PropIQ Help Center</h2>
           </div>
-          <button onClick={onClose} className="close-button">
+          <button onClick={onClose} className="close-button" aria-label="Close Help Center">
             <X className="h-6 w-6" />
           </button>
         </div>
@@ -140,7 +198,13 @@ export const HelpCenter = ({ isOpen, onClose, userId, initialArticleSlug }: Help
               </div>
 
               <div className="article-body">
-                <ReactMarkdown>{selectedArticle.content}</ReactMarkdown>
+                <ReactMarkdown
+                  skipHtml={true}
+                  disallowedElements={['script', 'iframe', 'object', 'embed', 'style']}
+                  unwrapDisallowed={true}
+                >
+                  {selectedArticle.content}
+                </ReactMarkdown>
               </div>
 
               {/* Article Feedback */}
@@ -150,7 +214,8 @@ export const HelpCenter = ({ isOpen, onClose, userId, initialArticleSlug }: Help
                   <button
                     onClick={() => handleFeedback(selectedArticle._id, 1)}
                     className="feedback-button helpful"
-                    disabled={!userId}
+                    disabled={!userId || votedArticles.has(selectedArticle._id.toString())}
+                    aria-label="Mark article as helpful"
                   >
                     <ThumbsUp className="h-4 w-4" />
                     Yes ({selectedArticle.helpfulVotes || 0})
@@ -158,7 +223,8 @@ export const HelpCenter = ({ isOpen, onClose, userId, initialArticleSlug }: Help
                   <button
                     onClick={() => handleFeedback(selectedArticle._id, -1)}
                     className="feedback-button unhelpful"
-                    disabled={!userId}
+                    disabled={!userId || votedArticles.has(selectedArticle._id.toString())}
+                    aria-label="Mark article as unhelpful"
                   >
                     <ThumbsDown className="h-4 w-4" />
                     No ({selectedArticle.unhelpfulVotes || 0})
@@ -166,6 +232,9 @@ export const HelpCenter = ({ isOpen, onClose, userId, initialArticleSlug }: Help
                 </div>
                 {!userId && (
                   <p className="feedback-hint">Log in to provide feedback</p>
+                )}
+                {votedArticles.has(selectedArticle._id.toString()) && (
+                  <p className="feedback-hint">Thank you for your feedback!</p>
                 )}
               </div>
             </div>
@@ -182,6 +251,8 @@ export const HelpCenter = ({ isOpen, onClose, userId, initialArticleSlug }: Help
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="search-input"
+                    aria-label="Search help articles"
+                    maxLength={MAX_SEARCH_LENGTH}
                     autoFocus
                   />
                 </div>
@@ -215,10 +286,13 @@ export const HelpCenter = ({ isOpen, onClose, userId, initialArticleSlug }: Help
                     ) : (
                       <div className="no-results">
                         <p>No articles found for "{searchQuery}"</p>
-                        <p className="no-results-hint">
-                          Try different keywords or{' '}
-                          <button className="inline-link">ask our AI assistant</button>
-                        </p>
+                        <p className="no-results-hint">Try these suggestions:</p>
+                        <ul className="no-results-suggestions">
+                          <li>Use different or more general keywords</li>
+                          <li>Check for typos in your search</li>
+                          <li>Browse categories below for related topics</li>
+                          <li>Contact support at <a href="mailto:support@luntra.one">support@luntra.one</a></li>
+                        </ul>
                       </div>
                     )}
                   </div>
