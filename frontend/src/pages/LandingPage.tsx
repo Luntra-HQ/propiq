@@ -85,8 +85,9 @@ const LandingPage: React.FC = () => {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="py-20 px-4">
+      <main>
+        {/* Hero Section */}
+        <section className="py-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-violet-500/10 border border-violet-500/20 rounded-full text-violet-400 text-sm mb-6">
             <Zap className="h-4 w-4" />
@@ -121,7 +122,7 @@ const LandingPage: React.FC = () => {
             </Link>
           </div>
 
-          <p className="text-gray-500 text-sm mt-4">
+          <p className="text-gray-400 text-sm mt-4">
             3 free analyses included. No credit card required.
           </p>
         </div>
@@ -271,6 +272,7 @@ const LandingPage: React.FC = () => {
           </button>
         </div>
       </section>
+      </main>
 
       {/* Footer */}
       <footer className="py-12 px-4 border-t border-slate-800">
@@ -281,7 +283,7 @@ const LandingPage: React.FC = () => {
                 <span className="text-white font-bold">P</span>
               </div>
               <span className="font-bold">PropIQ</span>
-              <span className="text-gray-500">by LUNTRA</span>
+              <span className="text-gray-400">by LUNTRA</span>
             </div>
 
             <div className="flex gap-6 text-gray-400 text-sm">
@@ -291,7 +293,7 @@ const LandingPage: React.FC = () => {
               <a href="#" className="hover:text-white transition">Terms</a>
             </div>
 
-            <p className="text-gray-500 text-sm">
+            <p className="text-gray-400 text-sm">
               &copy; {new Date().getFullYear()} LUNTRA. All rights reserved.
             </p>
           </div>
