@@ -95,7 +95,8 @@ htmlcov/
 node_modules/
 jspm_packages/
 bower_components/
-package-lock.json
+# package-lock.json should be committed for reproducible builds
+# package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
