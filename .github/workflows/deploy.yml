@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./propiq/backend
+        working-directory: ./backend
 
     steps:
       - name: Checkout code
@@ -57,7 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./propiq/frontend
+        working-directory: ./frontend
 
     steps:
       - name: Checkout code
@@ -68,7 +68,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: './propiq/frontend/package-lock.json'
+          cache-dependency-path: './frontend/package-lock.json'
 
       - name: Install dependencies
         run: npm ci
@@ -112,7 +112,7 @@ jobs:
           password: ${{ secrets.AZURE_ACR_PASSWORD }}
 
       - name: Build and push Docker image
-        working-directory: ./propiq/backend
+        working-directory: ./backend
         run: |
           docker build -t ${{ env.AZURE_REGISTRY }}/propiq-backend:${{ github.sha }} .
           docker tag ${{ env.AZURE_REGISTRY }}/propiq-backend:${{ github.sha }} ${{ env.AZURE_REGISTRY }}/propiq-backend:latest
@@ -163,14 +163,14 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: './propiq/frontend/package-lock.json'
+          cache-dependency-path: './frontend/package-lock.json'
 
       - name: Install dependencies
-        working-directory: ./propiq/frontend
+        working-directory: ./frontend
         run: npm ci
 
       - name: Build frontend
-        working-directory: ./propiq/frontend
+        working-directory: ./frontend
         run: npm run build
         env:
           VITE_API_URL: https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net
@@ -178,7 +178,7 @@ jobs:
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v2.1
         with:
-          publish-dir: './propiq/frontend/dist'
+          publish-dir: './frontend/dist'
           production-branch: main
           github-token: ${{ secrets.GITHUB_TOKEN }}
           deploy-message: "Deploy from GitHub Actions - ${{ github.sha }}"
