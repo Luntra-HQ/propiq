@@ -25,6 +25,8 @@ export default defineConfig({
     },
     // Code splitting configuration
     rollupOptions: {
+      // Externalize Convex server modules (not needed in browser build)
+      external: ['convex/server'],
       output: {
         manualChunks: {
           // Vendor chunks for large libraries
