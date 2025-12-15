@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "build:prod": "vite build",
+    "build:strict": "tsc && vite build",
     "preview": "vite preview",
     "test": "playwright test",
     "test:headed": "playwright test --headed",
