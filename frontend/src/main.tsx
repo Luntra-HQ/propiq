@@ -9,10 +9,12 @@ import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import WelcomePage from './pages/WelcomePage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
+import FAQPage from './pages/FAQPage'
 import App from './App'
 
 // Components
 import { ProtectedRoute, AuthRoute } from './components/ProtectedRoute'
+import { SentryErrorBoundary } from './components/ErrorBoundary'
 
 import './index.css'
 
@@ -25,13 +27,15 @@ const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string)
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <ConvexProvider client={convex}>
-        <AuthProvider>
-          <Routes>
+    <SentryErrorBoundary>
+      <BrowserRouter>
+        <ConvexProvider client={convex}>
+          <AuthProvider>
+            <Routes>
             {/* Public routes - accessible to everyone */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/pricing" element={<LandingPage />} />
+            <Route path="/faq" element={<FAQPage />} />
             <Route path="/welcome" element={<WelcomePage />} />
 
             {/* Auth routes - redirect to /app if already logged in */}
@@ -93,8 +97,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             {/* Catch-all - redirect to landing */}
             <Route path="*" element={<LandingPage />} />
           </Routes>
-        </AuthProvider>
-      </ConvexProvider>
-    </BrowserRouter>
+          </AuthProvider>
+        </ConvexProvider>
+      </BrowserRouter>
+    </SentryErrorBoundary>
   </React.StrictMode>,
 )
