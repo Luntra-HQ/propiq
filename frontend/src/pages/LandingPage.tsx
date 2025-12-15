@@ -56,6 +56,9 @@ const LandingPage: React.FC = () => {
               <a href="#testimonials" className="text-gray-300 hover:text-white transition">
                 Testimonials
               </a>
+              <Link to="/faq" className="text-gray-300 hover:text-white transition">
+                FAQ
+              </Link>
             </div>
 
             {/* CTA */}
