@@ -23,7 +23,11 @@ import { initSentry } from './config/sentry'
 initSentry()
 
 // Initialize Convex client
-const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string)
+const convexUrl = import.meta.env.VITE_CONVEX_URL;
+if (!convexUrl) {
+  console.error('VITE_CONVEX_URL is not set. Convex features will not work. Please add it to your environment variables.');
+}
+const convex = new ConvexReactClient(convexUrl || 'https://placeholder.convex.cloud')
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
