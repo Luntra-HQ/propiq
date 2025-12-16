@@ -6,8 +6,7 @@
  */
 
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { Link } from 'react-router-dom';
 import {
   Zap,
   BarChart,
@@ -20,16 +19,6 @@ import {
 } from 'lucide-react';
 
 const LandingPage: React.FC = () => {
-  const { isAuthenticated } = useAuth();
-  const navigate = useNavigate();
-
-  const handleGetStarted = () => {
-    if (isAuthenticated) {
-      navigate('/app');
-    } else {
-      navigate('/login');
-    }
-  };
 
   return (
     <div className="min-h-screen bg-slate-900 text-white">
@@ -63,26 +52,12 @@ const LandingPage: React.FC = () => {
 
             {/* CTA */}
             <div className="flex items-center gap-4">
-              {isAuthenticated ? (
-                <Link
-                  to="/app"
-                  className="px-4 py-2 bg-violet-600 hover:bg-violet-700 rounded-lg font-medium transition"
-                >
-                  Go to App
-                </Link>
-              ) : (
-                <>
-                  <Link to="/login" className="text-gray-300 hover:text-white transition">
-                    Log In
-                  </Link>
-                  <button
-                    onClick={handleGetStarted}
-                    className="px-4 py-2 bg-violet-600 hover:bg-violet-700 rounded-lg font-medium transition"
-                  >
-                    Get Started Free
-                  </button>
-                </>
-              )}
+              <a
+                href="#waitlist"
+                className="px-4 py-2 bg-violet-600 hover:bg-violet-700 rounded-lg font-medium transition"
+              >
+                Join Waitlist
+              </a>
             </div>
           </div>
         </div>
@@ -110,13 +85,13 @@ const LandingPage: React.FC = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button
-              onClick={handleGetStarted}
+            <a
+              href="#waitlist"
               className="px-8 py-4 bg-violet-600 hover:bg-violet-700 rounded-lg font-semibold text-lg transition flex items-center justify-center gap-2"
             >
-              Start Free Trial
+              Get Early Access
               <ArrowRight className="h-5 w-5" />
-            </button>
+            </a>
             <Link
               to="/pricing"
               className="px-8 py-4 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg font-semibold text-lg transition"
@@ -275,13 +250,13 @@ const LandingPage: React.FC = () => {
               </div>
 
               {/* CTA */}
-              <button
-                onClick={handleGetStarted}
+              <a
+                href="#waitlist"
                 className="w-full mt-6 px-6 py-3 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 rounded-lg font-semibold transition flex items-center justify-center gap-2"
               >
-                Analyze Your Property
+                Get Early Access
                 <ArrowRight className="h-5 w-5" />
-              </button>
+              </a>
             </div>
           </div>
 
@@ -344,14 +319,14 @@ const LandingPage: React.FC = () => {
 
           {/* Video CTA */}
           <div className="mt-8 text-center">
-            <p className="text-gray-400 mb-4">Ready to analyze your first property?</p>
-            <button
-              onClick={handleGetStarted}
+            <p className="text-gray-400 mb-4">Ready to get early access?</p>
+            <a
+              href="#waitlist"
               className="px-8 py-4 bg-violet-600 hover:bg-violet-700 rounded-lg font-semibold text-lg transition inline-flex items-center gap-2"
             >
-              Get Started Free
+              Join Waitlist
               <ArrowRight className="h-5 w-5" />
-            </button>
+            </a>
           </div>
         </div>
       </section>
@@ -463,21 +438,44 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 px-4">
-        <div className="max-w-4xl mx-auto text-center">
+      {/* Waitlist Section */}
+      <section id="waitlist" className="py-20 px-4 bg-gradient-to-b from-slate-900 to-slate-800">
+        <div className="max-w-2xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-full text-green-400 text-sm mb-6">
+            <CheckCircle className="h-4 w-4" />
+            Launching Soon
+          </div>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Ready to Make Smarter Investments?
+            Get Early Access to PropIQ
           </h2>
           <p className="text-gray-400 text-lg mb-8">
-            Join 500+ investors who trust PropIQ for their property analysis.
+            Join 500+ investors on the waitlist. Be the first to know when we launch and get exclusive early access benefits.
           </p>
-          <button
-            onClick={handleGetStarted}
-            className="px-8 py-4 bg-violet-600 hover:bg-violet-700 rounded-lg font-semibold text-lg transition"
+
+          {/* Email Signup Form */}
+          <form
+            className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto mb-6"
+            action="https://formspree.io/f/YOUR_FORM_ID"
+            method="POST"
           >
-            Start Your Free Trial
-          </button>
+            <input
+              type="email"
+              name="email"
+              placeholder="Enter your email"
+              required
+              className="flex-1 px-6 py-4 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-violet-500 transition"
+            />
+            <button
+              type="submit"
+              className="px-8 py-4 bg-violet-600 hover:bg-violet-700 rounded-lg font-semibold transition whitespace-nowrap"
+            >
+              Join Waitlist
+            </button>
+          </form>
+
+          <p className="text-gray-500 text-sm">
+            🎁 Early access members get 3 months free + priority support
+          </p>
         </div>
       </section>
       </main>
