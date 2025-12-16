@@ -312,6 +312,50 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
+      {/* Video Demo */}
+      <section className="py-20 px-4 bg-slate-900">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-violet-500/10 border border-violet-500/20 rounded-full text-violet-400 text-sm mb-4">
+              <Zap className="h-4 w-4" />
+              Watch PropIQ in Action
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              See How It Works
+            </h2>
+            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+              Watch this quick demo to see how PropIQ analyzes properties in seconds
+            </p>
+          </div>
+
+          {/* Video Container */}
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-slate-700">
+            <div className="relative pb-[56.25%] h-0">
+              <iframe
+                className="absolute top-0 left-0 w-full h-full"
+                src="https://www.youtube.com/embed/HPFFqKAPGEg"
+                title="PropIQ Demo Video"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            </div>
+          </div>
+
+          {/* Video CTA */}
+          <div className="mt-8 text-center">
+            <p className="text-gray-400 mb-4">Ready to analyze your first property?</p>
+            <button
+              onClick={handleGetStarted}
+              className="px-8 py-4 bg-violet-600 hover:bg-violet-700 rounded-lg font-semibold text-lg transition inline-flex items-center gap-2"
+            >
+              Get Started Free
+              <ArrowRight className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      </section>
+
       {/* Features */}
       <section id="features" className="py-20 px-4">
         <div className="max-w-6xl mx-auto">
