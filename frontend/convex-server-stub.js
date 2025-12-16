@@ -9,8 +9,21 @@
 const createDeepProxy = (name = 'ConvexStub') => {
   return new Proxy(() => {}, {
     get: (target, prop) => {
+      // Handle toString
       if (prop === 'toString' || prop === Symbol.toStringTag) {
         return () => name;
+      }
+      // Handle Symbol.toPrimitive for primitive conversion
+      if (prop === Symbol.toPrimitive) {
+        return (hint) => {
+          if (hint === 'number') return 0;
+          if (hint === 'string') return name;
+          return null; // Return null for default hint
+        };
+      }
+      // Handle valueOf for number conversion
+      if (prop === 'valueOf') {
+        return () => 0;
       }
       // Return another proxy for nested access
       return createDeepProxy(`${name}.${String(prop)}`);
