@@ -474,7 +474,7 @@ const LandingPage: React.FC = () => {
           </form>
 
           <p className="text-gray-500 text-sm">
-            🎁 Early access members get 3 months free + priority support
+            🎁 Early access members get 1 month free + priority support
           </p>
         </div>
       </section>
