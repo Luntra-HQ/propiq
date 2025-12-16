@@ -11,9 +11,11 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
       // Allow importing from convex/_generated outside project root
       '../convex': path.resolve(__dirname, '../convex'),
-      // Replace convex/server with stub for browser builds
-      'convex/server': path.resolve(__dirname, './convex-server-stub.js'),
     },
+  },
+  // Let Vite handle convex/server imports naturally
+  optimizeDeps: {
+    exclude: ['convex/server'],
   },
   build: {
     // Optimize bundle size
@@ -27,6 +29,7 @@ export default defineConfig({
     },
     // Code splitting configuration
     rollupOptions: {
+      external: ['convex/server'],
       output: {
         manualChunks: {
           // Vendor chunks for large libraries
