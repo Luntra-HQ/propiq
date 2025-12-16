@@ -24,10 +24,21 @@ initSentry()
 
 // Initialize Convex client
 const convexUrl = import.meta.env.VITE_CONVEX_URL;
+console.log('🔍 Convex URL:', convexUrl || 'NOT SET - using placeholder');
+
 if (!convexUrl) {
-  console.error('VITE_CONVEX_URL is not set. Convex features will not work. Please add it to your environment variables.');
+  console.error('⚠️ VITE_CONVEX_URL is not set. Convex features will not work. Please add it to your environment variables.');
+  console.log('📍 Current environment:', import.meta.env.MODE);
 }
-const convex = new ConvexReactClient(convexUrl || 'https://placeholder.convex.cloud')
+
+let convex;
+try {
+  convex = new ConvexReactClient(convexUrl || 'https://placeholder.convex.cloud');
+  console.log('✅ Convex client initialized successfully');
+} catch (error) {
+  console.error('❌ Failed to initialize Convex client:', error);
+  throw error; // Re-throw so error boundary catches it
+}
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

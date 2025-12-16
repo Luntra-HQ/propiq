@@ -78,12 +78,16 @@ export class ErrorBoundary extends Component<Props, State> {
               We're sorry for the inconvenience. Our team has been notified and is working on a fix.
             </p>
 
-            {import.meta.env.DEV && this.state.error && (
-              <details className="error-details">
-                <summary>Error Details (Development Only)</summary>
-                <pre>{this.state.error.toString()}</pre>
+            {this.state.error && (
+              <details className="error-details" open>
+                <summary>Error Details</summary>
+                <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                  {this.state.error.toString()}
+                </pre>
                 {this.state.errorInfo && (
-                  <pre>{this.state.errorInfo.componentStack}</pre>
+                  <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                    {this.state.errorInfo.componentStack}
+                  </pre>
                 )}
               </details>
             )}
