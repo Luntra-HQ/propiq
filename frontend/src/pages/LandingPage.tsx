@@ -455,7 +455,7 @@ const LandingPage: React.FC = () => {
           {/* Email Signup Form */}
           <form
             className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto mb-6"
-            action="https://formspree.io/f/YOUR_FORM_ID"
+            action="https://formspree.io/f/xldqywge"
             method="POST"
           >
             <input
