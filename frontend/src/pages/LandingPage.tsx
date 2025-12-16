@@ -151,6 +151,167 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
+      {/* Interactive Demo */}
+      <section className="py-20 px-4 bg-gradient-to-b from-slate-900 to-slate-800">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-full text-green-400 text-sm mb-4">
+              <Zap className="h-4 w-4" />
+              Try It Live - No Signup Required
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              See PropIQ in Action
+            </h2>
+            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+              Here's a sample analysis of a $300K property. See the instant calculations and insights.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Property Details Card */}
+            <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 backdrop-blur">
+              <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+                <Calculator className="h-5 w-5 text-violet-400" />
+                Property Details
+              </h3>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-gray-400 text-sm mb-1">Purchase Price</p>
+                    <p className="text-2xl font-bold">$300,000</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400 text-sm mb-1">Monthly Rent</p>
+                    <p className="text-2xl font-bold text-green-400">$2,500</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-gray-400 text-sm mb-1">Down Payment</p>
+                    <p className="text-lg font-semibold">$60,000 (20%)</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400 text-sm mb-1">Interest Rate</p>
+                    <p className="text-lg font-semibold">7.0%</p>
+                  </div>
+                </div>
+                <div className="pt-4 border-t border-slate-700">
+                  <h4 className="text-sm font-semibold mb-3 text-gray-300">Monthly Expenses</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Mortgage</span>
+                      <span>$1,597</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Property Tax</span>
+                      <span>$300</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Insurance</span>
+                      <span>$100</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Maintenance</span>
+                      <span>$200</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Vacancy Reserve</span>
+                      <span>$125</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Analysis Results Card */}
+            <div className="bg-gradient-to-br from-violet-900/30 to-purple-900/30 border border-violet-500/30 rounded-xl p-6 backdrop-blur">
+              <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+                <BarChart className="h-5 w-5 text-violet-400" />
+                Instant Analysis
+              </h3>
+
+              {/* Deal Score */}
+              <div className="mb-6 p-4 bg-slate-800/50 rounded-lg border border-green-500/30">
+                <p className="text-sm text-gray-400 mb-2">Deal Score</p>
+                <div className="flex items-end gap-3">
+                  <p className="text-5xl font-bold text-green-400">68</p>
+                  <p className="text-lg text-green-400 mb-2">Good Deal</p>
+                </div>
+                <div className="mt-3 h-2 bg-slate-700 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-green-500 to-blue-500" style={{ width: '68%' }}></div>
+                </div>
+              </div>
+
+              {/* Key Metrics */}
+              <div className="space-y-4">
+                <div className="p-4 bg-slate-800/30 rounded-lg">
+                  <p className="text-sm text-gray-400 mb-1">Monthly Cash Flow</p>
+                  <p className="text-3xl font-bold text-green-400">+$178</p>
+                  <p className="text-xs text-gray-500 mt-1">After all expenses</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-slate-800/30 rounded-lg">
+                    <p className="text-sm text-gray-400 mb-1">Cap Rate</p>
+                    <p className="text-2xl font-bold">5.7%</p>
+                  </div>
+                  <div className="p-4 bg-slate-800/30 rounded-lg">
+                    <p className="text-sm text-gray-400 mb-1">Cash-on-Cash ROI</p>
+                    <p className="text-2xl font-bold">3.1%</p>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-slate-800/30 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm text-gray-400">1% Rule Check</p>
+                    <span className="px-2 py-1 bg-yellow-500/10 text-yellow-400 text-xs rounded">
+                      Close
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-300">
+                    Rent is $2,500 vs. 1% target of $3,000
+                  </p>
+                </div>
+              </div>
+
+              {/* CTA */}
+              <button
+                onClick={handleGetStarted}
+                className="w-full mt-6 px-6 py-3 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 rounded-lg font-semibold transition flex items-center justify-center gap-2"
+              >
+                Analyze Your Property
+                <ArrowRight className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Feature Highlights */}
+          <div className="mt-12 grid md:grid-cols-3 gap-6">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-violet-500/10 rounded-lg flex items-center justify-center mx-auto mb-3">
+                <Clock className="h-6 w-6 text-violet-400" />
+              </div>
+              <p className="font-semibold mb-1">Instant Results</p>
+              <p className="text-sm text-gray-400">Get complete analysis in under 30 seconds</p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 bg-violet-500/10 rounded-lg flex items-center justify-center mx-auto mb-3">
+                <BarChart className="h-6 w-6 text-violet-400" />
+              </div>
+              <p className="font-semibold mb-1">Advanced Metrics</p>
+              <p className="text-sm text-gray-400">Cap rate, ROI, cash flow, and 5-year projections</p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 bg-violet-500/10 rounded-lg flex items-center justify-center mx-auto mb-3">
+                <Shield className="h-6 w-6 text-violet-400" />
+              </div>
+              <p className="font-semibold mb-1">Risk Assessment</p>
+              <p className="text-sm text-gray-400">Identify red flags before you invest</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Features */}
       <section id="features" className="py-20 px-4">
         <div className="max-w-6xl mx-auto">
