@@ -5,7 +5,7 @@
  * Showcases PropIQ value proposition and drives signups.
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Zap,
@@ -16,9 +16,75 @@ import {
   CheckCircle,
   ArrowRight,
   Star,
+  Lock,
 } from 'lucide-react';
+import { calculateAllMetrics, formatCurrency, formatPercent } from '../utils/calculatorUtils';
 
 const LandingPage: React.FC = () => {
+  // Usage tracking
+  const [usageCount, setUsageCount] = useState(0);
+  const [isLimited, setIsLimited] = useState(false);
+  const USAGE_LIMIT = 3;
+
+  // Calculator inputs
+  const [inputs, setInputs] = useState({
+    purchasePrice: 300000,
+    downPaymentPercent: 20,
+    interestRate: 7.0,
+    monthlyRent: 2500,
+    annualPropertyTax: 3600,
+    annualInsurance: 1200,
+    monthlyMaintenance: 200,
+    monthlyVacancy: 125,
+  });
+
+  // Calculated metrics
+  const [metrics, setMetrics] = useState<any>(null);
+
+  // Load usage count from localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem('propiq_demo_usage');
+    if (stored) {
+      const count = parseInt(stored, 10);
+      setUsageCount(count);
+      setIsLimited(count >= USAGE_LIMIT);
+    }
+  }, []);
+
+  // Calculate metrics when inputs change
+  useEffect(() => {
+    const calculated = calculateAllMetrics({
+      ...inputs,
+      loanTerm: 30,
+      monthlyHOA: 0,
+      monthlyUtilities: 0,
+      monthlyPropertyManagement: 0,
+      closingCosts: inputs.purchasePrice * 0.03,
+      rehabCosts: 0,
+      strategy: 'rental' as const,
+    });
+    setMetrics(calculated);
+  }, [inputs]);
+
+  const handleInputChange = (field: string, value: number) => {
+    if (isLimited) return;
+    setInputs(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleCalculate = () => {
+    if (isLimited) {
+      window.location.href = '#waitlist';
+      return;
+    }
+
+    const newCount = usageCount + 1;
+    setUsageCount(newCount);
+    localStorage.setItem('propiq_demo_usage', newCount.toString());
+
+    if (newCount >= USAGE_LIMIT) {
+      setIsLimited(true);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-900 text-white">
@@ -132,13 +198,22 @@ const LandingPage: React.FC = () => {
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-full text-green-400 text-sm mb-4">
               <Zap className="h-4 w-4" />
-              Try It Live - No Signup Required
+              {isLimited ? (
+                <>
+                  <Lock className="h-4 w-4" />
+                  3 Free Analyses Used - Join Waitlist for Unlimited
+                </>
+              ) : (
+                `Try It Live - ${USAGE_LIMIT - usageCount} Free Analyses Left`
+              )}
             </div>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              See PropIQ in Action
+              {isLimited ? 'Want Unlimited Analyses?' : 'See PropIQ in Action'}
             </h2>
             <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-              Here's a sample analysis of a $300K property. See the instant calculations and insights.
+              {isLimited
+                ? 'Join the waitlist to get unlimited property analyses and early access benefits'
+                : 'Adjust the numbers below and see instant calculations. No signup required!'}
             </p>
           </div>
 
@@ -152,22 +227,47 @@ const LandingPage: React.FC = () => {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-gray-400 text-sm mb-1">Purchase Price</p>
-                    <p className="text-2xl font-bold">$300,000</p>
+                    <label className="text-gray-400 text-sm mb-1 block">Purchase Price</label>
+                    <input
+                      type="number"
+                      value={inputs.purchasePrice}
+                      onChange={(e) => handleInputChange('purchasePrice', Number(e.target.value))}
+                      disabled={isLimited}
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded text-white text-xl font-bold focus:border-violet-500 focus:outline-none disabled:opacity-50"
+                    />
                   </div>
                   <div>
-                    <p className="text-gray-400 text-sm mb-1">Monthly Rent</p>
-                    <p className="text-2xl font-bold text-green-400">$2,500</p>
+                    <label className="text-gray-400 text-sm mb-1 block">Monthly Rent</label>
+                    <input
+                      type="number"
+                      value={inputs.monthlyRent}
+                      onChange={(e) => handleInputChange('monthlyRent', Number(e.target.value))}
+                      disabled={isLimited}
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded text-green-400 text-xl font-bold focus:border-violet-500 focus:outline-none disabled:opacity-50"
+                    />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-gray-400 text-sm mb-1">Down Payment</p>
-                    <p className="text-lg font-semibold">$60,000 (20%)</p>
+                    <label className="text-gray-400 text-sm mb-1 block">Down Payment %</label>
+                    <input
+                      type="number"
+                      value={inputs.downPaymentPercent}
+                      onChange={(e) => handleInputChange('downPaymentPercent', Number(e.target.value))}
+                      disabled={isLimited}
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded text-white font-semibold focus:border-violet-500 focus:outline-none disabled:opacity-50"
+                    />
                   </div>
                   <div>
-                    <p className="text-gray-400 text-sm mb-1">Interest Rate</p>
-                    <p className="text-lg font-semibold">7.0%</p>
+                    <label className="text-gray-400 text-sm mb-1 block">Interest Rate %</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={inputs.interestRate}
+                      onChange={(e) => handleInputChange('interestRate', Number(e.target.value))}
+                      disabled={isLimited}
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded text-white font-semibold focus:border-violet-500 focus:outline-none disabled:opacity-50"
+                    />
                   </div>
                 </div>
                 <div className="pt-4 border-t border-slate-700">
@@ -206,57 +306,73 @@ const LandingPage: React.FC = () => {
               </h3>
 
               {/* Deal Score */}
-              <div className="mb-6 p-4 bg-slate-800/50 rounded-lg border border-green-500/30">
-                <p className="text-sm text-gray-400 mb-2">Deal Score</p>
-                <div className="flex items-end gap-3">
-                  <p className="text-5xl font-bold text-green-400">68</p>
-                  <p className="text-lg text-green-400 mb-2">Good Deal</p>
-                </div>
-                <div className="mt-3 h-2 bg-slate-700 rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-green-500 to-blue-500" style={{ width: '68%' }}></div>
-                </div>
-              </div>
-
-              {/* Key Metrics */}
-              <div className="space-y-4">
-                <div className="p-4 bg-slate-800/30 rounded-lg">
-                  <p className="text-sm text-gray-400 mb-1">Monthly Cash Flow</p>
-                  <p className="text-3xl font-bold text-green-400">+$178</p>
-                  <p className="text-xs text-gray-500 mt-1">After all expenses</p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-slate-800/30 rounded-lg">
-                    <p className="text-sm text-gray-400 mb-1">Cap Rate</p>
-                    <p className="text-2xl font-bold">5.7%</p>
+              {metrics && (
+                <>
+                  <div className="mb-6 p-4 bg-slate-800/50 rounded-lg border border-green-500/30">
+                    <p className="text-sm text-gray-400 mb-2">Deal Score</p>
+                    <div className="flex items-end gap-3">
+                      <p className="text-5xl font-bold text-green-400">{metrics.dealScore}</p>
+                      <p className="text-lg text-green-400 mb-2">{metrics.dealRating}</p>
+                    </div>
+                    <div className="mt-3 h-2 bg-slate-700 rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-green-500 to-blue-500" style={{ width: `${metrics.dealScore}%` }}></div>
+                    </div>
                   </div>
-                  <div className="p-4 bg-slate-800/30 rounded-lg">
-                    <p className="text-sm text-gray-400 mb-1">Cash-on-Cash ROI</p>
-                    <p className="text-2xl font-bold">3.1%</p>
-                  </div>
-                </div>
 
-                <div className="p-4 bg-slate-800/30 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm text-gray-400">1% Rule Check</p>
-                    <span className="px-2 py-1 bg-yellow-500/10 text-yellow-400 text-xs rounded">
-                      Close
-                    </span>
+                  {/* Key Metrics */}
+                  <div className="space-y-4">
+                    <div className="p-4 bg-slate-800/30 rounded-lg">
+                      <p className="text-sm text-gray-400 mb-1">Monthly Cash Flow</p>
+                      <p className={`text-3xl font-bold ${metrics.monthlyCashFlow >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        {metrics.monthlyCashFlow >= 0 ? '+' : ''}{formatCurrency(metrics.monthlyCashFlow)}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">After all expenses</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-4 bg-slate-800/30 rounded-lg">
+                        <p className="text-sm text-gray-400 mb-1">Cap Rate</p>
+                        <p className="text-2xl font-bold">{formatPercent(metrics.capRate)}</p>
+                      </div>
+                      <div className="p-4 bg-slate-800/30 rounded-lg">
+                        <p className="text-sm text-gray-400 mb-1">Cash-on-Cash ROI</p>
+                        <p className="text-2xl font-bold">{formatPercent(metrics.cashOnCashReturn)}</p>
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-slate-800/30 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-sm text-gray-400">1% Rule Check</p>
+                        <span className={`px-2 py-1 ${metrics.onePercentRule ? 'bg-green-500/10 text-green-400' : 'bg-yellow-500/10 text-yellow-400'} text-xs rounded`}>
+                          {metrics.onePercentRule ? 'Pass' : 'Close'}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-300">
+                        Rent is {formatCurrency(inputs.monthlyRent)} vs. 1% target of {formatCurrency(inputs.purchasePrice * 0.01)}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-sm text-gray-300">
-                    Rent is $2,500 vs. 1% target of $3,000
-                  </p>
-                </div>
-              </div>
+                </>
+              )}
 
               {/* CTA */}
-              <a
-                href="#waitlist"
-                className="w-full mt-6 px-6 py-3 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 rounded-lg font-semibold transition flex items-center justify-center gap-2"
-              >
-                Get Early Access
-                <ArrowRight className="h-5 w-5" />
-              </a>
+              {isLimited ? (
+                <a
+                  href="#waitlist"
+                  className="w-full mt-6 px-6 py-3 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 rounded-lg font-semibold transition flex items-center justify-center gap-2"
+                >
+                  <Lock className="h-5 w-5" />
+                  Join Waitlist for Unlimited
+                </a>
+              ) : (
+                <button
+                  onClick={handleCalculate}
+                  className="w-full mt-6 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-lg font-semibold transition flex items-center justify-center gap-2"
+                >
+                  <Calculator className="h-5 w-5" />
+                  Calculate ({USAGE_LIMIT - usageCount} left)
+                </button>
+              )}
             </div>
           </div>
 
