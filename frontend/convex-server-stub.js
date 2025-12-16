@@ -2,42 +2,38 @@
  * Stub for convex/server module
  * This file provides mock implementations for browser builds
  * The actual convex/server module only works in Node.js environments
- *
- * We create function reference objects that match the Convex API structure
  */
 
-// Helper to create a function reference
-const createFunctionRef = (moduleName, functionName) => ({
-  _type: 'function',
-  _module: moduleName,
-  _function: functionName,
-});
-
-// Build API structure based on your Convex modules
-export const anyApi = {
-  auth: {
-    signup: createFunctionRef('auth', 'signup'),
-    login: createFunctionRef('auth', 'login'),
-    getUser: createFunctionRef('auth', 'getUser'),
-    getUserByEmail: createFunctionRef('auth', 'getUserByEmail'),
-    updateProfile: createFunctionRef('auth', 'updateProfile'),
-  },
-  payments: {
-    createCheckoutSession: createFunctionRef('payments', 'createCheckoutSession'),
-    handleWebhook: createFunctionRef('payments', 'handleWebhook'),
-    getSubscription: createFunctionRef('payments', 'getSubscription'),
-  },
-  propiq: {
-    analyzeProperty: createFunctionRef('propiq', 'analyzeProperty'),
-    getAnalysisHistory: createFunctionRef('propiq', 'getAnalysisHistory'),
-  },
-  support: {
-    sendMessage: createFunctionRef('support', 'sendMessage'),
-    getConversations: createFunctionRef('support', 'getConversations'),
-  },
+// Create a proxy that returns itself for any property access
+// This prevents "[object Object] is not a function" errors
+const createDeepProxy = (name = 'ConvexStub') => {
+  return new Proxy(() => {}, {
+    get: (target, prop) => {
+      if (prop === 'toString' || prop === Symbol.toStringTag) {
+        return () => name;
+      }
+      // Return another proxy for nested access
+      return createDeepProxy(`${name}.${String(prop)}`);
+    },
+    apply: () => {
+      // If called as a function, return another proxy
+      return createDeepProxy(name);
+    }
+  });
 };
 
-export const componentsGeneric = () => ({});
-export const defineSchema = () => ({});
-export const defineTable = () => ({});
-export const httpRouter = () => ({});
+// Export proxies that can handle any access pattern
+export const anyApi = createDeepProxy('anyApi');
+export const componentsGeneric = createDeepProxy('componentsGeneric');
+export const defineSchema = createDeepProxy('defineSchema');
+export const defineTable = createDeepProxy('defineTable');
+export const httpRouter = createDeepProxy('httpRouter');
+
+// Export common Convex types that might be imported
+export const v = createDeepProxy('v');
+export const query = createDeepProxy('query');
+export const mutation = createDeepProxy('mutation');
+export const action = createDeepProxy('action');
+export const internalQuery = createDeepProxy('internalQuery');
+export const internalMutation = createDeepProxy('internalMutation');
+export const internalAction = createDeepProxy('internalAction');
