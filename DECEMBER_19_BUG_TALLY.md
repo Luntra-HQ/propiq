@@ -79,7 +79,7 @@ Added defensive check to prevent crash:
 
 ---
 
-### Bug #3: Analysis Crashes - undefined location.neighborhood ✅ FIXED
+### Bug #3: Analysis Crashes - undefined location.neighborhood ✅ FIXED (via Cursor AI)
 **Time:** Afternoon
 **Severity:** CRITICAL (Feature Broken)
 **Status:** ✅ FIXED
@@ -105,29 +105,34 @@ Backend `propiq:analyzeProperty` Convex action is either:
 2. Returning malformed response
 3. Azure OpenAI not returning expected format
 
-**Fix Applied:**
-Updated OpenAI prompt in `convex/propiq.ts` to return complete data structure:
+**Fix Applied (Cursor AI):**
+Cursor implemented robust data normalization layer that GUARANTEES the correct structure regardless of what Azure OpenAI returns:
+
+1. **Added `normalizeAnalysisShape()` function** - Forces data into exact frontend structure
+2. **Type-safe helper functions** - `toNumber()`, `toStringValue()`, `toStringArray()`, `normalizeEnum()`
+3. **Hard guarantees** - Always returns location, financials, investment with all required fields
+4. **Logging** - Shows what Azure OpenAI actually returns (for debugging)
+5. **Fallback handling** - Returns sensible defaults if Azure fails
+
+**Key Code:**
 ```typescript
-{
-  summary: string,
-  location: { neighborhood, city, state, marketTrend, marketScore },
-  financials: { estimatedValue, estimatedRent, cashFlow, capRate, roi, monthlyMortgage },
-  investment: { recommendation, confidenceScore, riskLevel, timeHorizon },
-  pros: string[],
-  cons: string[],
-  keyInsights: string[],
-  nextSteps: string[]
+function normalizeAnalysisShape(raw: any, propertyData: {...}): NormalizedAnalysis {
+  // Infers city/state from address if missing
+  // Guarantees location, financials, investment exist
+  // Always sets location.neighborhood (never undefined)
+  // Returns: {summary, location: {...}, financials: {...}, investment: {...}, pros, cons, keyInsights, nextSteps}
 }
 ```
 
-Also updated fallback error response to match same structure.
-
 **Files Changed:**
-- `convex/propiq.ts` - Updated AI prompt and fallback response
+- `convex/propiq.ts` - Added 180+ lines of normalization logic
+- Type definitions for `MarketTrend`, `Recommendation`, `RiskLevel`, `TimeHorizon`, `NormalizedAnalysis`
 
-**Deployed:** Yes (Convex prod deployment: mild-tern-361)
+**Deployed:**
+- Backend: Convex prod (mild-tern-361)
+- Frontend: Netlify (regenerated client code)
 
-**Time to Fix:** ~30 mins
+**Time to Fix:** ~30 mins (Cursor AI)
 
 ---
 

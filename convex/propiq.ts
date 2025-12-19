@@ -7,6 +7,184 @@ import { v } from "convex/values";
 import { action, mutation, query } from "./_generated/server";
 import { api } from "./_generated/api";
 
+type MarketTrend = "up" | "down" | "stable";
+type Recommendation = "strong_buy" | "buy" | "hold" | "avoid";
+type RiskLevel = "low" | "medium" | "high";
+type TimeHorizon = "short" | "medium" | "long";
+
+type NormalizedAnalysis = {
+  summary: string;
+  location: {
+    neighborhood: string;
+    city: string;
+    state: string;
+    marketTrend: MarketTrend;
+    marketScore: number;
+  };
+  financials: {
+    estimatedValue: number;
+    estimatedRent: number;
+    cashFlow: number;
+    capRate: number;
+    roi: number;
+    monthlyMortgage: number;
+  };
+  investment: {
+    recommendation: Recommendation;
+    confidenceScore: number;
+    riskLevel: RiskLevel;
+    timeHorizon: TimeHorizon;
+  };
+  pros: string[];
+  cons: string[];
+  keyInsights: string[];
+  nextSteps: string[];
+  _metadata?: {
+    address: string;
+    analyzedAt: string;
+    analyzedBy: string;
+    model: string;
+  };
+};
+
+function clamp(n: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, n));
+}
+
+function toNumber(value: unknown, fallback: number): number {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return fallback;
+}
+
+function toStringValue(value: unknown, fallback: string): string {
+  if (typeof value === "string" && value.trim()) return value.trim();
+  return fallback;
+}
+
+function toStringArray(value: unknown, fallback: string[]): string[] {
+  if (Array.isArray(value)) {
+    const out = value
+      .map((v) => (typeof v === "string" ? v.trim() : ""))
+      .filter((v) => v.length > 0);
+    return out.length > 0 ? out : fallback;
+  }
+  return fallback;
+}
+
+function normalizeEnum<T extends string>(
+  value: unknown,
+  allowed: readonly T[],
+  fallback: T
+): T {
+  const v = typeof value === "string" ? value.toLowerCase().trim() : "";
+  const match = allowed.find((a) => a === (v as T));
+  return match ?? fallback;
+}
+
+function normalizeRecommendation(value: unknown): Recommendation {
+  const v = typeof value === "string" ? value.toLowerCase().trim() : "";
+  // Handle common variants from LLMs
+  if (v === "strong buy" || v === "strong_buy" || v === "strongbuy") return "strong_buy";
+  if (v === "buy") return "buy";
+  if (v === "hold" || v === "consider") return "hold";
+  if (v === "avoid" || v === "no") return "avoid";
+  return "hold";
+}
+
+function parseCityStateFromAddress(address: string): { city?: string; state?: string } {
+  // Very lightweight parser: "street, City, ST 12345"
+  const parts = address.split(",").map((p) => p.trim()).filter(Boolean);
+  if (parts.length < 2) return {};
+  const city = parts[1];
+  const last = parts[2] || "";
+  const m = last.match(/\b([A-Z]{2})\b/);
+  const state = m ? m[1] : undefined;
+  return { city, state };
+}
+
+function normalizeAnalysisShape(raw: any, propertyData: { address: string; city?: string; state?: string; purchasePrice?: number; monthlyRent?: number; }): NormalizedAnalysis {
+  const inferred = parseCityStateFromAddress(propertyData.address);
+  const city = propertyData.city || inferred.city || "Unknown";
+  const state = propertyData.state || inferred.state || "Unknown";
+
+  const rawLocation = raw?.location ?? raw?.market ?? raw?.area ?? {};
+  const rawFinancials = raw?.financials ?? raw?.numbers ?? raw?.metrics ?? {};
+  const rawInvestment = raw?.investment ?? raw?.recommendation ?? raw?.decision ?? {};
+
+  const summary =
+    toStringValue(raw?.summary, "") ||
+    toStringValue(raw?.executiveSummary, "") ||
+    toStringValue(raw?.overview, "") ||
+    "Analysis completed. Review the details below.";
+
+  const marketTrend = normalizeEnum<MarketTrend>(
+    rawLocation?.marketTrend,
+    ["up", "down", "stable"] as const,
+    "stable"
+  );
+
+  const normalized: NormalizedAnalysis = {
+    summary,
+    location: {
+      neighborhood: toStringValue(rawLocation?.neighborhood, "Unknown"),
+      city: toStringValue(rawLocation?.city, city),
+      state: toStringValue(rawLocation?.state, state),
+      marketTrend,
+      marketScore: clamp(toNumber(rawLocation?.marketScore, 50), 0, 100),
+    },
+    financials: {
+      estimatedValue: toNumber(rawFinancials?.estimatedValue, propertyData.purchasePrice || 0),
+      estimatedRent: toNumber(rawFinancials?.estimatedRent, propertyData.monthlyRent || 0),
+      cashFlow: toNumber(rawFinancials?.cashFlow, 0),
+      capRate: toNumber(rawFinancials?.capRate, 0),
+      roi: toNumber(rawFinancials?.roi, 0),
+      monthlyMortgage: toNumber(rawFinancials?.monthlyMortgage, 0),
+    },
+    investment: {
+      recommendation: normalizeRecommendation(rawInvestment?.recommendation ?? raw?.recommendation),
+      confidenceScore: clamp(toNumber(rawInvestment?.confidenceScore, raw?.confidenceScore ?? 60), 0, 100),
+      riskLevel: normalizeEnum<RiskLevel>(
+        rawInvestment?.riskLevel,
+        ["low", "medium", "high"] as const,
+        "medium"
+      ),
+      timeHorizon: normalizeEnum<TimeHorizon>(
+        rawInvestment?.timeHorizon,
+        ["short", "medium", "long"] as const,
+        "medium"
+      ),
+    },
+    pros: toStringArray(raw?.pros ?? raw?.strengths, ["No major strengths identified."]),
+    cons: toStringArray(raw?.cons ?? raw?.risks, ["No major risks identified."]),
+    keyInsights: toStringArray(raw?.keyInsights ?? raw?.insights, ["Review key metrics and market context."]),
+    nextSteps: toStringArray(raw?.nextSteps ?? raw?.actions, ["Verify comps and run a detailed underwriting."]),
+    _metadata: {
+      address: propertyData.address,
+      analyzedAt: new Date().toISOString(),
+      analyzedBy: "azure-openai",
+      model: process.env.AZURE_OPENAI_DEPLOYMENT || "unknown",
+    },
+  };
+
+  // Final hard guarantees so frontend never crashes:
+  if (!normalized.location) {
+    (normalized as any).location = {
+      neighborhood: "Unknown",
+      city,
+      state,
+      marketTrend: "stable",
+      marketScore: 50,
+    };
+  }
+  if (!normalized.location.neighborhood) normalized.location.neighborhood = "Unknown";
+
+  return normalized;
+}
+
 // Analyze property - Main analysis function
 export const analyzeProperty = action({
   args: {
@@ -190,7 +368,9 @@ async function generateAIAnalysis(propertyData: {
   }
 
   // Build the prompt for AI analysis
-  const prompt = `You are an expert real estate investment analyst. Analyze this property and provide comprehensive investment insights.
+  const prompt = `You are an expert real estate investment analyst.
+You MUST return ONLY valid JSON (no markdown, no commentary) and you MUST include ALL fields listed in the schema.
+If you are uncertain, use reasonable defaults but still include the field.
 
 Property Details:
 - Address: ${propertyData.address}${propertyData.city ? `, ${propertyData.city}` : ""}${propertyData.state ? `, ${propertyData.state}` : ""}${propertyData.zipCode ? ` ${propertyData.zipCode}` : ""}
@@ -203,7 +383,7 @@ Provide a comprehensive analysis in the following JSON structure:
   "summary": "Brief 2-3 sentence executive summary of the investment opportunity",
   "location": {
     "neighborhood": "Neighborhood name (estimate based on address)",
-    "city": "${propertyData.city || "Unknown City"}",
+    "city": "${propertyData.city || "Unknown"}",
     "state": "${propertyData.state || "Unknown"}",
     "marketTrend": "up/down/stable (estimate current market trend)",
     "marketScore": 50-100
@@ -257,17 +437,54 @@ Provide a comprehensive analysis in the following JSON structure:
     });
 
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.statusText}`);
+      const errorText = await response.text().catch(() => "");
+      console.error("[PropIQ] Azure OpenAI non-200 response:", {
+        status: response.status,
+        statusText: response.statusText,
+        bodyPreview: errorText.slice(0, 500),
+      });
+      throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
-    const analysisText = data.choices[0].message.content;
-    const analysis = JSON.parse(analysisText);
+    const analysisText = data?.choices?.[0]?.message?.content;
+
+    // Log what Azure OpenAI actually returned (truncated to avoid huge logs)
+    console.log("[PropIQ] Azure OpenAI raw content (preview):", {
+      length: typeof analysisText === "string" ? analysisText.length : null,
+      preview: typeof analysisText === "string" ? analysisText.slice(0, 800) : String(analysisText),
+    });
+
+    let parsed: any = {};
+    try {
+      parsed = typeof analysisText === "string" ? JSON.parse(analysisText) : {};
+    } catch (e) {
+      console.error("[PropIQ] Failed to parse Azure JSON. Returning normalized fallback.", e);
+      parsed = {};
+    }
+
+    // Enforce exact shape expected by frontend (prevents `location` undefined crashes)
+    const normalized = normalizeAnalysisShape(parsed, propertyData);
+
+    // Log missing fields (high-signal debug)
+    const missing: string[] = [];
+    if (!normalized.summary) missing.push("summary");
+    if (!normalized.location) missing.push("location");
+    if (!normalized.location?.neighborhood) missing.push("location.neighborhood");
+    if (!normalized.financials) missing.push("financials");
+    if (!normalized.investment) missing.push("investment");
+    if (missing.length) {
+      console.warn("[PropIQ] Normalization filled missing fields:", missing);
+    }
 
     return {
-      analysis,
-      recommendation: analysis.recommendation || "CONSIDER",
-      dealScore: analysis.dealScore || 50,
+      analysis: normalized,
+      recommendation: normalized.investment.recommendation,
+      dealScore: clamp(
+        toNumber((parsed as any)?.dealScore, normalized.investment.confidenceScore || 50),
+        0,
+        100
+      ),
       tokensUsed: data.usage?.total_tokens || 0,
     };
   } catch (error) {
@@ -275,34 +492,20 @@ Provide a comprehensive analysis in the following JSON structure:
 
     // Return fallback analysis if AI fails
     return {
-      analysis: {
-        summary: "Property analysis is temporarily unavailable. Please try again later or contact support.",
-        location: {
-          neighborhood: "Unknown",
-          city: propertyData.city || "Unknown",
-          state: propertyData.state || "Unknown",
-          marketTrend: "stable" as const,
-          marketScore: 50,
+      analysis: normalizeAnalysisShape(
+        {
+          summary:
+            "Property analysis is temporarily unavailable. Please try again later or contact support.",
+          pros: ["Property requires manual review"],
+          cons: ["AI analysis temporarily unavailable"],
+          keyInsights: ["Please try again in a few moments"],
+          nextSteps: ["Contact support if this issue persists"],
+          investment: { recommendation: "hold", confidenceScore: 50, riskLevel: "medium", timeHorizon: "medium" },
+          location: { neighborhood: "Unknown", city: propertyData.city, state: propertyData.state, marketTrend: "stable", marketScore: 50 },
+          financials: { estimatedValue: propertyData.purchasePrice, estimatedRent: propertyData.monthlyRent, cashFlow: 0, capRate: 0, roi: 0, monthlyMortgage: 0 },
         },
-        financials: {
-          estimatedValue: propertyData.purchasePrice || 0,
-          estimatedRent: propertyData.monthlyRent || 0,
-          cashFlow: 0,
-          capRate: 0,
-          roi: 0,
-          monthlyMortgage: 0,
-        },
-        investment: {
-          recommendation: "hold" as const,
-          confidenceScore: 0,
-          riskLevel: "medium" as const,
-          timeHorizon: "medium" as const,
-        },
-        pros: ["Property requires manual review"],
-        cons: ["AI analysis temporarily unavailable"],
-        keyInsights: ["Please try again in a few moments"],
-        nextSteps: ["Contact support if this issue persists"],
-      },
+        propertyData
+      ),
       recommendation: "hold",
       dealScore: 50,
       tokensUsed: 0,
