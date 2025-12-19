@@ -7,6 +7,41 @@ import html2canvas from 'html2canvas';
  * Generates professional PDF reports from property analysis data
  */
 
+/**
+ * Sanitizes text for PDF export
+ * Removes special characters and encoding issues that jsPDF can't handle
+ */
+const sanitizeTextForPDF = (text: string | undefined | null): string => {
+  if (!text) return '';
+
+  return text
+    // Replace smart quotes with regular quotes
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    // Replace em/en dashes with regular dashes
+    .replace(/[\u2013\u2014]/g, '-')
+    // Replace ellipsis with three dots
+    .replace(/\u2026/g, '...')
+    // Remove other problematic Unicode characters
+    .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // Control characters
+    .replace(/[\u2000-\u206F]/g, ' ') // Various spaces and special characters
+    .replace(/[\uFEFF]/g, '') // Zero-width no-break space
+    // Normalize whitespace
+    .replace(/\s+/g, ' ')
+    .trim();
+};
+
+/**
+ * Sanitizes an array of strings for PDF export
+ */
+const sanitizeArrayForPDF = (arr: string[] | undefined | null): string[] => {
+  if (!arr || !Array.isArray(arr)) return [];
+  return arr
+    .filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+    .map(sanitizeTextForPDF)
+    .filter(item => item.length > 0);
+};
+
 export interface PropertyAnalysis {
   address: string;
   propertyType?: string;
@@ -91,7 +126,7 @@ export const generatePDF = async (analysis: PropertyAnalysis): Promise<void> => 
   pdf.setFontSize(20);
   pdf.setTextColor(31, 41, 55); // slate-800
   pdf.setFont('helvetica', 'bold');
-  pdf.text(analysis.address, margin, yPosition);
+  pdf.text(sanitizeTextForPDF(analysis.address), margin, yPosition);
   yPosition += 10;
 
   // Analysis Date
@@ -109,7 +144,7 @@ export const generatePDF = async (analysis: PropertyAnalysis): Promise<void> => 
 
     pdf.setFontSize(10);
     pdf.setTextColor(55, 65, 81); // gray-700
-    const summaryLines = pdf.splitTextToSize(analysis.summary, contentWidth);
+    const summaryLines = pdf.splitTextToSize(sanitizeTextForPDF(analysis.summary), contentWidth);
     pdf.text(summaryLines, margin, yPosition);
     yPosition += summaryLines.length * 5 + 10;
   }
@@ -276,7 +311,7 @@ export const generatePDF = async (analysis: PropertyAnalysis): Promise<void> => 
       pdf.setTextColor(55, 65, 81);
       pdf.setFont('helvetica', 'normal');
 
-      analysis.pros.forEach((pro, index) => {
+      sanitizeArrayForPDF(analysis.pros).forEach((pro, index) => {
         const lines = pdf.splitTextToSize(`• ${pro}`, colWidth);
         pdf.text(lines, margin + 2, yPosition);
         yPosition += lines.length * 5;
@@ -297,7 +332,7 @@ export const generatePDF = async (analysis: PropertyAnalysis): Promise<void> => 
       pdf.setTextColor(55, 65, 81);
       pdf.setFont('helvetica', 'normal');
 
-      analysis.cons.forEach((con, index) => {
+      sanitizeArrayForPDF(analysis.cons).forEach((con, index) => {
         const lines = pdf.splitTextToSize(`• ${con}`, colWidth);
         pdf.text(lines, margin + contentWidth / 2 + 7, consYPosition);
         consYPosition += lines.length * 5;
@@ -318,7 +353,7 @@ export const generatePDF = async (analysis: PropertyAnalysis): Promise<void> => 
     pdf.setTextColor(55, 65, 81);
     pdf.setFont('helvetica', 'normal');
 
-    analysis.keyInsights.forEach((insight, index) => {
+    sanitizeArrayForPDF(analysis.keyInsights).forEach((insight, index) => {
       const lines = pdf.splitTextToSize(`${index + 1}. ${insight}`, contentWidth);
       pdf.text(lines, margin, yPosition);
       yPosition += lines.length * 5 + 3;
@@ -340,7 +375,7 @@ export const generatePDF = async (analysis: PropertyAnalysis): Promise<void> => 
     pdf.setTextColor(55, 65, 81);
     pdf.setFont('helvetica', 'normal');
 
-    analysis.nextSteps.forEach((step, index) => {
+    sanitizeArrayForPDF(analysis.nextSteps).forEach((step, index) => {
       const lines = pdf.splitTextToSize(`${index + 1}. ${step}`, contentWidth);
       pdf.text(lines, margin, yPosition);
       yPosition += lines.length * 5 + 3;
