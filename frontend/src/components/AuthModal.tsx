@@ -71,6 +71,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
         if (result.success) {
           setSuccess('Account created successfully! Redirecting...');
+          // Mark that user just signed up (to prevent forced checkout)
+          sessionStorage.setItem('justSignedUp', 'true');
           setTimeout(() => {
             onSuccess();
             resetForm();

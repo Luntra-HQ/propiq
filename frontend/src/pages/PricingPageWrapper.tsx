@@ -67,11 +67,16 @@ const PricingPageWrapper: React.FC = () => {
   }, [user, userId, createCheckout, navigate]);
 
   // Auto-trigger checkout if user just logged in with a selected tier
+  // BUT ONLY if they're upgrading FROM an existing free account
+  // NOT if they just created a new account (we want them to use free trial first)
   useEffect(() => {
     if (!isLoading && user && userId) {
       const selectedTier = sessionStorage.getItem('selectedTier');
       const checkoutIntent = sessionStorage.getItem('checkoutIntent');
-      if (selectedTier && checkoutIntent) {
+      const justSignedUp = sessionStorage.getItem('justSignedUp'); // Check if user just signed up
+
+      // Don't auto-trigger checkout for brand new users
+      if (selectedTier && checkoutIntent && !justSignedUp) {
         console.log(`[PRICING] Auto-triggering checkout for tier: ${selectedTier}`);
         sessionStorage.removeItem('selectedTier');
         sessionStorage.removeItem('checkoutIntent');
@@ -79,9 +84,16 @@ const PricingPageWrapper: React.FC = () => {
           console.log(`[PRICING] Executing auto-checkout for: ${selectedTier}`);
           handleSelectTier(selectedTier);
         }, 500);
+      } else if (justSignedUp) {
+        // New user - clear checkout intent and redirect to app to use free trial
+        console.log('[PRICING] New user detected - clearing checkout intent, redirecting to app');
+        sessionStorage.removeItem('selectedTier');
+        sessionStorage.removeItem('checkoutIntent');
+        sessionStorage.removeItem('justSignedUp');
+        navigate('/app');
       }
     }
-  }, [user, userId, isLoading, handleSelectTier]);
+  }, [user, userId, isLoading, handleSelectTier, navigate]);
 
   const handleClose = () => {
     if (user) navigate('/app');

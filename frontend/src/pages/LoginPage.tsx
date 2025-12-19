@@ -81,6 +81,8 @@ const LoginPage: React.FC = () => {
 
         if (result.success) {
           setSuccess('Account created! Redirecting...');
+          // Mark that user just signed up (to prevent forced checkout)
+          sessionStorage.setItem('justSignedUp', 'true');
           setTimeout(() => navigate(from, { replace: true }), 1000);
         } else {
           setError(result.error || 'Signup failed');

@@ -498,34 +498,36 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
             </div>
 
             {/* Investment Recommendation */}
-            <div className="propiq-section propiq-recommendation">
-              {(() => {
-                const badge = getRecommendationBadge(analysis.investment.recommendation);
-                const Icon = badge.icon;
-                return (
-                  <>
-                    <div className="propiq-recommendation-header">
-                      <Icon className="h-6 w-6" />
-                      <h3>
-                        Investment Recommendation
-                        <Tooltip text="AI-powered assessment based on financials, market data, and risk factors." />
-                      </h3>
-                    </div>
-                    <div className="propiq-badges">
-                      <span className={`propiq-badge ${badge.color}`}>{badge.text}</span>
-                      <span className={`propiq-badge ${getRiskBadge(analysis.investment.riskLevel).color}`}>
-                        {getRiskBadge(analysis.investment.riskLevel).text}
-                        <Tooltip text="Risk assessment based on market volatility, location, and deal structure." />
-                      </span>
-                      <span className="propiq-badge">
-                        {analysis.investment.confidenceScore}% Confidence
-                        <Tooltip text="How certain our AI is about this recommendation based on data quality." />
-                      </span>
-                    </div>
-                  </>
-                );
-              })()}
-            </div>
+            {analysis.investment && (
+              <div className="propiq-section propiq-recommendation">
+                {(() => {
+                  const badge = getRecommendationBadge(analysis.investment.recommendation);
+                  const Icon = badge.icon;
+                  return (
+                    <>
+                      <div className="propiq-recommendation-header">
+                        <Icon className="h-6 w-6" />
+                        <h3>
+                          Investment Recommendation
+                          <Tooltip text="AI-powered assessment based on financials, market data, and risk factors." />
+                        </h3>
+                      </div>
+                      <div className="propiq-badges">
+                        <span className={`propiq-badge ${badge.color}`}>{badge.text}</span>
+                        <span className={`propiq-badge ${getRiskBadge(analysis.investment.riskLevel).color}`}>
+                          {getRiskBadge(analysis.investment.riskLevel).text}
+                          <Tooltip text="Risk assessment based on market volatility, location, and deal structure." />
+                        </span>
+                        <span className="propiq-badge">
+                          {analysis.investment.confidenceScore}% Confidence
+                          <Tooltip text="How certain our AI is about this recommendation based on data quality." />
+                        </span>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            )}
 
             {/* Location & Market */}
             <div className="propiq-section">

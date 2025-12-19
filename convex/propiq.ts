@@ -190,7 +190,7 @@ async function generateAIAnalysis(propertyData: {
   }
 
   // Build the prompt for AI analysis
-  const prompt = `You are an expert real estate investment analyst. Analyze this property and provide investment insights.
+  const prompt = `You are an expert real estate investment analyst. Analyze this property and provide comprehensive investment insights.
 
 Property Details:
 - Address: ${propertyData.address}${propertyData.city ? `, ${propertyData.city}` : ""}${propertyData.state ? `, ${propertyData.state}` : ""}${propertyData.zipCode ? ` ${propertyData.zipCode}` : ""}
@@ -198,23 +198,34 @@ ${propertyData.purchasePrice ? `- Purchase Price: $${propertyData.purchasePrice.
 ${propertyData.downPayment ? `- Down Payment: $${propertyData.downPayment.toLocaleString()}` : ""}
 ${propertyData.monthlyRent ? `- Monthly Rent: $${propertyData.monthlyRent.toLocaleString()}` : ""}
 
-Please provide:
-1. Investment recommendation (BUY, CONSIDER, or AVOID)
-2. Deal score (0-100, where 100 is excellent)
-3. Key strengths of this investment
-4. Key risks or concerns
-5. Cash flow analysis
-6. ROI projections
-
-Format your response as JSON with this structure:
+Provide a comprehensive analysis in the following JSON structure:
 {
-  "recommendation": "BUY/CONSIDER/AVOID",
-  "dealScore": 0-100,
-  "strengths": ["strength1", "strength2", ...],
-  "risks": ["risk1", "risk2", ...],
-  "cashFlow": {"monthly": number, "annual": number},
-  "roi": {"year1": number, "year5": number},
-  "summary": "Brief 2-3 sentence summary"
+  "summary": "Brief 2-3 sentence executive summary of the investment opportunity",
+  "location": {
+    "neighborhood": "Neighborhood name (estimate based on address)",
+    "city": "${propertyData.city || "Unknown City"}",
+    "state": "${propertyData.state || "Unknown"}",
+    "marketTrend": "up/down/stable (estimate current market trend)",
+    "marketScore": 50-100
+  },
+  "financials": {
+    "estimatedValue": ${propertyData.purchasePrice || 300000},
+    "estimatedRent": ${propertyData.monthlyRent || 2000},
+    "cashFlow": 0,
+    "capRate": 5.5,
+    "roi": 8.0,
+    "monthlyMortgage": 2000
+  },
+  "investment": {
+    "recommendation": "strong_buy/buy/hold/avoid",
+    "confidenceScore": 50-100,
+    "riskLevel": "low/medium/high",
+    "timeHorizon": "short/medium/long"
+  },
+  "pros": ["3-5 key strengths as bullet points"],
+  "cons": ["3-5 key risks as bullet points"],
+  "keyInsights": ["3-5 important insights for this investment"],
+  "nextSteps": ["3-5 recommended action items"]
 }`;
 
   try {
@@ -265,15 +276,34 @@ Format your response as JSON with this structure:
     // Return fallback analysis if AI fails
     return {
       analysis: {
-        recommendation: "CONSIDER",
-        dealScore: 50,
-        strengths: ["Property requires manual review"],
-        risks: ["AI analysis temporarily unavailable"],
-        cashFlow: { monthly: 0, annual: 0 },
-        roi: { year1: 0, year5: 0 },
-        summary: "Property analysis is temporarily unavailable. Please try again later.",
+        summary: "Property analysis is temporarily unavailable. Please try again later or contact support.",
+        location: {
+          neighborhood: "Unknown",
+          city: propertyData.city || "Unknown",
+          state: propertyData.state || "Unknown",
+          marketTrend: "stable" as const,
+          marketScore: 50,
+        },
+        financials: {
+          estimatedValue: propertyData.purchasePrice || 0,
+          estimatedRent: propertyData.monthlyRent || 0,
+          cashFlow: 0,
+          capRate: 0,
+          roi: 0,
+          monthlyMortgage: 0,
+        },
+        investment: {
+          recommendation: "hold" as const,
+          confidenceScore: 0,
+          riskLevel: "medium" as const,
+          timeHorizon: "medium" as const,
+        },
+        pros: ["Property requires manual review"],
+        cons: ["AI analysis temporarily unavailable"],
+        keyInsights: ["Please try again in a few moments"],
+        nextSteps: ["Contact support if this issue persists"],
       },
-      recommendation: "CONSIDER",
+      recommendation: "hold",
       dealScore: 50,
       tokensUsed: 0,
     };
