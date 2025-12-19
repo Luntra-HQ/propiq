@@ -10,6 +10,7 @@ import LoginPage from './pages/LoginPage'
 import WelcomePage from './pages/WelcomePage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import FAQPage from './pages/FAQPage'
+import PricingPageWrapper from './pages/PricingPageWrapper'
 import App from './App'
 
 // Components
@@ -23,22 +24,22 @@ import { initSentry } from './config/sentry'
 initSentry()
 
 // Initialize Convex client
-const convexUrl = import.meta.env.VITE_CONVEX_URL;
-console.log('🔍 Convex URL:', convexUrl || 'NOT SET - using placeholder');
+// The Convex React client must use `.convex.cloud` (WebSocket + HTTP).
+// `.convex.site` is for HTTP endpoints only.
+const rawConvexUrl = import.meta.env.VITE_CONVEX_URL as string | undefined;
+const convexUrl = (rawConvexUrl || '')
+  .replace(/\.convex\.site$/, '.convex.cloud')
+  .replace(/\/+$/, '');
 
-if (!convexUrl) {
-  console.error('⚠️ VITE_CONVEX_URL is not set. Convex features will not work. Please add it to your environment variables.');
+console.log('[CONVEX] VITE_CONVEX_URL (raw):', rawConvexUrl || 'NOT SET');
+console.log('[CONVEX] ConvexReactClient URL:', convexUrl || 'NOT SET');
+
+if (!rawConvexUrl) {
+  console.error('⚠️ VITE_CONVEX_URL is not set. Convex features will not work.');
   console.log('📍 Current environment:', import.meta.env.MODE);
 }
 
-let convex;
-try {
-  convex = new ConvexReactClient(convexUrl || 'https://placeholder.convex.cloud');
-  console.log('✅ Convex client initialized successfully');
-} catch (error) {
-  console.error('❌ Failed to initialize Convex client:', error);
-  throw error; // Re-throw so error boundary catches it
-}
+const convex = new ConvexReactClient(convexUrl || 'https://placeholder.convex.cloud');
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -49,7 +50,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Routes>
             {/* Public routes - accessible to everyone */}
             <Route path="/" element={<LandingPage />} />
-            <Route path="/pricing" element={<LandingPage />} />
+            {/* Real pricing route (supports /pricing and /pricing/* for trailing slash) */}
+            <Route path="/pricing/*" element={<PricingPageWrapper />} />
             <Route path="/faq" element={<FAQPage />} />
             <Route path="/welcome" element={<WelcomePage />} />
 

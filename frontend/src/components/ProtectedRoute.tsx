@@ -86,7 +86,9 @@ export const AuthRoute: React.FC<PublicRouteProps> = ({
 
   // Redirect authenticated users to the app (or where they came from)
   if (isAuthenticated) {
-    const from = (location.state as any)?.from?.pathname || redirectTo;
+    const searchParams = new URLSearchParams(location.search);
+    const redirectParam = searchParams.get('redirect');
+    const from = redirectParam || (location.state as any)?.from?.pathname || redirectTo;
     return <Navigate to={from} replace />;
   }
 

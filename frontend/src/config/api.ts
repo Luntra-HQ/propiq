@@ -40,7 +40,8 @@ export const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     // Check multiple possible token storage keys for backward compatibility
-    const token = localStorage.getItem('propiq_token') ||
+    const token = localStorage.getItem('propiq_session_token') || // Convex session token
+                  localStorage.getItem('propiq_token') ||
                   localStorage.getItem('token') ||
                   localStorage.getItem('accessToken');
 

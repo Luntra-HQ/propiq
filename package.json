@@ -9,7 +9,7 @@
     "build:frontend": "echo '📦 Installing frontend dependencies...' && cd frontend && npm install && echo '🔨 Building frontend...' && npm run build:prod && echo '✅ Frontend build complete!'"
   },
   "dependencies": {
-    "convex": "^1.17.2"
+    "convex": "^1.31.2"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.0"

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from 'convex/react';
-import { api } from '../../convex/_generated/api';
-import { Id } from '../../convex/_generated/dataModel';
+import { api } from '../convex/_generated/api';
+import { Id } from '../convex/_generated/dataModel';
 import { Search, BookOpen, X, ThumbsUp, ThumbsDown, ArrowLeft, ExternalLink } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import DOMPurify from 'dompurify';
@@ -25,21 +25,21 @@ export const HelpCenter = ({ isOpen, onClose, userId, initialArticleSlug }: Help
   const [isSearching, setIsSearching] = useState(false);
   const [votedArticles, setVotedArticles] = useState<Set<string>>(new Set());
 
-  // Queries
-  const allArticles = useQuery(api.articles.getAllArticles, {
+  // Queries - use string references to bypass anyApi issues
+  const allArticles = useQuery("articles:getAllArticles" as any, {
     category: selectedCategory || undefined,
   });
-  const popularArticles = useQuery(api.articles.getPopularArticles, { limit: 5 });
-  const categories = useQuery(api.articles.getCategories, {});
-  const searchArticles = useQuery(api.articles.searchArticles, {
+  const popularArticles = useQuery("articles:getPopularArticles" as any, { limit: 5 });
+  const categories = useQuery("articles:getCategories" as any, {});
+  const searchArticles = useQuery("articles:searchArticles" as any, {
     query: searchQuery,
     category: selectedCategory || undefined,
   });
 
-  // Mutations
-  const incrementViewCount = useMutation(api.articles.incrementViewCount);
-  const submitFeedback = useMutation(api.articles.submitArticleFeedback);
-  const logFailedSearch = useMutation(api.articles.logFailedSearch);
+  // Mutations - use string references
+  const incrementViewCount = useMutation("articles:incrementViewCount" as any);
+  const submitFeedback = useMutation("articles:submitArticleFeedback" as any);
+  const logFailedSearch = useMutation("articles:logFailedSearch" as any);
 
   // Load initial article if provided
   useEffect(() => {

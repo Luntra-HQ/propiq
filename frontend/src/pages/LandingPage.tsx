@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Zap,
   BarChart,
@@ -17,10 +17,21 @@ import {
   ArrowRight,
   Star,
   Lock,
+  LogOut,
 } from 'lucide-react';
 import { calculateAllMetrics, formatCurrency, formatPercent } from '../utils/calculatorUtils';
 
 const LandingPage: React.FC = () => {
+  const navigate = useNavigate();
+
+  // Check if user is logged in (simple localStorage check)
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const userId = localStorage.getItem('propiq_user_id');
+    setIsLoggedIn(!!userId);
+  }, []);
+
   // Usage tracking
   const [usageCount, setUsageCount] = useState(0);
   const [isLimited, setIsLimited] = useState(false);
@@ -86,6 +97,13 @@ const LandingPage: React.FC = () => {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('propiq_user_id');
+    localStorage.removeItem('propiq_user_email');
+    localStorage.removeItem('propiq_session_token');
+    window.location.reload();
+  };
+
   return (
     <div className="min-h-screen bg-slate-900 text-white">
       {/* Navigation */}
@@ -116,14 +134,40 @@ const LandingPage: React.FC = () => {
               </Link>
             </div>
 
-            {/* CTA */}
+            {/* Auth Buttons */}
             <div className="flex items-center gap-4">
-              <a
-                href="#waitlist"
-                className="px-4 py-2 bg-violet-600 hover:bg-violet-700 rounded-lg font-medium transition"
-              >
-                Join Waitlist
-              </a>
+              {isLoggedIn ? (
+                <>
+                  <Link
+                    to="/app"
+                    className="text-gray-300 hover:text-white transition font-medium"
+                  >
+                    Dashboard
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 px-4 py-2 text-gray-300 hover:text-white border border-gray-700 hover:border-gray-600 rounded-lg transition"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    className="text-gray-300 hover:text-white transition font-medium"
+                  >
+                    Login
+                  </Link>
+                  <a
+                    href="#waitlist"
+                    className="px-4 py-2 bg-violet-600 hover:bg-violet-700 rounded-lg font-medium transition"
+                  >
+                    Sign Up
+                  </a>
+                </>
+              )}
             </div>
           </div>
         </div>

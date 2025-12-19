@@ -9,7 +9,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from 'convex/react';
-import { api } from '../../convex/_generated/api';
+import { api } from '../convex/_generated/api';
 import { validatePassword } from '../utils/passwordValidation';
 import { PasswordStrengthIndicator } from '../components/PasswordStrengthIndicator';
 import {

@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Target, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, X, Loader2, FileText, MapPin, DollarSign, BarChart3, Lightbulb, ArrowRight, Zap, Info } from 'lucide-react';
-import { apiClient, API_ENDPOINTS } from '../config/api';
+import { useAction } from 'convex/react';
+import type { Id } from '../../convex/_generated/dataModel';
 import { PrintButton } from './PrintButton';
 import { PDFExportButton } from './PDFExportButton';
 import { Tooltip } from './Tooltip';
@@ -59,22 +60,18 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
   const [error, setError] = useState<string | null>(null);
   const [usesRemaining, setUsesRemaining] = useState<number | null>(null);
 
-  // Address validation state
-  const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
-  const [showValidation, setShowValidation] = useState(false);
+  // Convex action for analysis (avoid REST API drift + prevents auth header issues)
+  // Using string reference avoids anyApi proxy edge-cases in production builds.
+  const analyzeProperty = useAction('propiq:analyzeProperty' as any);
 
-  // Real-time address validation
-  useEffect(() => {
-    if (address.trim().length > 0) {
-      const result = validateAddress(address);
-      setValidationResult(result);
-      // Only show validation after user has typed at least 10 characters
-      setShowValidation(address.trim().length >= 10);
-    } else {
-      setValidationResult(null);
-      setShowValidation(false);
-    }
+  // Compute validation without extra setState loops (prevents flicker/flash while typing)
+  const validationResult: ValidationResult | null = useMemo(() => {
+    const trimmed = address.trim();
+    if (!trimmed) return null;
+    return validateAddress(trimmed);
   }, [address]);
+
+  const showValidation = address.trim().length >= 10;
 
   const loadSampleProperty = () => {
     // Sample property: Realistic Austin rental for demo
@@ -90,25 +87,23 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
     const trimmedAddress = address.trim();
 
     // Check authentication first
-    if (!authToken) {
+    if (!authToken || !userId) {
       setError('You must be logged in to use PropIQ Analysis');
       return;
     }
 
-    // Use comprehensive validation
-    const validation = validateAddress(trimmedAddress);
+    // Use computed validation (avoids re-validating on every click)
+    const validation = validationResult || validateAddress(trimmedAddress);
 
     if (!validation.valid) {
       // Show first error message
       setError(validation.errors[0] || 'Please enter a valid address');
-      setShowValidation(true);
       return;
     }
 
     // Show warnings but allow user to proceed
     if (validation.warnings.length > 0 && validation.confidence === 'low') {
       setError('Address may be incomplete. Please verify before continuing.');
-      setShowValidation(true);
       return;
     }
 
@@ -116,31 +111,40 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
     setError(null);
 
     try {
-      const response = await apiClient.post(API_ENDPOINTS.PROPIQ_ANALYZE, {
-        address: address.trim(),
-        propertyType,
-        purchasePrice: purchasePrice || null,
-        downPayment: downPayment || null,
-        interestRate: interestRate || null,
+      const result = await analyzeProperty({
+        userId: userId as Id<'users'>,
+        address: trimmedAddress,
+        // Backend supports these optional fields; keep them aligned with Convex.
+        purchasePrice: typeof purchasePrice === 'number' ? purchasePrice : undefined,
+        downPayment: typeof downPayment === 'number' ? downPayment : undefined,
+        monthlyRent: undefined,
       });
 
-      if (response.data.success) {
-        setAnalysis(response.data.analysis);
-        setUsesRemaining(response.data.usesRemaining);
+      if (result?.success && result.analysis) {
+        // Convex returns analysis JSON object; map into UI shape (best-effort).
+        setAnalysis(result.analysis as any);
+        // In Convex, this is `analysesRemaining`.
+        setUsesRemaining(result.analysesRemaining ?? null);
         setStep('results');
       } else {
-        setError(response.data.error || 'Analysis failed');
+        setError(result?.error || 'Analysis failed');
         setStep('input');
       }
     } catch (err: any) {
       console.error('PropIQ Analysis error:', err);
 
-      if (err.response?.status === 403) {
+      const message =
+        err?.data?.message ||
+        err?.message ||
+        'Failed to analyze property. Please try again.';
+
+      // Preserve the exact backend message when available (helps debugging).
+      if (typeof message === 'string' && message.toLowerCase().includes('limit')) {
         setError('No analyses remaining. Please upgrade to a paid plan.');
-      } else if (err.response?.status === 401) {
+      } else if (typeof message === 'string' && message.toLowerCase().includes('session')) {
         setError('Session expired. Please log in again.');
       } else {
-        setError(err.response?.data?.detail || 'Failed to analyze property. Please try again.');
+        setError(message);
       }
 
       setStep('input');

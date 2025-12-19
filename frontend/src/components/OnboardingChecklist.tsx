@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from 'convex/react';
-import { api } from '../../convex/_generated/api';
-import { Id } from '../../convex/_generated/dataModel';
+import { api } from '../convex/_generated/api';
+import { Id } from '../convex/_generated/dataModel';
 import { CheckCircle2, Circle, X, ChevronDown, ChevronUp, Trophy, Sparkles } from 'lucide-react';
 import './OnboardingChecklist.css';
 
@@ -14,12 +14,12 @@ export const OnboardingChecklist = ({ userId }: OnboardingChecklistProps) => {
   const [isDismissed, setIsDismissed] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
 
-  // Query progress
-  const progress = useQuery(api.onboarding.getProgress, { userId });
-  const completionPercentage = useQuery(api.onboarding.getCompletionPercentage, { userId });
+  // Query progress - use string references to bypass anyApi issues
+  const progress = useQuery("onboarding:getProgress" as any, { userId });
+  const completionPercentage = useQuery("onboarding:getCompletionPercentage" as any, { userId });
 
-  // Mutation
-  const dismissChecklist = useMutation(api.onboarding.dismissChecklist);
+  // Mutation - use string reference
+  const dismissChecklist = useMutation("onboarding:dismissChecklist" as any);
 
   // Check if we should show the checklist
   useEffect(() => {

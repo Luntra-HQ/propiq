@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect, lazy, Suspense, useMemo } from 'react';
 import { Zap, Target, Lock, CreditCard, X, DollarSign, Loader2, BarChart, HelpCircle } from 'lucide-react';
 import { CookieConsent } from './components/CookieConsent';
 import { Dashboard } from './components/Dashboard';
@@ -388,7 +388,15 @@ const App = () => {
   const { user, isLoading: authLoading, logout: authLogout, sessionToken } = useAuth();
 
   // Convex action for Stripe checkout
-  const createCheckout = useAction(api.payments.createCheckoutSession);
+  // Use string reference instead of api.payments.createCheckoutSession
+  // This bypasses anyApi proxy issues in production builds
+  const createCheckout = useAction("payments:createCheckoutSession" as any);
+
+  // Memoize user ID to prevent unnecessary re-renders
+  const memoizedUserId = useMemo(() => user?._id, [user?._id]);
+  const memoizedUserEmail = useMemo(() => user?.email, [user?.email]);
+  const memoizedAnalysesUsed = useMemo(() => user?.analysesUsed || 0, [user?.analysesUsed]);
+  const memoizedTier = useMemo(() => user?.subscriptionTier || 'free', [user?.subscriptionTier]);
 
   // Sync auth state with local component state
   useEffect(() => {
@@ -404,13 +412,13 @@ const App = () => {
 
     if (user) {
       console.log('[APP] User data synced:', user.email);
-      setUserId(user._id);
-      setUserEmail(user.email);
-      setPropIqUsed(user.analysesUsed || 0);
-      setCurrentTier(user.subscriptionTier || 'free');
+      setUserId(memoizedUserId);
+      setUserEmail(memoizedUserEmail);
+      setPropIqUsed(memoizedAnalysesUsed);
+      setCurrentTier(memoizedTier);
     }
     // Note: No need to handle unauthenticated case - ProtectedRoute handles it
-  }, [user, authLoading]);
+  }, [memoizedUserId, memoizedUserEmail, memoizedAnalysesUsed, memoizedTier, authLoading]);
 
   // Effect to show upgrade prompts based on usage thresholds
   useEffect(() => {

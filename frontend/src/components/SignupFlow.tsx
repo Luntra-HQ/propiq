@@ -12,8 +12,10 @@
 
 import { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff, Check, X, Loader2, Sparkles } from 'lucide-react';
-import { signup, type SignupData } from '../utils/auth';
+import { handleAuthSuccess } from '../utils/auth';
 import './SignupFlow.css';
+
+const CONVEX_SITE_URL = import.meta.env.VITE_CONVEX_URL?.replace('.convex.cloud', '.convex.site') || 'https://diligent-starling-125.convex.site';
 
 interface SignupFlowProps {
   onSuccess: (userData: any) => void;
@@ -80,14 +82,35 @@ export const SignupFlow: React.FC<SignupFlowProps> = ({
     setError('');
 
     try {
-      const signupData: SignupData = {
+      const signupData = {
         email: email.toLowerCase().trim(),
         password
       };
 
-      const result = await signup(signupData);
+      // Call Convex HTTP endpoint for signup
+      const response = await fetch(`${CONVEX_SITE_URL}/auth/signup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(signupData),
+      });
 
-      if (result.success) {
+      const result = await response.json();
+
+      if (result.success && result.user) {
+        // Store auth data in localStorage
+        handleAuthSuccess(
+          result.user._id,
+          result.user.email,
+          result.user.subscriptionTier
+        );
+
+        // Store session token
+        if (result.sessionToken) {
+          localStorage.setItem('propiq_session_token', result.sessionToken);
+        }
+
         // Track signup completion
         if (window.gtag) {
           window.gtag('event', 'signup_complete', {
@@ -95,12 +118,13 @@ export const SignupFlow: React.FC<SignupFlowProps> = ({
           });
         }
 
-        onSuccess(result);
+        onSuccess(result.user);
       } else {
         setError(result.error || 'Signup failed. Please try again.');
       }
     } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred');
+      console.error('[SIGNUP] Error:', err);
+      setError(err.message || 'An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }

@@ -39,7 +39,9 @@ const LoginPage: React.FC = () => {
   const [company, setCompany] = useState('');
 
   // Where to redirect after login
-  const from = (location.state as any)?.from?.pathname || '/app';
+  const searchParams = new URLSearchParams(location.search);
+  const redirectParam = searchParams.get('redirect');
+  const from = redirectParam || (location.state as any)?.from?.pathname || '/app';
 
   const resetForm = () => {
     setEmail('');
