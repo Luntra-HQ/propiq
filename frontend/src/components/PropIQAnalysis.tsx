@@ -530,33 +530,35 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
             )}
 
             {/* Location & Market */}
-            <div className="propiq-section">
-              <div className="propiq-section-header">
-                <MapPin className="h-5 w-5 text-violet-300" />
-                <h3>Location & Market</h3>
+            {analysis.location && (
+              <div className="propiq-section">
+                <div className="propiq-section-header">
+                  <MapPin className="h-5 w-5 text-violet-300" />
+                  <h3>Location & Market</h3>
+                </div>
+                <div className="propiq-metrics">
+                  <div className="propiq-metric">
+                    <span className="propiq-metric-label">Neighborhood</span>
+                    <span className="propiq-metric-value">{analysis.location.neighborhood}</span>
+                  </div>
+                  <div className="propiq-metric">
+                    <span className="propiq-metric-label">City, State</span>
+                    <span className="propiq-metric-value">{analysis.location.city}, {analysis.location.state}</span>
+                  </div>
+                  <div className="propiq-metric">
+                    <span className="propiq-metric-label">Market Trend</span>
+                    <span className="propiq-metric-value">
+                      {getMarketTrendIcon(analysis.location.marketTrend)}
+                      {analysis.location.marketTrend.toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="propiq-metric">
+                    <span className="propiq-metric-label">Market Score</span>
+                    <span className="propiq-metric-value">{analysis.location.marketScore}/100</span>
+                  </div>
+                </div>
               </div>
-              <div className="propiq-metrics">
-                <div className="propiq-metric">
-                  <span className="propiq-metric-label">Neighborhood</span>
-                  <span className="propiq-metric-value">{analysis.location.neighborhood}</span>
-                </div>
-                <div className="propiq-metric">
-                  <span className="propiq-metric-label">City, State</span>
-                  <span className="propiq-metric-value">{analysis.location.city}, {analysis.location.state}</span>
-                </div>
-                <div className="propiq-metric">
-                  <span className="propiq-metric-label">Market Trend</span>
-                  <span className="propiq-metric-value">
-                    {getMarketTrendIcon(analysis.location.marketTrend)}
-                    {analysis.location.marketTrend.toUpperCase()}
-                  </span>
-                </div>
-                <div className="propiq-metric">
-                  <span className="propiq-metric-label">Market Score</span>
-                  <span className="propiq-metric-value">{analysis.location.marketScore}/100</span>
-                </div>
-              </div>
-            </div>
+            )}
 
             {/* Financial Metrics */}
             <div className="propiq-section">
