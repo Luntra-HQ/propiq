@@ -11,6 +11,8 @@
 import React, { useState } from 'react';
 import { X, Mail, Lock, User, Building, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { validatePassword } from '../utils/passwordValidation';
+import { PasswordStrengthIndicator } from './PasswordStrengthIndicator';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -56,6 +58,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     e.preventDefault();
     setError(null);
     setSuccess(null);
+
+    // Validate password strength for signup
+    if (mode === 'signup') {
+      const passwordCheck = validatePassword(password);
+      if (!passwordCheck.isValid) {
+        setError(passwordCheck.feedback);
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
@@ -234,14 +246,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 className="w-full pl-10 pr-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500"
                 placeholder="••••••••"
                 required
-                minLength={8}
                 disabled={loading}
               />
             </div>
             {mode === 'signup' && (
-              <p className="mt-1 text-xs text-gray-400">
-                Must be at least 8 characters
-              </p>
+              <PasswordStrengthIndicator password={password} showRequirements={true} />
             )}
           </div>
 

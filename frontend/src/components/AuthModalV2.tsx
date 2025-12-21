@@ -18,6 +18,8 @@ import { Mail, Lock, User, Building, Loader2, AlertCircle, CheckCircle } from 'l
 import { useAuth } from '../hooks/useAuth';
 import { Button } from '@/components/ui/Button';
 import { FormInput } from '@/components/ui/FormInput';
+import { validatePassword } from '../utils/passwordValidation';
+import { PasswordStrengthIndicator } from './PasswordStrengthIndicator';
 import {
   Dialog,
   DialogContent,
@@ -89,9 +91,14 @@ export const AuthModalV2 = ({
     if (!password) {
       setPasswordError('Password is required');
       isValid = false;
-    } else if (mode === 'signup' && password.length < 8) {
-      setPasswordError('Password must be at least 8 characters');
-      isValid = false;
+    } else if (mode === 'signup') {
+      const passwordCheck = validatePassword(password);
+      if (!passwordCheck.isValid) {
+        setPasswordError(passwordCheck.feedback);
+        isValid = false;
+      } else {
+        setPasswordError('');
+      }
     } else {
       setPasswordError('');
     }
