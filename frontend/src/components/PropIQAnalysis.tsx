@@ -59,6 +59,8 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
   const [analysis, setAnalysis] = useState<AnalysisData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [usesRemaining, setUsesRemaining] = useState<number | null>(null);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [savedAnalysisId, setSavedAnalysisId] = useState<string | null>(null);
 
   // Convex action for analysis (avoid REST API drift + prevents auth header issues)
   // Using string reference avoids anyApi proxy edge-cases in production builds.
@@ -125,7 +127,16 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
         setAnalysis(result.analysis as any);
         // In Convex, this is `analysesRemaining`.
         setUsesRemaining(result.analysesRemaining ?? null);
+        // Save analysis ID for reference
+        setSavedAnalysisId(result.analysisId || null);
+        // Show success message
+        setShowSuccessMessage(true);
         setStep('results');
+
+        // Auto-hide success message after 10 seconds
+        setTimeout(() => {
+          setShowSuccessMessage(false);
+        }, 10000);
       } else {
         setError(result?.error || 'Analysis failed');
         setStep('input');
@@ -138,16 +149,37 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
         err?.message ||
         'Failed to analyze property. Please try again.';
 
-      // Preserve the exact backend message when available (helps debugging).
-      if (typeof message === 'string' && message.toLowerCase().includes('limit')) {
-        setError('No analyses remaining. Please upgrade to a paid plan.');
-      } else if (typeof message === 'string' && message.toLowerCase().includes('session')) {
-        setError('Session expired. Please log in again.');
+      // Provide clear, actionable error messages
+      let userMessage = '';
+      if (typeof message === 'string') {
+        const lowerMessage = message.toLowerCase();
+        if (lowerMessage.includes('limit') || lowerMessage.includes('quota')) {
+          userMessage = '⚠️ Analysis limit reached. You\'ve used all your free analyses. Please upgrade to continue.';
+        } else if (lowerMessage.includes('session') || lowerMessage.includes('auth') || lowerMessage.includes('login')) {
+          userMessage = '🔒 Session expired. Please log in again to continue analyzing properties.';
+        } else if (lowerMessage.includes('not found')) {
+          userMessage = '❌ User account not found. Please try logging out and back in.';
+        } else if (lowerMessage.includes('network') || lowerMessage.includes('timeout')) {
+          userMessage = '📡 Network error. Please check your internet connection and try again.';
+        } else if (lowerMessage.includes('save') || lowerMessage.includes('database')) {
+          userMessage = '💾 Failed to save analysis. Your report was generated but may not be saved. Please try again.';
+        } else {
+          userMessage = `❌ ${message}`;
+        }
       } else {
-        setError(message);
+        userMessage = '❌ An unexpected error occurred. Please try again or contact support if the issue persists.';
       }
 
+      setError(userMessage);
       setStep('input');
+
+      // Log detailed error for debugging (viewable in browser console)
+      console.error('PropIQ Analysis detailed error:', {
+        originalError: err,
+        message: message,
+        userMessage: userMessage,
+        timestamp: new Date().toISOString(),
+      });
     }
   };
 
@@ -488,6 +520,62 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
         {/* Results */}
         {step === 'results' && analysis && (
           <div className="propiq-results" id="propiq-analysis-results">
+            {/* Success Message Banner */}
+            {showSuccessMessage && (
+              <div className="propiq-success-banner" style={{
+                padding: '16px',
+                marginBottom: '24px',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                border: '1px solid rgba(16, 185, 129, 0.3)',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                animation: 'slideInDown 0.3s ease-out'
+              }}>
+                <CheckCircle className="h-5 w-5 text-emerald-400 flex-shrink-0" />
+                <div style={{ flex: 1 }}>
+                  <h4 style={{
+                    margin: 0,
+                    fontSize: '16px',
+                    fontWeight: 600,
+                    color: '#10b981',
+                    marginBottom: '4px'
+                  }}>
+                    Analysis Saved Successfully! ✓
+                  </h4>
+                  <p style={{
+                    margin: 0,
+                    fontSize: '14px',
+                    color: 'rgba(255, 255, 255, 0.7)'
+                  }}>
+                    Your analysis has been saved to your account.{' '}
+                    {savedAnalysisId && <span style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)' }}>
+                      (ID: {savedAnalysisId.slice(0, 8)}...)
+                    </span>}
+                    {usesRemaining !== null && (
+                      <span style={{ marginLeft: '8px', fontWeight: 500, color: '#10b981' }}>
+                        {usesRemaining} {usesRemaining === 1 ? 'analysis' : 'analyses'} remaining.
+                      </span>
+                    )}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowSuccessMessage(false)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'rgba(255, 255, 255, 0.5)',
+                    cursor: 'pointer',
+                    padding: '4px'
+                  }}
+                  aria-label="Dismiss success message"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+
             {/* Executive Summary */}
             <div className="propiq-section propiq-summary">
               <FileText className="h-5 w-5 text-violet-300" />
