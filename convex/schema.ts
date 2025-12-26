@@ -274,4 +274,15 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_score", ["score"])
     .index("by_date", ["createdAt"]),
+
+  // Email logs - Track onboarding and transactional emails
+  emailLogs: defineTable({
+    userId: v.id("users"),
+    emailType: v.string(), // "onboarding_day_1" | "onboarding_day_2" | etc.
+    sentAt: v.number(),
+    opened: v.optional(v.boolean()),
+    clicked: v.optional(v.boolean()),
+  })
+    .index("by_user", ["userId"])
+    .index("by_type", ["emailType"]),
 });

@@ -5,6 +5,7 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { api } from "./_generated/api";
 
 // ============================================
 // PASSWORD VALIDATION
@@ -823,6 +824,13 @@ export const signupWithSession = mutation({
     const sessionToken = sessionId.toString();
 
     console.log("[AUTH] Signup with session for user:", email, "token:", sessionToken);
+
+    // Trigger Day 1 onboarding email
+    await ctx.scheduler.runAfter(0, api.emails.sendOnboardingDay1, {
+      userId: userId,
+      email: email,
+      name: args.firstName,
+    });
 
     return {
       success: true,
