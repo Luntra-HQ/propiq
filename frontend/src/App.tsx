@@ -2,6 +2,7 @@ import React, { useState, useEffect, lazy, Suspense, useMemo } from 'react';
 import { Zap, Target, Lock, CreditCard, X, DollarSign, Loader2, BarChart, HelpCircle } from 'lucide-react';
 import { CookieConsent } from './components/CookieConsent';
 import { Dashboard } from './components/Dashboard';
+import { TrialCountdownCompact } from './components/TrialCountdown';
 import {
   SkipLink,
   CommandPalette,
@@ -131,7 +132,8 @@ const Header = ({
   onLogout,
   onHelpClick,
   onManageSubscription,
-  onSettingsClick
+  onSettingsClick,
+  onUpgrade
 }: {
   propIqUsed: number;
   propIqLimit: number;
@@ -142,6 +144,7 @@ const Header = ({
   onHelpClick: () => void;
   onManageSubscription?: () => void;
   onSettingsClick?: () => void;
+  onUpgrade?: () => void;
 }) => {
   const tierConfig = PRICING_TIERS[currentTier] || PRICING_TIERS.free;
   const isPaidTier = currentTier !== 'free';
@@ -176,7 +179,20 @@ const Header = ({
             <span className="text-xs font-medium text-gray-200">{tierConfig.displayName}</span>
           </div>
         )}
-        <UsageBadge used={propIqUsed} limit={propIqLimit} />
+        {/* Show trial counter for free users, usage badge for paid users */}
+        {currentTier === 'free' && onUpgrade ? (
+          <TrialCountdownCompact
+            status={{
+              tier: 'free',
+              analysesUsed: propIqUsed,
+              analysesLimit: propIqLimit,
+              isTrialActive: true
+            }}
+            onUpgrade={onUpgrade}
+          />
+        ) : (
+          <UsageBadge used={propIqUsed} limit={propIqLimit} />
+        )}
         <button
           onClick={onHelpClick}
           className="flex items-center space-x-1 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-gray-300 hover:text-white rounded-lg transition-colors"
@@ -812,6 +828,7 @@ const App = () => {
         onHelpClick={() => setShowHelpCenter(true)}
         onManageSubscription={handleManageSubscription}
         onSettingsClick={() => setShowSettings(true)}
+        onUpgrade={handleUpgradeClick}
       />
 
       {/* Onboarding Checklist (shows for first 7 days) */}

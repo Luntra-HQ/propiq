@@ -299,4 +299,19 @@ export default defineSchema({
     .index("by_timestamp", ["timestamp"])
     .index("by_action", ["action"])
     .index("by_user", ["userId"]),
+
+  // Email logs - Track onboarding and marketing emails
+  emailLogs: defineTable({
+    userId: v.id("users"),
+    emailType: v.string(), // "onboarding_day_1" | "onboarding_day_2" | etc.
+    sentAt: v.number(),
+    resendId: v.optional(v.string()), // Resend email ID for tracking
+    opened: v.boolean(),
+    clicked: v.boolean(),
+    openedAt: v.optional(v.number()),
+    clickedAt: v.optional(v.number()),
+  })
+    .index("by_user", ["userId"])
+    .index("by_type", ["emailType"])
+    .index("by_sent_date", ["sentAt"]),
 });

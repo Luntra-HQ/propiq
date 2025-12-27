@@ -5,6 +5,7 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
 import bcrypt from "bcryptjs";
 
 // ============================================
@@ -95,6 +96,13 @@ export const signup = mutation({
       active: true,
       emailVerified: false,
       createdAt: Date.now(),
+    });
+
+    // Trigger Day 1 onboarding email (non-blocking)
+    await ctx.scheduler.runAfter(0, internal.emails.sendOnboardingDay1, {
+      userId,
+      email,
+      firstName: args.firstName,
     });
 
     return {
