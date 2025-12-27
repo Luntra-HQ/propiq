@@ -21,6 +21,9 @@ const HelpCenter = lazy(() => import('./components/HelpCenter').then(m => ({ def
 const OnboardingChecklist = lazy(() => import('./components/OnboardingChecklist').then(m => ({ default: m.OnboardingChecklist })));
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
 const ComponentTestPage = lazy(() => import('./pages/ComponentTestPage'));
+const ReferralLanding = lazy(() => import('./pages/ReferralLanding'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const SharedAnalysis = lazy(() => import('./pages/SharedAnalysis'));
 
 // Import hook directly (small, needed for initial render logic)
 import { useShouldShowTour } from './components/ProductTour';
@@ -784,11 +787,30 @@ const App = () => {
     currentTheme,
   });
 
+  // Public routes (no auth required) - check these first
+  // Referral Landing Page (PUBLIC - /r/:code)
+  if (window.location.pathname.startsWith('/r/')) {
+    return (
+      <Suspense fallback={<SuspenseFallback minHeight="100vh" />}>
+        <ReferralLanding />
+      </Suspense>
+    );
+  }
+
+  // Shared Analysis Page (PUBLIC - /a/:shareToken)
+  if (window.location.pathname.startsWith('/a/')) {
+    return (
+      <Suspense fallback={<SuspenseFallback minHeight="100vh" />}>
+        <SharedAnalysis />
+      </Suspense>
+    );
+  }
+
   if (isLoading) {
     return <LoadingScreen />;
   }
 
-  // Show auth modal if not logged in
+  // Show auth modal if not logged in (for protected routes)
   if (!userId) {
     return (
       <>
@@ -808,6 +830,25 @@ const App = () => {
     return (
       <Suspense fallback={<SuspenseFallback minHeight="100vh" />}>
         <ComponentTestPage />
+      </Suspense>
+    );
+  }
+
+  // Admin Dashboard (PROTECTED - requires admin)
+  if (window.location.pathname === '/admin') {
+    // Admin check - only bdusape@gmail.com is admin for now
+    const isAdmin = userEmail === 'bdusape@gmail.com';
+
+    if (!isAdmin) {
+      // Redirect to dashboard with alert
+      alert('Access denied. Admin privileges required.');
+      window.location.href = '/';
+      return <LoadingScreen />;
+    }
+
+    return (
+      <Suspense fallback={<SuspenseFallback minHeight="100vh" />}>
+        <AdminDashboard />
       </Suspense>
     );
   }
