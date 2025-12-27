@@ -859,6 +859,13 @@ export const signupWithSession = mutation({
     // The session _id IS the token - this is what validateSession expects
     const sessionToken = sessionId.toString();
 
+    // Trigger Day 1 onboarding email (non-blocking)
+    await ctx.scheduler.runAfter(0, internal.emails.sendOnboardingDay1, {
+      userId,
+      email,
+      firstName: args.firstName,
+    });
+
     console.log("[AUTH] Signup with session for user:", email, "token:", sessionToken);
 
     return {

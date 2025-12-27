@@ -9,7 +9,7 @@ import { internal } from "./_generated/api";
 
 // Resend configuration
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const FROM_EMAIL = "onboarding@resend.dev"; // Resend sandbox domain
+const FROM_EMAIL = "PropIQ <hello@propiq.luntra.one>"; // Verified domain via Cloudflare
 const APP_URL = "https://propiq.luntra.one";
 
 /**
