@@ -12,9 +12,10 @@ interface PropIQAnalysisProps {
   onClose: () => void;
   userId: string | null;
   authToken: string | null;
+  onAnalysisComplete?: () => void;
 }
 
-interface AnalysisData {
+interface AnalysisData{
   summary: string;
   location: {
     neighborhood: string;
@@ -49,7 +50,7 @@ interface AnalysisData {
   };
 }
 
-export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId, authToken }) => {
+export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId, authToken, onAnalysisComplete }) => {
   const [step, setStep] = useState<'input' | 'loading' | 'results'>('input');
   const [address, setAddress] = useState('');
   const [propertyType, setPropertyType] = useState('single_family');
@@ -132,6 +133,9 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
         // Show success message
         setShowSuccessMessage(true);
         setStep('results');
+
+        // Refresh user data to update trial counter in real-time
+        onAnalysisComplete?.();
 
         // Auto-hide success message after 10 seconds
         setTimeout(() => {

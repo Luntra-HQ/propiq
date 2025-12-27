@@ -431,7 +431,7 @@ const App = () => {
 
   // Use server-side session auth (httpOnly cookies)
   // Note: App is wrapped in ProtectedRoute, so user is always authenticated here
-  const { user, isLoading: authLoading, logout: authLogout, sessionToken } = useAuth();
+  const { user, isLoading: authLoading, logout: authLogout, sessionToken, refreshUser } = useAuth();
 
   // Convex action for Stripe checkout
   // Use string reference instead of api.payments.createCheckoutSession
@@ -939,6 +939,10 @@ const App = () => {
             onClose={() => setShowPropIQAnalysis(false)}
             userId={userId}
             authToken={sessionToken}
+            onAnalysisComplete={() => {
+              // Refresh user data to update trial counter in real-time
+              refreshUser();
+            }}
           />
         )}
       </Suspense>
