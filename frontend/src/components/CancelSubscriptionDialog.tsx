@@ -11,11 +11,11 @@ interface CancelSubscriptionDialogProps {
 
 const CANCELLATION_REASONS = [
   { value: 'too_expensive', label: 'Too expensive' },
-  { value: 'not_using', label: 'Not using it enough' },
+  { value: 'not_enough_value', label: 'Not getting enough value' },
+  { value: 'switching_competitor', label: 'Switching to a competitor' },
+  { value: 'pause_investing', label: 'Pausing real estate investing' },
   { value: 'missing_features', label: 'Missing features I need' },
-  { value: 'switching_provider', label: 'Switching to another provider' },
-  { value: 'temporary_pause', label: 'Need a temporary break' },
-  { value: 'other', label: 'Other reason' },
+  { value: 'other', label: 'Other' },
 ];
 
 export const CancelSubscriptionDialog: React.FC<CancelSubscriptionDialogProps> = ({

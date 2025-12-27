@@ -290,6 +290,18 @@ export const updateProfile = mutation({
   },
 });
 
+// Generic user update mutation (for internal use by other mutations/actions)
+export const updateUser = mutation({
+  args: {
+    userId: v.id("users"),
+    updates: v.any(), // Flexible updates object
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.userId, args.updates);
+    return { success: true };
+  },
+});
+
 // ============================================
 // SECURE PASSWORD HASHING (PBKDF2-SHA256)
 // ============================================
