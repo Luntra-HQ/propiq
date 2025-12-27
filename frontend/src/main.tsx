@@ -16,6 +16,7 @@ const WelcomePage = lazy(() => import('./pages/WelcomePage'))
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
 const FAQPage = lazy(() => import('./pages/FAQPage'))
 const PricingPageWrapper = lazy(() => import('./pages/PricingPageWrapper'))
+const ReferralLandingPage = lazy(() => import('./pages/ReferralLandingPage'))
 const App = lazy(() => import('./App'))
 
 import './index.css'
@@ -73,6 +74,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                 <Route path="/pricing/*" element={<PricingPageWrapper />} />
                 <Route path="/faq" element={<FAQPage />} />
                 <Route path="/welcome" element={<WelcomePage />} />
+
+                {/* Referral landing page - /r/CODE */}
+                <Route path="/r/:code" element={<ReferralLandingPage />} />
 
                 {/* Auth routes - redirect to /app if already logged in */}
                 <Route

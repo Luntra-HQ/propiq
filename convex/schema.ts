@@ -35,6 +35,11 @@ export default defineSchema({
     // Tier change history
     previousTier: v.optional(v.string()),
 
+    // Referral program
+    referralCode: v.optional(v.string()), // Unique code like "BRIAN-A1B2"
+    referredBy: v.optional(v.id("users")), // User who referred them
+    referralRewardClaimed: v.optional(v.boolean()), // Has referrer been rewarded?
+
     // Account status
     active: v.boolean(),
     emailVerified: v.boolean(),
@@ -45,7 +50,8 @@ export default defineSchema({
     updatedAt: v.optional(v.number()),
   })
     .index("by_email", ["email"])
-    .index("by_stripe_customer", ["stripeCustomerId"]),
+    .index("by_stripe_customer", ["stripeCustomerId"])
+    .index("by_referral_code", ["referralCode"]),
 
   // Property analyses - AI-powered property analysis results
   propertyAnalyses: defineTable({
@@ -314,4 +320,26 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_type", ["emailType"])
     .index("by_sent_date", ["sentAt"]),
+
+  // Referrals - Track referral relationships and rewards
+  referrals: defineTable({
+    referrerId: v.id("users"), // User who referred
+    referredId: v.id("users"), // User who was referred
+    referralCode: v.string(), // Code that was used
+    status: v.string(), // "pending" | "converted" | "rewarded"
+
+    // Reward tracking
+    rewardGranted: v.boolean(), // Has the referrer been rewarded?
+    rewardGrantedAt: v.optional(v.number()),
+    rewardType: v.optional(v.string()), // "1_month_free" | "discount" | etc.
+    stripeCouponId: v.optional(v.string()), // Stripe coupon ID if applicable
+
+    // Timestamps
+    createdAt: v.number(), // When referral link was clicked
+    convertedAt: v.optional(v.number()), // When referred user subscribed
+  })
+    .index("by_referrer", ["referrerId"])
+    .index("by_referred", ["referredId"])
+    .index("by_status", ["status"])
+    .index("by_code", ["referralCode"]),
 });

@@ -181,7 +181,7 @@ http.route({
   handler: httpAction(async (ctx, request) => {
     try {
       const body = await request.json();
-      const { email, password, firstName, lastName, company } = body;
+      const { email, password, firstName, lastName, company, referralCode } = body;
 
       if (!email || !password) {
         return new Response(
@@ -197,6 +197,7 @@ http.route({
         firstName,
         lastName,
         company,
+        referralCode,
         userAgent: request.headers.get("User-Agent") || undefined,
       });
 

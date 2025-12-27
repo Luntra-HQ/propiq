@@ -816,6 +816,7 @@ export const signupWithSession = mutation({
     firstName: v.optional(v.string()),
     lastName: v.optional(v.string()),
     company: v.optional(v.string()),
+    referralCode: v.optional(v.string()),
     userAgent: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -870,6 +871,21 @@ export const signupWithSession = mutation({
 
     // The session _id IS the token - this is what validateSession expects
     const sessionToken = sessionId.toString();
+
+    // Track referral if code was provided
+    if (args.referralCode) {
+      try {
+        const { trackReferral } = await import("./referrals");
+        await trackReferral(ctx, {
+          referredUserId: userId,
+          referralCode: args.referralCode,
+        });
+        console.log(`[AUTH] Tracked referral for ${email} with code ${args.referralCode}`);
+      } catch (e) {
+        console.error(`[AUTH] Failed to track referral:`, e);
+        // Don't fail signup if referral tracking fails
+      }
+    }
 
     // Trigger Day 1 onboarding email (non-blocking)
     await ctx.scheduler.runAfter(0, internal.emails.sendOnboardingDay1, {

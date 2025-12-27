@@ -236,12 +236,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       console.log('[AUTH] Signing up...');
 
+      // Check for referral code in localStorage
+      const referralCode = localStorage.getItem('referralCode');
+      if (referralCode) {
+        console.log('[AUTH] Including referral code:', referralCode);
+      }
+
       const response = await fetch(AUTH_ENDPOINTS.signup, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          referralCode: referralCode || undefined,
+        }),
       });
 
       const result = await response.json();
@@ -259,6 +268,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           error: null,
           sessionToken: result.sessionToken,
         });
+
+        // Clear referral code after successful signup
+        localStorage.removeItem('referralCode');
+        localStorage.removeItem('referrerName');
 
         // Clear any legacy localStorage
         clearLegacyStorage();
