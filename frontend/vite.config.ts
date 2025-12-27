@@ -79,12 +79,17 @@ export default defineConfig({
   },
   build: {
     // Optimize bundle size
-    target: 'es2015',
+    target: 'es2020', // Updated from es2015 for better tree shaking
     minify: 'terser',
     terserOptions: {
       compress: {
         drop_console: true, // Remove console.log in production
         drop_debugger: true,
+        pure_funcs: ['console.log', 'console.debug', 'console.info'], // Remove specific console methods
+        passes: 2, // Multiple passes for better compression
+      },
+      mangle: {
+        safari10: true, // Fix Safari 10 bug
       },
     },
     // Code splitting configuration
@@ -100,19 +105,31 @@ export default defineConfig({
         return id.startsWith(backendConvexRoot);
       },
       output: {
+        // Simplified code splitting for reliable builds
         manualChunks: {
-          // Vendor chunks for large libraries
-          'vendor-react': ['react', 'react-dom'],
-          'vendor-ui': ['lucide-react', 'styled-components'],
-          'vendor-utils': ['axios', 'jspdf', 'html2canvas'],
+          // React core (most critical, cache forever)
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          // Large UI libraries
+          'vendor-ui': ['lucide-react', '@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
+          // PDF and utilities (heavy, lazy loaded)
+          'vendor-pdf': ['jspdf', 'html2canvas'],
+          // HTTP and backend
+          'vendor-backend': ['axios', 'convex'],
         },
+        // Better chunking strategy
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
       },
     },
     // Chunk size warning limit
-    chunkSizeWarningLimit: 500, // KB
+    chunkSizeWarningLimit: 300, // KB - reduced from 500 for better splitting
   },
   // Performance hints
   server: {
+    host: 'localhost',
+    port: 5173,
+    open: false,
     hmr: {
       overlay: true,
     },

@@ -6,10 +6,8 @@
  * 2. Reset Password: User clicks link with token, enters new password
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { useQuery } from 'convex/react';
-import { api } from '../convex/_generated/api';
 import { validatePassword } from '../utils/passwordValidation';
 import { PasswordStrengthIndicator } from '../components/PasswordStrengthIndicator';
 import {
@@ -44,19 +42,8 @@ const ResetPasswordPage: React.FC = () => {
   // Shared state
   const [error, setError] = useState<string | null>(null);
 
-  // Verify token validity if in reset mode
-  const tokenVerification = useQuery(
-    api.auth.verifyResetToken,
-    token ? { token } : 'skip'
-  );
-
-  useEffect(() => {
-    if (mode === 'reset' && tokenVerification) {
-      if (!tokenVerification.valid) {
-        setError(tokenVerification.error || 'Invalid or expired reset token');
-      }
-    }
-  }, [mode, tokenVerification]);
+  // Note: Token validation happens on backend when form is submitted
+  // No need to verify token upfront - better UX to show form and let backend validate
 
   // Request password reset (send email)
   const handleRequestReset = async (e: React.FormEvent) => {
@@ -65,9 +52,10 @@ const ResetPasswordPage: React.FC = () => {
     setRequestLoading(true);
 
     try {
+      // HTTP endpoints use .convex.site (not .convex.cloud which is for WebSocket)
       const convexUrl = import.meta.env.VITE_CONVEX_URL as string;
-      const baseUrl = convexUrl.replace('/api', '');
-      const endpoint = `${baseUrl}/auth/request-password-reset`;
+      const httpUrl = convexUrl.replace('.convex.cloud', '.convex.site').replace('/api', '');
+      const endpoint = `${httpUrl}/auth/request-password-reset`;
 
       console.log('[Reset Password] Requesting password reset for:', email);
       console.log('[Reset Password] Endpoint:', endpoint);
@@ -127,9 +115,10 @@ const ResetPasswordPage: React.FC = () => {
     setResetLoading(true);
 
     try {
+      // HTTP endpoints use .convex.site (not .convex.cloud which is for WebSocket)
       const convexUrl = import.meta.env.VITE_CONVEX_URL as string;
-      const baseUrl = convexUrl.replace('/api', '');
-      const endpoint = `${baseUrl}/auth/reset-password`;
+      const httpUrl = convexUrl.replace('.convex.cloud', '.convex.site').replace('/api', '');
+      const endpoint = `${httpUrl}/auth/reset-password`;
 
       console.log('[Reset Password] Endpoint:', endpoint);
       console.log('[Reset Password] Token length:', token?.length);
@@ -216,7 +205,7 @@ const ResetPasswordPage: React.FC = () => {
               </div>
               <p className="text-sm text-gray-400 ml-6">
                 If an account exists with that email, we've sent a password reset link.
-                The link will expire in 15 minutes.
+                The link will expire in 1 hour.
               </p>
             </div>
           )}
@@ -231,16 +220,11 @@ const ResetPasswordPage: React.FC = () => {
           )}
 
           {/* Token expiration warning */}
-          {mode === 'reset' && tokenVerification?.valid && (
+          {mode === 'reset' && token && (
             <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg flex items-center gap-2 text-yellow-400">
               <Clock className="h-4 w-4 flex-shrink-0" />
               <span className="text-sm">
-                This link expires in{' '}
-                {Math.max(
-                  0,
-                  Math.floor(((tokenVerification.expiresAt ?? Date.now()) - Date.now()) / 60000)
-                )}{' '}
-                minutes
+                Reset links expire in 1 hour. Please complete the form below.
               </span>
             </div>
           )}
@@ -254,6 +238,7 @@ const ResetPasswordPage: React.FC = () => {
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                   <input
                     type="email"
+                    name="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -281,17 +266,8 @@ const ResetPasswordPage: React.FC = () => {
           )}
 
           {/* Reset Password Form */}
-          {mode === 'reset' && tokenVerification?.valid && !resetSuccess && (
+          {mode === 'reset' && token && !resetSuccess && (
             <form onSubmit={handleResetPassword} className="space-y-4">
-              <div>
-                <label className="block text-sm text-gray-400 mb-1">Email</label>
-                <input
-                  type="text"
-                  value={tokenVerification.email}
-                  disabled
-                  className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-gray-400"
-                />
-              </div>
 
               <div>
                 <label className="block text-sm text-gray-400 mb-1">New Password</label>

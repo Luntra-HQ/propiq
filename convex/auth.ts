@@ -5,6 +5,7 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import bcrypt from "bcryptjs";
 
 // ============================================
 // PASSWORD VALIDATION
@@ -185,6 +186,34 @@ export const getUser = query({
     const { passwordHash, ...userWithoutPassword } = user;
 
     return userWithoutPassword;
+  },
+});
+
+/**
+ * Access gate for paid features.
+ *
+ * NOTE: Frontend currently uses `subscriptionTier` + limits; this query is intended
+ * for backend verification and chaos tests to prevent "paid user locked out"
+ * scenarios during temporary webhook/reconciliation delays.
+ */
+export const hasActiveAccess = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user) return false;
+
+    // Free users never have paid access.
+    if (!user.subscriptionTier || user.subscriptionTier === "free") return false;
+
+    const GRACE_PERIOD_MS = 15 * 60 * 1000;
+    const now = Date.now();
+    const lastVerified = user.lastVerifiedFromStripeAt ?? 0;
+
+    // Active subscription always has access.
+    if (!user.subscriptionStatus || user.subscriptionStatus === "active") return true;
+
+    // Grace period: prevent immediate lockout while reconciliation catches up.
+    return now - lastVerified <= GRACE_PERIOD_MS;
   },
 });
 
@@ -517,7 +546,7 @@ export const requestPasswordReset = mutation({
     // Generate new reset token
     const token = generateResetToken();
     const now = Date.now();
-    const expiresAt = now + 15 * 60 * 1000; // 15 minutes
+    const expiresAt = now + 60 * 60 * 1000; // 1 hour (increased from 15 minutes for better UX)
 
     // Store reset token
     await ctx.db.insert("passwordResets", {
@@ -927,9 +956,64 @@ export const resetMonthlyUsage = mutation({
     await ctx.db.patch(args.userId, {
       analysesUsed: 0,
     });
-    
+
     console.log(`[AUTH] Reset usage for user ${args.userId}`);
-    
+
     return { success: true };
+  },
+});
+
+/**
+ * Change user password
+ * Requires current password for verification
+ */
+export const changePassword = mutation({
+  args: {
+    userId: v.id("users"),
+    currentPassword: v.string(),
+    newPassword: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Verify current password
+    const isCurrentPasswordValid = await bcrypt.compare(
+      args.currentPassword,
+      user.passwordHash
+    );
+
+    if (!isCurrentPasswordValid) {
+      throw new Error("Current password is incorrect");
+    }
+
+    // Validate new password (basic check - more validation on frontend)
+    if (args.newPassword.length < 8) {
+      throw new Error("New password must be at least 8 characters long");
+    }
+
+    if (args.currentPassword === args.newPassword) {
+      throw new Error("New password must be different from current password");
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    const newPasswordHash = await bcrypt.hash(args.newPassword, salt);
+
+    // Update password
+    await ctx.db.patch(args.userId, {
+      passwordHash: newPasswordHash,
+      updatedAt: Date.now(),
+    });
+
+    console.log(`[AUTH] Password changed for user ${args.userId}`);
+
+    return {
+      success: true,
+      message: "Password changed successfully",
+    };
   },
 });

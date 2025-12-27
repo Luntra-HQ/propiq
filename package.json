@@ -9,6 +9,7 @@
     "build:frontend": "echo '📦 Installing frontend dependencies...' && cd frontend && npm install && echo '🔨 Building frontend...' && npm run build:prod && echo '✅ Frontend build complete!'"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "convex": "^1.31.2"
   },
   "devDependencies": {

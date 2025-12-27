@@ -18,6 +18,7 @@ const PropIQAnalysis = lazy(() => import('./components/PropIQAnalysis').then(m =
 const ProductTour = lazy(() => import('./components/ProductTour').then(m => ({ default: m.ProductTour })));
 const HelpCenter = lazy(() => import('./components/HelpCenter').then(m => ({ default: m.HelpCenter })));
 const OnboardingChecklist = lazy(() => import('./components/OnboardingChecklist').then(m => ({ default: m.OnboardingChecklist })));
+const SettingsPage = lazy(() => import('./pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
 const ComponentTestPage = lazy(() => import('./pages/ComponentTestPage'));
 
 // Import hook directly (small, needed for initial render logic)
@@ -55,7 +56,7 @@ import {
   getNextTier,
   type PricingTier
 } from './config/pricing';
-import { useAction } from 'convex/react';
+import { useAction, useMutation } from 'convex/react';
 import { api } from '../convex/_generated/api';
 import { Id } from '../convex/_generated/dataModel';
 // ------------------------
@@ -128,7 +129,9 @@ const Header = ({
   userId,
   userEmail,
   onLogout,
-  onHelpClick
+  onHelpClick,
+  onManageSubscription,
+  onSettingsClick
 }: {
   propIqUsed: number;
   propIqLimit: number;
@@ -137,8 +140,11 @@ const Header = ({
   userEmail: string | null;
   onLogout: () => void;
   onHelpClick: () => void;
+  onManageSubscription?: () => void;
+  onSettingsClick?: () => void;
 }) => {
   const tierConfig = PRICING_TIERS[currentTier] || PRICING_TIERS.free;
+  const isPaidTier = currentTier !== 'free';
 
   return (
     <header className="flex justify-between items-center p-4 md:px-6 md:py-4 bg-slate-800/80 backdrop-blur-glass border-b border-glass-border shadow-card sticky top-0 z-20">
@@ -154,10 +160,22 @@ const Header = ({
         </div>
       </div>
       <div className="flex items-center space-x-3">
-        <div className="hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-glass border border-glass-border">
-          <CreditCard className="h-4 w-4 text-violet-400" />
-          <span className="text-xs font-medium text-gray-200">{tierConfig.displayName}</span>
-        </div>
+        {/* Tier badge with manage button for paid users */}
+        {isPaidTier && onManageSubscription ? (
+          <button
+            onClick={onManageSubscription}
+            className="hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-glass border border-glass-border hover:border-violet-500/50 transition-colors group"
+            title="Manage subscription and billing"
+          >
+            <CreditCard className="h-4 w-4 text-violet-400 group-hover:text-violet-300" />
+            <span className="text-xs font-medium text-gray-200 group-hover:text-white">{tierConfig.displayName}</span>
+          </button>
+        ) : (
+          <div className="hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-glass border border-glass-border">
+            <CreditCard className="h-4 w-4 text-violet-400" />
+            <span className="text-xs font-medium text-gray-200">{tierConfig.displayName}</span>
+          </div>
+        )}
         <UsageBadge used={propIqUsed} limit={propIqLimit} />
         <button
           onClick={onHelpClick}
@@ -172,6 +190,15 @@ const Header = ({
             <div className="hidden lg:block text-xs text-gray-400 truncate max-w-[120px]" title={userEmail || userId}>
               {userEmail || 'Logged In'}
             </div>
+            {onSettingsClick && (
+              <button
+                onClick={onSettingsClick}
+                className="btn-ghost text-xs"
+                title="Account Settings"
+              >
+                Settings
+              </button>
+            )}
             <button
               onClick={onLogout}
               className="btn-ghost text-xs"
@@ -368,6 +395,9 @@ const App = () => {
   // Help Center state
   const [showHelpCenter, setShowHelpCenter] = useState(false);
 
+  // Settings page state
+  const [showSettings, setShowSettings] = useState(false);
+
   // Product tour state
   const shouldShowTour = useShouldShowTour();
   const [showTour, setShowTour] = useState(false);
@@ -391,6 +421,18 @@ const App = () => {
   // Use string reference instead of api.payments.createCheckoutSession
   // This bypasses anyApi proxy issues in production builds
   const createCheckout = useAction("payments:createCheckoutSession" as any);
+
+  // Convex action for Stripe Customer Portal
+  const createPortalSession = useAction("payments:createCustomerPortalSession" as any);
+
+  // Convex action for Subscription Cancellation
+  const cancelSubscriptionAction = useAction("payments:cancelSubscription" as any);
+
+  // Convex action for Subscription Tier Change
+  const changeSubscriptionTierAction = useAction("payments:changeSubscriptionTier" as any);
+
+  // Convex mutation for Password Change
+  const changePasswordMutation = useMutation("auth:changePassword" as any);
 
   // Memoize user ID to prevent unnecessary re-renders
   const memoizedUserId = useMemo(() => user?._id, [user?._id]);
@@ -464,6 +506,161 @@ const App = () => {
     setShowPricingPage(true);
     setShowPaywall(false);
     setShowUpgradeBanner(false);
+  };
+
+  const handleManageSubscription = async () => {
+    if (!userId) {
+      alert('Please log in to manage your subscription.');
+      return;
+    }
+
+    // Only allow paid users to access customer portal
+    if (currentTier === 'free') {
+      alert('You need a paid subscription to access the billing portal. Please upgrade first.');
+      setShowSettings(false); // Close settings before showing pricing
+      handleUpgradeClick();
+      return;
+    }
+
+    try {
+      console.log('Opening Stripe Customer Portal...');
+
+      // Call Convex action to create Stripe customer portal session
+      const result = await createPortalSession({
+        userId: userId as Id<"users">,
+        returnUrl: window.location.origin + '/app',
+      });
+
+      if (result.success && result.url) {
+        // Redirect to Stripe Customer Portal
+        console.log('Redirecting to Stripe Customer Portal');
+        window.location.href = result.url;
+      } else {
+        throw new Error('Failed to create customer portal session');
+      }
+    } catch (error: any) {
+      console.error('Customer portal error:', error);
+
+      // Show user-friendly error message
+      const errorMessage = error.message || 'Unable to open billing portal. Please try again.';
+      alert(`Billing Portal Error: ${errorMessage}`);
+    }
+  };
+
+  const handleCancelSubscription = async (reason: string, feedback: string) => {
+    if (!userId) {
+      throw new Error('Please log in to cancel your subscription.');
+    }
+
+    if (currentTier === 'free') {
+      throw new Error('You do not have an active subscription to cancel.');
+    }
+
+    try {
+      console.log('Cancelling subscription...', { reason, feedback });
+
+      // Call Convex action to cancel subscription in Stripe
+      const result = await cancelSubscriptionAction({
+        userId: userId as Id<"users">,
+        reason,
+        feedback,
+      });
+
+      if (result.success) {
+        console.log('Subscription cancelled successfully. Active until:', new Date(result.cancelAt));
+
+        // Show success message
+        const cancelDate = new Date(result.cancelAt).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        });
+
+        alert(`Subscription cancelled. ${result.message}\n\nYou'll retain access until ${cancelDate}.`);
+
+        // Refresh page to update subscription status
+        window.location.reload();
+      } else {
+        throw new Error('Failed to cancel subscription');
+      }
+    } catch (error: any) {
+      console.error('Cancellation error:', error);
+      throw new Error(error.message || 'Failed to cancel subscription. Please try again or contact support.');
+    }
+  };
+
+  const handleChangePlan = async (newTierId: string) => {
+    if (!userId) {
+      throw new Error('Please log in to change your plan.');
+    }
+
+    if (currentTier === 'free') {
+      throw new Error('Please upgrade to a paid plan first.');
+    }
+
+    if (newTierId === currentTier) {
+      throw new Error('You are already on this plan.');
+    }
+
+    try {
+      console.log('Changing plan...', { from: currentTier, to: newTierId });
+
+      // Call Convex action to change subscription tier in Stripe
+      const result = await changeSubscriptionTierAction({
+        userId: userId as Id<"users">,
+        newTier: newTierId,
+      });
+
+      if (result.success) {
+        console.log('Plan changed successfully:', result);
+
+        const isDowngrade = PRICING_TIERS[newTierId].price < PRICING_TIERS[currentTier].price;
+
+        // Show success message
+        alert(
+          `${result.message}\n\n` +
+          `Your plan has been ${isDowngrade ? 'downgraded' : 'upgraded'} to ${PRICING_TIERS[newTierId].displayName}.\n` +
+          (isDowngrade ? 'Changes take effect at the end of your billing period.' : 'Changes are effective immediately.')
+        );
+
+        // Refresh page to update tier
+        window.location.reload();
+      } else {
+        throw new Error('Failed to change plan');
+      }
+    } catch (error: any) {
+      console.error('Plan change error:', error);
+      throw new Error(error.message || 'Failed to change plan. Please try again or contact support.');
+    }
+  };
+
+  const handleChangePassword = async (currentPassword: string, newPassword: string) => {
+    if (!userId) {
+      throw new Error('Please log in to change your password.');
+    }
+
+    try {
+      console.log('Changing password...');
+
+      // Call Convex mutation to change password
+      const result = await changePasswordMutation({
+        userId: userId as Id<"users">,
+        currentPassword,
+        newPassword,
+      });
+
+      if (result.success) {
+        console.log('Password changed successfully');
+        // Success is handled in the form component (shows success message)
+        // No need to reload page for password change
+      } else {
+        throw new Error('Failed to change password');
+      }
+    } catch (error: any) {
+      console.error('Password change error:', error);
+      // Re-throw with user-friendly message
+      throw new Error(error.message || 'Failed to change password. Please try again.');
+    }
   };
 
   const handleSelectTier = async (tierId: string) => {
@@ -613,6 +810,8 @@ const App = () => {
         userEmail={userEmail}
         onLogout={handleLogout}
         onHelpClick={() => setShowHelpCenter(true)}
+        onManageSubscription={handleManageSubscription}
+        onSettingsClick={() => setShowSettings(true)}
       />
 
       {/* Onboarding Checklist (shows for first 7 days) */}
@@ -639,6 +838,7 @@ const App = () => {
           userEmail={userEmail}
           onAnalyzeClick={() => setShowPropIQAnalysis(true)}
           onUpgradeClick={handleUpgradeClick}
+          onManageSubscription={handleManageSubscription}
           onHelpClick={() => setShowHelpCenter(true)}
         />
       </div>
@@ -750,6 +950,19 @@ const App = () => {
             isOpen={showHelpCenter}
             onClose={() => setShowHelpCenter(false)}
             userId={userId as any}
+          />
+        )}
+
+        {/* Settings Page */}
+        {showSettings && user && (
+          <SettingsPage
+            user={user}
+            onManageSubscription={handleManageSubscription}
+            onCancelSubscription={handleCancelSubscription}
+            onChangePlan={handleChangePlan}
+            onChangePassword={handleChangePassword}
+            onLogout={handleLogout}
+            onClose={() => setShowSettings(false)}
           />
         )}
       </Suspense>

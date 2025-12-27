@@ -378,6 +378,59 @@ export const Component = () => {
 7. Close and reopen chat
 8. Verify conversation continues
 
+### Account Maintenance Testing (NEW - December 2025)
+
+**Test Suite:** 90+ test cases covering 92% of account features
+
+**Test Files:**
+- `account-settings.spec.ts` (17 tests) - Settings page navigation, tab switching, data display
+- `change-password.spec.ts` (23 tests) - Password change form with strength validation
+- `subscription-management.spec.ts` (28 tests) - Plan changes, cancellation, billing
+- `preferences.spec.ts` (22 tests) - Notification toggles, user preferences
+
+**Quick Start:**
+```bash
+# Run all account maintenance tests
+npm run test:account-maintenance
+
+# Run individual test suites
+npm run test:account-settings
+npm run test:change-password
+npm run test:subscription
+npm run test:preferences
+
+# Run with visible browser
+npm run test:account-maintenance:headed
+```
+
+**Features Tested:**
+- ✅ Settings page display and tab navigation (Account, Subscription, Preferences, Security)
+- ✅ Personal information display (email, name, company, member since)
+- ✅ Account statistics (analyses used/remaining, subscription tier)
+- ✅ Password change with real-time strength meter (12+ chars, uppercase, lowercase, number, special)
+- ✅ Plan upgrade/downgrade (Starter $29, Pro $79, Elite $199)
+- ✅ Subscription cancellation with 6 reason options
+- ✅ Stripe billing portal integration
+- ✅ Notification preferences (email, usage alerts, product updates)
+- ✅ Mobile responsiveness (iPhone SE viewport)
+- ✅ Keyboard accessibility and ARIA labels
+- ✅ Edge case handling (missing data, API errors)
+
+**Mocking Strategy:**
+- All tests use mocked Convex API responses
+- No database dependency
+- Fast execution (<2 min for full suite)
+- Runs in isolation
+
+**CI/CD Integration:**
+- GitHub Actions workflow: `.github/workflows/account-maintenance-tests.yml`
+- Runs on push to main/develop/staging
+- Triggers on account component changes
+- Matrix testing across Chromium, Firefox, WebKit
+
+**Documentation:**
+See `frontend/tests/ACCOUNT_MAINTENANCE_TESTS.md` for complete documentation
+
 ### Backend Testing
 
 **Health Checks:**

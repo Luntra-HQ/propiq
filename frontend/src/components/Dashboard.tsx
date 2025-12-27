@@ -235,13 +235,16 @@ export const CalculatorCard: React.FC<CalculatorCardProps> = ({ expanded = false
 interface BenefitsCardProps {
   currentTier: string;
   onUpgradeClick: () => void;
+  onManageSubscription?: () => void;
 }
 
 export const BenefitsCard: React.FC<BenefitsCardProps> = ({
   currentTier,
   onUpgradeClick,
+  onManageSubscription,
 }) => {
   const tierConfig = PRICING_TIERS[currentTier] || PRICING_TIERS.free;
+  const isPaidTier = currentTier !== 'free';
 
   return (
     <GlassCard variant="default" size="lg">
@@ -249,12 +252,22 @@ export const BenefitsCard: React.FC<BenefitsCardProps> = ({
         <h3 className="text-lg font-semibold text-gray-50">
           Your {tierConfig.displayName} Benefits
         </h3>
-        <button
-          onClick={onUpgradeClick}
-          className="btn-ghost text-sm text-violet-400 hover:text-violet-300"
-        >
-          Upgrade
-        </button>
+        {!isPaidTier ? (
+          <button
+            onClick={onUpgradeClick}
+            className="btn-ghost text-sm text-violet-400 hover:text-violet-300"
+          >
+            Upgrade
+          </button>
+        ) : (
+          <button
+            onClick={onManageSubscription}
+            className="btn-ghost text-sm text-violet-400 hover:text-violet-300"
+            title="Manage your subscription, payment method, and billing"
+          >
+            Manage
+          </button>
+        )}
       </div>
 
       <div className="space-y-3">
@@ -336,6 +349,7 @@ interface DashboardProps {
   onAnalyzeClick: () => void;
   onUpgradeClick: () => void;
   onHelpClick: () => void;
+  onManageSubscription?: () => void;
   onCalculatorClick?: () => void;
 }
 
@@ -347,6 +361,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onAnalyzeClick,
   onUpgradeClick,
   onHelpClick,
+  onManageSubscription,
 }) => {
   const remaining = getRemainingRuns(propIqUsed, propIqLimit);
   const firstName = userEmail?.split('@')[0] || 'there';
@@ -437,6 +452,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <BenefitsCard
               currentTier={currentTier}
               onUpgradeClick={onUpgradeClick}
+              onManageSubscription={onManageSubscription}
             />
           </div>
         </div>

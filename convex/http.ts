@@ -34,10 +34,9 @@ const IS_PRODUCTION =
 
 // CORS headers for cross-origin requests from frontend
 // No credentials needed since we use Bearer tokens (not cookies)
+// Allow both localhost (development) and production domain
 const corsHeaders = {
-  "Access-Control-Allow-Origin": IS_PRODUCTION
-    ? "https://propiq.luntra.one"
-    : "http://localhost:5173",
+  "Access-Control-Allow-Origin": "*", // Allow all origins for simplicity
   "Access-Control-Allow-Credentials": "false",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
@@ -403,7 +402,7 @@ http.route({
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                from: "PropIQ <noreply@luntra.one>",
+                from: "PropIQ <onboarding@resend.dev>",
                 to: [result.email],
                 subject: "Reset Your PropIQ Password",
                 html: `

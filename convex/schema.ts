@@ -18,10 +18,22 @@ export default defineSchema({
     // Subscription & limits
     subscriptionTier: v.string(), // "free" | "starter" | "pro" | "elite"
     subscriptionStatus: v.optional(v.string()), // Stripe subscription status
+    // When we last verified subscription state from Stripe (webhook or reconciliation)
+    lastVerifiedFromStripeAt: v.optional(v.number()),
+    // Billing period end (ms since epoch) when known
+    currentPeriodEnd: v.optional(v.number()),
     analysesUsed: v.number(),
     analysesLimit: v.number(),
     stripeCustomerId: v.optional(v.string()),
     stripeSubscriptionId: v.optional(v.string()),
+
+    // Cancellation tracking
+    cancellationReason: v.optional(v.string()),
+    cancellationFeedback: v.optional(v.string()),
+    cancelledAt: v.optional(v.number()),
+
+    // Tier change history
+    previousTier: v.optional(v.string()),
 
     // Account status
     active: v.boolean(),
@@ -274,4 +286,17 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_score", ["score"])
     .index("by_date", ["createdAt"]),
+
+  // Audit logs - Track sensitive admin operations for security/compliance
+  audit_logs: defineTable({
+    action: v.string(), // "admin_password_reset" | "admin_user_delete" | etc.
+    userId: v.optional(v.id("users")), // User being acted upon
+    adminId: v.optional(v.string()), // Admin performing action (from CLI auth)
+    email: v.optional(v.string()), // Email for easier tracking
+    timestamp: v.number(),
+    metadata: v.optional(v.any()), // Additional context (old values, etc.)
+  })
+    .index("by_timestamp", ["timestamp"])
+    .index("by_action", ["action"])
+    .index("by_user", ["userId"]),
 });

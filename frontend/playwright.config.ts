@@ -1,4 +1,23 @@
 import { defineConfig, devices } from '@playwright/test';
+import * as path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+
+// Ensure Playwright has access to local env vars (e.g. VITE_CONVEX_URL)
+// without requiring callers to manually export them.
+//
+// We load (in this order):
+// - frontend/.env.local
+// - frontend/.env
+// - repo-root .env.local (../.env.local)
+// - repo-root .env (../.env)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.resolve(__dirname, '.env.local') });
+dotenv.config({ path: path.resolve(__dirname, '.env') });
+dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -83,7 +102,8 @@ export default defineConfig({
     command: 'npm run dev',
     url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
-    stdout: 'ignore',
+    stdout: 'pipe',
     stderr: 'pipe',
+    timeout: 120000, // Increased to 2 minutes
   },
 });

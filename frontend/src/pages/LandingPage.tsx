@@ -20,6 +20,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import { calculateAllMetrics, formatCurrency, formatPercent } from '../utils/calculatorUtils';
+import { SOCIAL_PROOF } from '../config/socialProof';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -164,7 +165,7 @@ const LandingPage: React.FC = () => {
                     href="#waitlist"
                     className="px-4 py-2 bg-violet-600 hover:bg-violet-700 rounded-lg font-medium transition"
                   >
-                    Sign Up
+                    Get Early Access
                   </a>
                 </>
               )}
@@ -211,7 +212,7 @@ const LandingPage: React.FC = () => {
           </div>
 
           <p className="text-gray-400 text-sm mt-4">
-            3 free analyses included. No credit card required.
+            {SOCIAL_PROOF.freeTrialText}. No credit card required.
           </p>
         </div>
       </section>
@@ -226,12 +227,12 @@ const LandingPage: React.FC = () => {
                   <Star key={i} className="h-5 w-5 text-yellow-500 fill-yellow-500" />
                 ))}
               </div>
-              <span>4.9/5 rating</span>
+              <span>{SOCIAL_PROOF.ratingFormatted} rating</span>
             </div>
             <div className="h-6 w-px bg-slate-700" />
-            <span>Trusted by 500+ investors</span>
+            <span>Trusted by {SOCIAL_PROOF.investorCountFormatted} investors</span>
             <div className="h-6 w-px bg-slate-700" />
-            <span>10,000+ properties analyzed</span>
+            <span>{SOCIAL_PROOF.propertiesAnalyzedFormatted} properties analyzed</span>
           </div>
         </div>
       </section>
@@ -406,7 +407,7 @@ const LandingPage: React.FC = () => {
                   className="w-full mt-6 px-6 py-3 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 rounded-lg font-semibold transition flex items-center justify-center gap-2"
                 >
                   <Lock className="h-5 w-5" />
-                  Join Waitlist for Unlimited
+                  Get Early Access
                 </a>
               ) : (
                 <button
@@ -484,7 +485,7 @@ const LandingPage: React.FC = () => {
               href="#waitlist"
               className="px-8 py-4 bg-violet-600 hover:bg-violet-700 rounded-lg font-semibold text-lg transition inline-flex items-center gap-2"
             >
-              Join Waitlist
+              Get Early Access
               <ArrowRight className="h-5 w-5" />
             </a>
           </div>
@@ -609,7 +610,7 @@ const LandingPage: React.FC = () => {
             Get Early Access to PropIQ
           </h2>
           <p className="text-gray-400 text-lg mb-8">
-            Join 500+ investors on the waitlist. Be the first to know when we launch and get exclusive early access benefits.
+            Join {SOCIAL_PROOF.investorCountFormatted} investors on the waitlist. Be the first to know when we launch and get exclusive early access benefits.
           </p>
 
           {/* Email Signup Form */}
@@ -617,11 +618,23 @@ const LandingPage: React.FC = () => {
             className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto mb-6"
             action="https://formspree.io/f/xldqywge"
             method="POST"
+            onSubmit={(e) => {
+              // Track signup conversion in GA4
+              if (typeof window !== 'undefined' && (window as any).gtag) {
+                (window as any).gtag('event', 'generate_lead', {
+                  event_category: 'Signup',
+                  event_label: 'Waitlist Signup',
+                  value: 1
+                });
+              }
+              // Form will continue to submit to Formspree
+            }}
           >
             <input
               type="email"
               name="email"
               placeholder="Enter your email"
+              aria-label="Email address for waitlist signup"
               required
               className="flex-1 px-6 py-4 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-violet-500 transition"
             />
@@ -629,7 +642,7 @@ const LandingPage: React.FC = () => {
               type="submit"
               className="px-8 py-4 bg-violet-600 hover:bg-violet-700 rounded-lg font-semibold transition whitespace-nowrap"
             >
-              Join Waitlist
+              Get Early Access
             </button>
           </form>
 
