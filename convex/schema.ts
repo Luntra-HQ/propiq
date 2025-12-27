@@ -77,11 +77,17 @@ export default defineSchema({
     model: v.string(), // "gpt-4o-mini"
     tokensUsed: v.optional(v.number()),
 
+    // Sharing fields
+    shareToken: v.optional(v.string()), // Unique token for public sharing
+    isPublic: v.optional(v.boolean()), // Whether analysis is publicly shareable
+    shareCreatedAt: v.optional(v.number()), // When share link was created
+
     // Timestamps
     createdAt: v.number(),
   })
     .index("by_user", ["userId"])
-    .index("by_user_and_date", ["userId", "createdAt"]),
+    .index("by_user_and_date", ["userId", "createdAt"])
+    .index("by_share_token", ["shareToken"]),
 
   // Support chat conversations
   supportChats: defineTable({

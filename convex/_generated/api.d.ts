@@ -24,6 +24,7 @@ import type * as propiq from "../propiq.js";
 import type * as referrals from "../referrals.js";
 import type * as seedArticles from "../seedArticles.js";
 import type * as sessions from "../sessions.js";
+import type * as sharing from "../sharing.js";
 import type * as support from "../support.js";
 
 import type {
@@ -49,6 +50,7 @@ declare const fullApi: ApiFromModules<{
   referrals: typeof referrals;
   seedArticles: typeof seedArticles;
   sessions: typeof sessions;
+  sharing: typeof sharing;
   support: typeof support;
 }>;
 
