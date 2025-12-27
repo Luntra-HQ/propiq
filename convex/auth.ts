@@ -98,11 +98,33 @@ export const signup = mutation({
       createdAt: Date.now(),
     });
 
-    // Trigger Day 1 onboarding email (non-blocking)
+    // Trigger onboarding email sequence (non-blocking)
     await ctx.scheduler.runAfter(0, internal.emails.sendOnboardingDay1, {
       userId,
       email,
       firstName: args.firstName,
+    });
+
+    // Schedule Day 2 email (24 hours later)
+    await ctx.scheduler.runAfter(24 * 60 * 60 * 1000, internal.emails.sendOnboardingDay2, {
+      userId,
+      email,
+      firstName: args.firstName,
+    });
+
+    // Schedule Day 3 email (48 hours later)
+    await ctx.scheduler.runAfter(48 * 60 * 60 * 1000, internal.emails.sendOnboardingDay3, {
+      userId,
+      email,
+      firstName: args.firstName,
+    });
+
+    // Schedule Day 4 email (72 hours later)
+    await ctx.scheduler.runAfter(72 * 60 * 60 * 1000, internal.emails.sendOnboardingDay4, {
+      userId,
+      email,
+      firstName: args.firstName,
+      analysesRemaining: 3, // Free tier starts with 3
     });
 
     return {
@@ -887,11 +909,33 @@ export const signupWithSession = mutation({
       }
     }
 
-    // Trigger Day 1 onboarding email (non-blocking)
+    // Trigger onboarding email sequence (non-blocking)
     await ctx.scheduler.runAfter(0, internal.emails.sendOnboardingDay1, {
       userId,
       email,
       firstName: args.firstName,
+    });
+
+    // Schedule Day 2 email (24 hours later)
+    await ctx.scheduler.runAfter(24 * 60 * 60 * 1000, internal.emails.sendOnboardingDay2, {
+      userId,
+      email,
+      firstName: args.firstName,
+    });
+
+    // Schedule Day 3 email (48 hours later)
+    await ctx.scheduler.runAfter(48 * 60 * 60 * 1000, internal.emails.sendOnboardingDay3, {
+      userId,
+      email,
+      firstName: args.firstName,
+    });
+
+    // Schedule Day 4 email (72 hours later)
+    await ctx.scheduler.runAfter(72 * 60 * 60 * 1000, internal.emails.sendOnboardingDay4, {
+      userId,
+      email,
+      firstName: args.firstName,
+      analysesRemaining: 3, // Free tier starts with 3
     });
 
     console.log("[AUTH] Signup with session for user:", email, "token:", sessionToken);
