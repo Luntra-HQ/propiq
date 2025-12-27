@@ -3,9 +3,22 @@
 Stripe Payment Integration for PropIQ
 Handles checkout session creation and subscription management
 
-⚠️  DEPRECATED: Stripe webhooks now handled by Convex (convex/http.ts)
-⚠️  Checkout sessions now created via Convex (convex/payments.ts:createCheckoutSession)
-⚠️  This FastAPI router is being phased out - use Convex for all payment operations
+⚠️  DEPRECATED (Dec 26, 2025): This entire module is deprecated
+⚠️  Stripe webhooks now handled by Convex: convex/http.ts:/stripe/webhook
+⚠️  Checkout sessions now created via Convex: convex/payments.ts:createCheckoutSession
+⚠️  Subscription updates handled via Convex: convex/payments.ts:handleSubscriptionSuccess
+⚠️  This FastAPI router is kept for legacy support only - DO NOT USE FOR NEW FEATURES
+
+MIGRATION STATUS:
+✅ Stripe webhook configured to Convex endpoint
+✅ All payment processing happens in Convex
+✅ Dual auth system (Convex/Supabase) resolved - using Convex only
+✅ Webhook path fixed: /stripe/webhook (was /stripe-webhook)
+✅ Signature verification added to Convex webhook handler
+
+If you need to make payment-related changes, edit:
+- convex/http.ts (webhook handler)
+- convex/payments.ts (payment mutations and actions)
 """
 
 from fastapi import APIRouter, HTTPException, Header, Depends, Request
@@ -18,13 +31,9 @@ from config.logging_config import get_logger
 
 logger = get_logger(__name__)
 
-# Import subscription update function from database
-try:
-    from database_supabase import update_user_subscription, get_user_by_email
-    DATABASE_AVAILABLE = True
-except ImportError:
-    logger.warning("Database module not available for subscription updates")
-    DATABASE_AVAILABLE = False
+# Supabase database import removed - now using Convex exclusively
+# Previous code attempted to sync subscriptions to Supabase, causing dual auth issues
+# All subscription state is now managed in Convex database only
 
 # Load environment variables
 load_dotenv()
@@ -292,27 +301,20 @@ async def stripe_webhook(request: Request):
                     amount=amount_total
                 )
 
-            # Update user subscription in database
-            # WARNING: DUAL AUTH SYSTEM ISSUE
-            # Users are created in Convex (convex/auth.ts), but this webhook checks Supabase.
-            # If user signed up via Convex but doesn't exist in Supabase, subscription won't activate.
-            # TODO: Consolidate to single auth system OR add sync mechanism
-            if DATABASE_AVAILABLE and customer_email:
-                try:
-                    user = get_user_by_email(customer_email)
-                    if user:
-                        update_user_subscription(
-                            user_id=user["id"],
-                            tier=tier,
-                            status="active"
-                        )
-                        logger.info(f"Updated subscription for {customer_email} to {tier}")
-                    else:
-                        logger.warning(f"⚠️  DUAL AUTH ISSUE: User not found in Supabase for email: {customer_email}")
-                        logger.warning(f"⚠️  User may exist in Convex but not in Supabase - payment succeeded but subscription not activated!")
-                        # TODO: Add Slack/Sentry alert for manual reconciliation
-                except Exception as e:
-                    logger.error(f"Failed to update subscription in DB: {e}")
+            # ⚠️  DEPRECATED: Subscription updates now handled by Convex webhook
+            # This FastAPI webhook endpoint should NOT be configured in Stripe dashboard
+            # All subscription updates happen in: convex/http.ts:/stripe/webhook
+            #
+            # MIGRATION COMPLETE (Dec 26, 2025):
+            # - Stripe webhook configured to point to Convex endpoint
+            # - Convex handles all subscription activation (convex/payments.ts:handleSubscriptionSuccess)
+            # - Supabase database module deprecated in favor of Convex database
+            #
+            # If you're seeing this code execute, check your Stripe webhook configuration!
+            # It should point to: https://mild-tern-361.convex.site/stripe/webhook
+            logger.warning("⚠️  DEPRECATED WEBHOOK CALLED - This endpoint should not be in use!")
+            logger.warning("⚠️  Check Stripe dashboard webhook configuration")
+            logger.warning(f"⚠️  Payment for {customer_email} may not be processed correctly")
 
         # Invoice payment succeeded - Recurring payment
         elif event_type == "invoice.payment_succeeded":

@@ -598,7 +598,7 @@ http.route({
 
 // Stripe webhook handler
 http.route({
-  path: "/stripe-webhook",
+  path: "/stripe/webhook",
   method: "POST",
   handler: httpAction(async (ctx, request) => {
     try {
@@ -606,6 +606,7 @@ http.route({
       const signature = request.headers.get("stripe-signature");
 
       if (!signature) {
+        console.error("[STRIPE WEBHOOK] Missing stripe-signature header");
         return new Response("Missing stripe-signature header", { status: 400 });
       }
 
@@ -613,9 +614,66 @@ http.route({
       const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
       if (!webhookSecret) {
-        console.error("Stripe webhook secret not configured");
+        console.error("[STRIPE WEBHOOK] Webhook secret not configured in Convex environment");
         return new Response("Webhook not configured", { status: 500 });
       }
+
+      // Verify Stripe signature using HMAC-SHA256
+      // Stripe signature format: "t=timestamp,v1=signature"
+      const signatureParts = signature.split(',').reduce((acc, part) => {
+        const [key, value] = part.split('=');
+        acc[key] = value;
+        return acc;
+      }, {} as Record<string, string>);
+
+      const timestamp = signatureParts.t;
+      const receivedSignature = signatureParts.v1;
+
+      if (!timestamp || !receivedSignature) {
+        console.error("[STRIPE WEBHOOK] Invalid signature format");
+        return new Response("Invalid signature format", { status: 400 });
+      }
+
+      // Create signed payload: timestamp.body
+      const signedPayload = `${timestamp}.${body}`;
+
+      // Compute HMAC-SHA256 signature
+      const encoder = new TextEncoder();
+      const key = await crypto.subtle.importKey(
+        "raw",
+        encoder.encode(webhookSecret),
+        { name: "HMAC", hash: "SHA-256" },
+        false,
+        ["sign"]
+      );
+
+      const signatureBuffer = await crypto.subtle.sign(
+        "HMAC",
+        key,
+        encoder.encode(signedPayload)
+      );
+
+      const computedSignature = Array.from(new Uint8Array(signatureBuffer))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+
+      // Compare signatures (constant-time comparison to prevent timing attacks)
+      if (computedSignature !== receivedSignature) {
+        console.error("[STRIPE WEBHOOK] Signature verification failed");
+        console.error(`[STRIPE WEBHOOK] Expected: ${computedSignature}`);
+        console.error(`[STRIPE WEBHOOK] Received: ${receivedSignature}`);
+        return new Response("Invalid signature", { status: 401 });
+      }
+
+      // Verify timestamp is within 5 minutes (prevents replay attacks)
+      const currentTime = Math.floor(Date.now() / 1000);
+      const timestampNum = parseInt(timestamp, 10);
+      if (currentTime - timestampNum > 300) {
+        console.error("[STRIPE WEBHOOK] Timestamp too old (possible replay attack)");
+        return new Response("Timestamp too old", { status: 400 });
+      }
+
+      console.log("[STRIPE WEBHOOK] Signature verified successfully");
 
       // Parse event
       const event = JSON.parse(body);
@@ -631,29 +689,42 @@ http.route({
       });
 
       // Handle different event types
+      console.log(`[STRIPE WEBHOOK] Processing event type: ${event.type}`);
+
       switch (event.type) {
         case "checkout.session.completed": {
           const session = event.data.object;
           const userId = session.metadata?.userId;
           const tier = session.metadata?.tier;
 
-          if (userId && tier) {
-            await ctx.runMutation(api.payments.handleSubscriptionSuccess, {
-              userId,
-              tier,
-              stripeCustomerId: session.customer,
-              stripeSubscriptionId: session.subscription,
-            });
+          console.log(`[STRIPE WEBHOOK] Checkout session completed for user: ${userId}, tier: ${tier}`);
 
-            // Update event log
-            await ctx.runMutation(api.payments.logStripeEvent, {
-              eventId: event.id,
-              eventType: event.type,
-              customerId: session.customer,
-              subscriptionId: session.subscription,
-              status: "completed",
-              rawData: body,
-            });
+          if (userId && tier) {
+            try {
+              await ctx.runMutation(api.payments.handleSubscriptionSuccess, {
+                userId,
+                tier,
+                stripeCustomerId: session.customer,
+                stripeSubscriptionId: session.subscription,
+              });
+
+              console.log(`[STRIPE WEBHOOK] ✅ Successfully activated subscription for user ${userId} to ${tier} tier`);
+
+              // Update event log
+              await ctx.runMutation(api.payments.logStripeEvent, {
+                eventId: event.id,
+                eventType: event.type,
+                customerId: session.customer,
+                subscriptionId: session.subscription,
+                status: "completed",
+                rawData: body,
+              });
+            } catch (error) {
+              console.error(`[STRIPE WEBHOOK] ❌ Failed to activate subscription for user ${userId}:`, error);
+              throw error;
+            }
+          } else {
+            console.error(`[STRIPE WEBHOOK] ❌ Missing userId or tier in metadata. userId: ${userId}, tier: ${tier}`);
           }
           break;
         }
@@ -686,12 +757,18 @@ http.route({
           });
       }
 
+      console.log(`[STRIPE WEBHOOK] ✅ Event ${event.id} processed successfully`);
+
       return new Response(JSON.stringify({ received: true }), {
         status: 200,
         headers: { "Content-Type": "application/json" },
       });
     } catch (error) {
-      console.error("Stripe webhook error:", error);
+      console.error("[STRIPE WEBHOOK] ❌ Fatal error processing webhook:", error);
+      console.error("[STRIPE WEBHOOK] Error details:", {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       return new Response(`Webhook Error: ${error}`, { status: 400 });
     }
   }),
