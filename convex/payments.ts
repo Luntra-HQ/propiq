@@ -118,6 +118,18 @@ export const handleSubscriptionSuccess = mutation({
       updatedAt: now,
     });
 
+    // Check if user was referred and convert referral
+    try {
+      const { convertReferral } = await import("./referrals");
+      const result = await convertReferral(ctx, { userId: args.userId });
+      if (result.wasReferred) {
+        console.log(`[PAYMENTS] User ${args.userId} was referred, marked referral as converted`);
+      }
+    } catch (e) {
+      console.error(`[PAYMENTS] Failed to convert referral:`, e);
+      // Don't fail subscription if referral tracking fails
+    }
+
     return { success: true };
   },
 });

@@ -389,3 +389,59 @@ export const getReferralStats = query({
     };
   },
 });
+
+/**
+ * Get top referrers leaderboard for admin dashboard
+ * Returns users with most successful referrals
+ */
+export const getTopReferrers = query({
+  args: {
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const limit = args.limit || 20;
+
+    // Get all referrals
+    const allReferrals = await ctx.db.query("referrals").collect();
+
+    // Group by referrer and count conversions
+    const referrerStats: Record<string, { total: number; converted: number; rewarded: number }> = {};
+
+    for (const referral of allReferrals) {
+      const referrerId = referral.referrerId.toString();
+
+      if (!referrerStats[referrerId]) {
+        referrerStats[referrerId] = { total: 0, converted: 0, rewarded: 0 };
+      }
+
+      referrerStats[referrerId].total++;
+
+      if (referral.status === "converted" || referral.status === "rewarded") {
+        referrerStats[referrerId].converted++;
+      }
+
+      if (referral.status === "rewarded") {
+        referrerStats[referrerId].rewarded++;
+      }
+    }
+
+    // Get user info for top referrers
+    const leaderboard = await Promise.all(
+      Object.entries(referrerStats).map(async ([referrerId, stats]) => {
+        const user = await ctx.db.get(referrerId as any);
+        return {
+          userId: referrerId,
+          email: user?.email,
+          name: user ? `${user.firstName || ""} ${user.lastName || ""}`.trim() : "Unknown",
+          referralCode: user?.referralCode,
+          ...stats,
+        };
+      })
+    );
+
+    // Sort by converted (most successful referrers first)
+    leaderboard.sort((a, b) => b.converted - a.converted);
+
+    return leaderboard.slice(0, limit);
+  },
+});
