@@ -342,4 +342,17 @@ export default defineSchema({
     .index("by_referred", ["referredId"])
     .index("by_status", ["status"])
     .index("by_code", ["referralCode"]),
+
+  // Cancellations - Track subscription cancellations for analytics
+  cancellations: defineTable({
+    userId: v.id("users"),
+    reason: v.string(), // "too_expensive" | "not_enough_value" | "switching_competitor" | "pause_investing" | "missing_features" | "other"
+    reasonText: v.optional(v.string()), // Additional feedback text
+    tier: v.string(), // Subscription tier at time of cancellation
+    mrr: v.number(), // Monthly recurring revenue lost
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_date", ["createdAt"])
+    .index("by_reason", ["reason"]),
 });

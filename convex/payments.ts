@@ -184,6 +184,14 @@ export const cancelSubscription = action({
         },
       });
 
+      // Record cancellation in analytics table
+      await ctx.runMutation(api.cancellations.recordCancellation, {
+        userId: args.userId,
+        reason: args.reason,
+        reasonText: args.feedback,
+        tier: user.subscriptionTier,
+      });
+
       console.log(`Subscription cancelled for user ${args.userId}. Active until: ${new Date(subscription.current_period_end * 1000).toISOString()}`);
 
       return {
