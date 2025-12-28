@@ -15,7 +15,7 @@ const crons = cronJobs();
 crons.weekly(
   "check-inactive-users",
   {
-    dayOfWeek: 1, // Monday (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
+    dayOfWeek: "monday", // Must be string: "monday", "tuesday", etc.
     hourUTC: 14, // 2 PM UTC = 9 AM EST
     minuteUTC: 0,
   },
