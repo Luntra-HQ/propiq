@@ -47,6 +47,7 @@ export default defineSchema({
     // Timestamps
     createdAt: v.number(),
     lastLogin: v.optional(v.number()),
+    lastActiveAt: v.optional(v.number()), // Track last activity for re-engagement emails
     updatedAt: v.optional(v.number()),
   })
     .index("by_email", ["email"])
@@ -325,6 +326,7 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_type", ["emailType"])
+    .index("by_user_and_type", ["userId", "emailType"])
     .index("by_sent_date", ["sentAt"]),
 
   // Referrals - Track referral relationships and rewards
