@@ -4,6 +4,7 @@ import { useAction } from 'convex/react';
 import type { Id } from '../../convex/_generated/dataModel';
 import { PrintButton } from './PrintButton';
 import { PDFExportButton } from './PDFExportButton';
+import { ShareAnalysisButton } from './ShareAnalysisButton';
 import { Tooltip } from './Tooltip';
 import { validateAddress, type ValidationResult } from '../utils/addressValidation';
 import './PropIQAnalysis.css';
@@ -577,6 +578,23 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
                 >
                   <X className="h-4 w-4" />
                 </button>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            {savedAnalysisId && userId && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+                gap: '12px',
+                marginBottom: '24px'
+              }}>
+                <ShareAnalysisButton
+                  analysisId={savedAnalysisId as Id<"propertyAnalyses">}
+                  userId={userId as Id<"users">}
+                  isPublic={false}
+                />
               </div>
             )}
 
