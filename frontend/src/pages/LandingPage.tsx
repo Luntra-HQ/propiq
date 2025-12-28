@@ -599,6 +599,112 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
+      {/* Testimonials Section */}
+      <section id="testimonials" className="py-20 px-4 bg-slate-800/50">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-sm mb-4">
+              <CheckCircle className="h-4 w-4" />
+              Trusted by Investors
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              What Real Estate Investors Are Saying
+            </h2>
+            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+              Join {SOCIAL_PROOF.investorCountFormatted} investors who use PropIQ to analyze deals faster
+            </p>
+          </div>
+
+          {/* Testimonials Grid */}
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Testimonial 1 */}
+            <div className="bg-slate-900/50 border border-slate-700 rounded-xl p-6">
+              <div className="flex gap-1 mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                ))}
+              </div>
+              <p className="text-gray-300 mb-6">
+                "PropIQ saved me 3 hours of spreadsheet work. The AI caught a property tax reassessment risk I would have missed. Best $49/month I spend."
+              </p>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold">JD</span>
+                </div>
+                <div>
+                  <p className="font-semibold">John D.</p>
+                  <p className="text-sm text-gray-400">Real Estate Investor</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Testimonial 2 */}
+            <div className="bg-slate-900/50 border border-slate-700 rounded-xl p-6">
+              <div className="flex gap-1 mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                ))}
+              </div>
+              <p className="text-gray-300 mb-6">
+                "Finally, a tool that speaks my language. Cap rate, cash-on-cash return, 1% rule—all calculated instantly. I analyze 10x more properties now."
+              </p>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-green-600 rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold">SM</span>
+                </div>
+                <div>
+                  <p className="font-semibold">Sarah M.</p>
+                  <p className="text-sm text-gray-400">Portfolio Manager</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Testimonial 3 */}
+            <div className="bg-slate-900/50 border border-slate-700 rounded-xl p-6">
+              <div className="flex gap-1 mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                ))}
+              </div>
+              <p className="text-gray-300 mb-6">
+                "The deal score is scarily accurate. Passed on a 'great deal' that scored 42/100. Seller dropped price $30K two weeks later. PropIQ paid for itself 600x over."
+              </p>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold">MR</span>
+                </div>
+                <div>
+                  <p className="font-semibold">Michael R.</p>
+                  <p className="text-sm text-gray-400">Buy & Hold Investor</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Social Proof Stats */}
+          <div className="mt-16 grid grid-cols-3 gap-8 text-center">
+            <div>
+              <div className="text-4xl font-bold text-violet-400 mb-2">
+                {SOCIAL_PROOF.propertiesAnalyzedFormatted}
+              </div>
+              <p className="text-gray-400">Properties Analyzed</p>
+            </div>
+            <div>
+              <div className="text-4xl font-bold text-emerald-400 mb-2">
+                {SOCIAL_PROOF.ratingFormatted}
+              </div>
+              <p className="text-gray-400">Average Rating</p>
+            </div>
+            <div>
+              <div className="text-4xl font-bold text-blue-400 mb-2">
+                {SOCIAL_PROOF.investorCountFormatted}
+              </div>
+              <p className="text-gray-400">Active Investors</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Waitlist Section */}
       <section id="waitlist" className="py-20 px-4 bg-gradient-to-b from-slate-900 to-slate-800">
         <div className="max-w-2xl mx-auto text-center">
