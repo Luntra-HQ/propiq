@@ -363,4 +363,41 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_date", ["createdAt"])
     .index("by_reason", ["reason"]),
+
+  // Lead captures - Pre-trial email collection for lead magnets
+  leadCaptures: defineTable({
+    email: v.string(),
+    firstName: v.optional(v.string()),
+
+    // Lead magnet details
+    leadMagnet: v.string(), // "due-diligence-checklist" | "cash-flow-calculator" | etc.
+    source: v.string(), // "landing-page" | "blog-popup" | "exit-intent" | "inline-form"
+
+    // Conversion tracking
+    status: v.string(), // "captured" | "nurtured" | "converted_trial" | "converted_paid"
+    convertedAt: v.optional(v.number()),
+    userId: v.optional(v.id("users")), // Linked after trial signup
+
+    // Attribution
+    utm_source: v.optional(v.string()),
+    utm_medium: v.optional(v.string()),
+    utm_campaign: v.optional(v.string()),
+    utm_content: v.optional(v.string()),
+    utm_term: v.optional(v.string()),
+
+    // Nurture tracking
+    day3EmailSent: v.optional(v.boolean()),
+    day7EmailSent: v.optional(v.boolean()),
+    day3EmailSentAt: v.optional(v.number()),
+    day7EmailSentAt: v.optional(v.number()),
+
+    // Timestamps
+    capturedAt: v.number(),
+  })
+    .index("by_email", ["email"])
+    .index("by_status", ["status"])
+    .index("by_lead_magnet", ["leadMagnet"])
+    .index("by_source", ["source"])
+    .index("by_captured_date", ["capturedAt"])
+    .index("by_user", ["userId"]),
 });
