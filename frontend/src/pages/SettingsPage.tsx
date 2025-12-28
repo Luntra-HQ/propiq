@@ -15,6 +15,9 @@ import {
   AlertCircle,
   Trash2,
 } from 'lucide-react';
+import { useMutation } from 'convex/react';
+import { api } from '../../convex/_generated/api';
+import { Id } from '../../convex/_generated/dataModel';
 import { PRICING_TIERS, formatCurrency } from '../config/pricing';
 import CancelSubscriptionDialog from '../components/CancelSubscriptionDialog';
 import PlanChangeModal from '../components/PlanChangeModal';
@@ -143,7 +146,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
           )}
 
           {activeTab === 'preferences' && (
-            <PreferencesTab />
+            <PreferencesTab userId={user._id} />
           )}
 
           {activeTab === 'security' && (
@@ -415,24 +418,40 @@ const SubscriptionTab: React.FC<{
 };
 
 // Preferences Tab
-const PreferencesTab: React.FC = () => {
+const PreferencesTab: React.FC<{ userId: string }> = ({ userId }) => {
   const [npsScore, setNpsScore] = useState<number | null>(null);
   const [npsComment, setNpsComment] = useState('');
   const [npsSubmitted, setNpsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleNpsSubmit = () => {
-    if (npsScore === null) return;
+  const submitNPS = useMutation(api.nps.submitResponse);
 
-    // TODO: Wire to convex mutation (api.nps.submitResponse)
-    console.log('NPS submitted:', { score: npsScore, comment: npsComment });
-    setNpsSubmitted(true);
+  const handleNpsSubmit = async () => {
+    if (npsScore === null || isSubmitting) return;
 
-    // Track in analytics
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', 'nps_survey_submit', {
-        event_category: 'engagement',
-        value: npsScore
+    setIsSubmitting(true);
+
+    try {
+      await submitNPS({
+        userId: userId as Id<"users">,
+        score: npsScore,
+        comment: npsComment || undefined,
       });
+
+      setNpsSubmitted(true);
+
+      // Track in analytics
+      if (typeof window !== 'undefined' && (window as any).gtag) {
+        (window as any).gtag('event', 'nps_survey_submit', {
+          event_category: 'engagement',
+          value: npsScore
+        });
+      }
+    } catch (error) {
+      console.error('Failed to submit NPS:', error);
+      alert('Failed to submit feedback. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -491,9 +510,10 @@ const PreferencesTab: React.FC = () => {
                 />
                 <button
                   onClick={handleNpsSubmit}
-                  className="w-full px-4 py-3 bg-violet-600 hover:bg-violet-500 text-white font-semibold rounded-lg transition-all shadow-lg"
+                  disabled={isSubmitting}
+                  className="w-full px-4 py-3 bg-violet-600 hover:bg-violet-500 text-white font-semibold rounded-lg transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Submit Feedback
+                  {isSubmitting ? 'Submitting...' : 'Submit Feedback'}
                 </button>
               </div>
             )}
