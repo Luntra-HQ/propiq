@@ -97,6 +97,173 @@ export const logEmailSent = internalMutation({
 });
 
 /**
+ * Send Lead Magnet Email
+ * Delivers the due diligence checklist immediately after capture
+ */
+export const sendLeadMagnetEmail = action({
+  args: {
+    email: v.string(),
+    firstName: v.optional(v.string()),
+    leadMagnet: v.string(),
+  },
+  handler: async (ctx, args) => {
+    if (!RESEND_API_KEY) {
+      console.error("[EMAIL] Resend API key not configured");
+      return { success: false, error: "Email service not configured" };
+    }
+
+    const userName = args.firstName || "there";
+
+    // Get HTML content from leadMagnet.ts
+    const htmlContent = await ctx.runAction(internal.leadMagnet.generateLeadMagnetHTML, {});
+
+    try {
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: FROM_EMAIL,
+          to: args.email,
+          subject: `Your Due Diligence Checklist is Here${userName !== "there" ? `, ${userName}` : ""}`,
+          html: getLeadMagnetDeliveryHTML(userName, htmlContent),
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        console.error(`[EMAIL] Failed to send lead magnet to ${args.email}:`, error);
+        return { success: false, error };
+      }
+
+      const result = await response.json();
+      console.log(`[EMAIL] ✅ Lead magnet email sent to ${args.email} (ID: ${result.id})`);
+
+      return { success: true, emailId: result.id };
+    } catch (error) {
+      console.error(`[EMAIL] ❌ Error sending lead magnet to ${args.email}:`, error);
+      return { success: false, error: String(error) };
+    }
+  },
+});
+
+/**
+ * Send Day 3 Lead Nurture Email
+ * Checks in 3 days after lead capture (if not converted to trial)
+ */
+export const sendLeadNurtureDay3 = action({
+  args: {
+    leadId: v.id("leadCaptures"),
+    email: v.string(),
+    firstName: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    if (!RESEND_API_KEY) {
+      console.error("[EMAIL] Resend API key not configured");
+      return { success: false, error: "Email service not configured" };
+    }
+
+    const userName = args.firstName || "there";
+    const html = getLeadNurtureDay3HTML(userName);
+
+    try {
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: FROM_EMAIL,
+          to: args.email,
+          subject: "Quick question about your property search",
+          html,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        console.error(`[EMAIL] Failed to send Day 3 nurture to ${args.email}:`, error);
+        return { success: false, error };
+      }
+
+      const result = await response.json();
+      console.log(`[EMAIL] ✅ Day 3 nurture email sent to ${args.email} (ID: ${result.id})`);
+
+      // Mark as sent in leadCaptures
+      await ctx.runMutation(internal.leads.markNurtureEmailSent, {
+        leadId: args.leadId,
+        day: 3,
+      });
+
+      return { success: true, emailId: result.id };
+    } catch (error) {
+      console.error(`[EMAIL] ❌ Error sending Day 3 nurture to ${args.email}:`, error);
+      return { success: false, error: String(error) };
+    }
+  },
+});
+
+/**
+ * Send Day 7 Lead Nurture Email
+ * Final nurture email 7 days after capture (if not converted)
+ */
+export const sendLeadNurtureDay7 = action({
+  args: {
+    leadId: v.id("leadCaptures"),
+    email: v.string(),
+    firstName: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    if (!RESEND_API_KEY) {
+      console.error("[EMAIL] Resend API key not configured");
+      return { success: false, error: "Email service not configured" };
+    }
+
+    const userName = args.firstName || "there";
+    const html = getLeadNurtureDay7HTML(userName);
+
+    try {
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: FROM_EMAIL,
+          to: args.email,
+          subject: "The #1 mistake I see investors make",
+          html,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        console.error(`[EMAIL] Failed to send Day 7 nurture to ${args.email}:`, error);
+        return { success: false, error };
+      }
+
+      const result = await response.json();
+      console.log(`[EMAIL] ✅ Day 7 nurture email sent to ${args.email} (ID: ${result.id})`);
+
+      // Mark as sent in leadCaptures
+      await ctx.runMutation(internal.leads.markNurtureEmailSent, {
+        leadId: args.leadId,
+        day: 7,
+      });
+
+      return { success: true, emailId: result.id };
+    } catch (error) {
+      console.error(`[EMAIL] ❌ Error sending Day 7 nurture to ${args.email}:`, error);
+      return { success: false, error: String(error) };
+    }
+  },
+});
+
+/**
  * Send Day 2 onboarding email
  * Feature deep-dive email
  */
@@ -1244,6 +1411,63 @@ function getReengagementHTML(userName: string, daysSinceActive: number): string 
             <a href="${APP_URL}" style="color: #4F46E5;">propiq.luntra.one</a></p>
         </div>
     </div>
+</body>
+</html>
+  `;
+}
+
+/**
+ * Lead Magnet Delivery Email HTML (wrapper for checklist content)
+ */
+function getLeadMagnetDeliveryHTML(userName: string, checklistHTML: string): string {
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Due Diligence Checklist</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #0a0a0a;">
+  <div style="max-width: 700px; margin: 0 auto; padding: 20px;">
+    <div style="background-color: #1a1a1a; padding: 24px; border-radius: 12px; margin-bottom: 24px;">
+      <p style="color: #f9fafb; margin: 0 0 16px 0; font-size: 16px;">Hi ${userName},</p>
+      <p style="color: #d1d5db; margin: 0; line-height: 1.6; font-size: 15px;">
+        Here's your <strong style="color: #60a5fa;">10-Point Rental Property Due Diligence Checklist</strong>.
+      </p>
+    </div>
+    ${checklistHTML}
+  </div>
+</body>
+</html>
+  `;
+}
+
+function getLeadNurtureDay3HTML(userName: string): string {
+  return `
+<!DOCTYPE html>
+<html>
+<body style="font-family: sans-serif; background-color: #f9fafb;">
+  <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+    <h1>Quick question, ${userName}</h1>
+    <p>Have you had a chance to use the Due Diligence Checklist?</p>
+    <a href="${APP_URL}?utm_source=lead_nurture&utm_medium=email&utm_campaign=day_3">Try PropIQ Free</a>
+  </div>
+</body>
+</html>
+  `;
+}
+
+function getLeadNurtureDay7HTML(userName: string): string {
+  return `
+<!DOCTYPE html>
+<html>
+<body style="font-family: sans-serif; background-color: #f9fafb;">
+  <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+    <h1>The #1 mistake I see investors make</h1>
+    <p>Hi ${userName}, I've analyzed over 1,000 rental properties.</p>
+    <a href="${APP_URL}?utm_source=lead_nurture&utm_medium=email&utm_campaign=day_7">Analyze Your First Property Free</a>
+  </div>
 </body>
 </html>
   `;
