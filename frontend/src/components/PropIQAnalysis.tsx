@@ -64,6 +64,7 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
   const [usesRemaining, setUsesRemaining] = useState<number | null>(null);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [savedAnalysisId, setSavedAnalysisId] = useState<string | null>(null);
+  const [linkedinSharing, setLinkedinSharing] = useState(false);
 
   // Convex action for analysis (avoid REST API drift + prevents auth header issues)
   // Using string reference avoids anyApi proxy edge-cases in production builds.
@@ -594,6 +595,9 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
               }}>
                 <button
                   onClick={async () => {
+                    if (linkedinSharing) return;
+
+                    setLinkedinSharing(true);
                     try {
                       const result = await generateShareLink({
                         analysisId: savedAnalysisId as Id<"propertyAnalyses">,
@@ -616,13 +620,25 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
                       }
                     } catch (error) {
                       console.error('Failed to share on LinkedIn:', error);
+                    } finally {
+                      setLinkedinSharing(false);
                     }
                   }}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#0077B5] hover:bg-[#006399] text-white font-medium rounded-lg transition-all shadow-lg"
+                  disabled={linkedinSharing}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#0077B5] hover:bg-[#006399] text-white font-medium rounded-lg transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   title="Share on LinkedIn"
                 >
-                  <Linkedin className="h-4 w-4" />
-                  Share on LinkedIn
+                  {linkedinSharing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Generating link...
+                    </>
+                  ) : (
+                    <>
+                      <Linkedin className="h-4 w-4" />
+                      Share on LinkedIn
+                    </>
+                  )}
                 </button>
                 <ShareAnalysisButton
                   analysisId={savedAnalysisId as Id<"propertyAnalyses">}
