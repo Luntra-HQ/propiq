@@ -5,7 +5,7 @@
 
 import { v } from "convex/values";
 import { action, mutation, query } from "./_generated/server";
-import { api } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 
 type MarketTrend = "up" | "down" | "stable";
 type Recommendation = "strong_buy" | "buy" | "hold" | "avoid";
@@ -295,10 +295,33 @@ export const incrementAnalysisCount = mutation({
       throw new Error("User not found");
     }
 
+    // Increment analysis count
+    const newAnalysesUsed = user.analysesUsed + 1;
     await ctx.db.patch(args.userId, {
-      analysesUsed: user.analysesUsed + 1,
+      analysesUsed: newAnalysesUsed,
+      lastActiveAt: Date.now(), // Track last activity for re-engagement emails
       updatedAt: Date.now(),
     });
+
+    // Calculate analyses remaining
+    const analysesRemaining = user.analysesLimit - newAnalysesUsed;
+
+    // Trigger email notifications for free tier users
+    if (user.subscriptionTier === "free") {
+      if (analysesRemaining === 1) {
+        // User has 1 analysis left - send warning email
+        await ctx.scheduler.runAfter(0, internal.emailScheduler.triggerTrialWarningEmail, {
+          userId: args.userId,
+        });
+        console.log(`[PropIQ] Triggered trial warning email for ${user.email}`);
+      } else if (analysesRemaining === 0) {
+        // User has 0 analyses left - send trial expired email
+        await ctx.scheduler.runAfter(0, internal.emailScheduler.triggerTrialExpiredEmail, {
+          userId: args.userId,
+        });
+        console.log(`[PropIQ] Triggered trial expired email for ${user.email}`);
+      }
+    }
 
     return { success: true };
   },

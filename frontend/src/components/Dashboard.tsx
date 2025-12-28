@@ -22,6 +22,7 @@ import { GlassCard, GlassCardHeader } from './ui/GlassCard';
 import { BentoBackground } from './ui/BentoGrid';
 import { DealCalculator } from './DealCalculator';
 import { ReferralCard } from './ReferralCard';
+import { ErrorBoundary } from './ErrorBoundary';
 import {
   PRICING_TIERS,
   getRemainingRuns,
@@ -464,7 +465,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Third Row - Referral Card */}
         {userId && (
           <div id="referral-section" className="max-w-2xl">
-            <ReferralCard userId={userId as Id<"users">} />
+            <ErrorBoundary
+              componentName="ReferralCard"
+              fallback={
+                <div className="p-6 bg-slate-800/50 border border-slate-700/50 rounded-xl text-center">
+                  <p className="text-gray-400 text-sm">Unable to load referral program</p>
+                </div>
+              }
+            >
+              <ReferralCard userId={userId as Id<"users">} />
+            </ErrorBoundary>
           </div>
         )}
       </main>
