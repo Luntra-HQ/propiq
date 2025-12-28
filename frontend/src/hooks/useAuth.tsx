@@ -236,8 +236,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       console.log('[AUTH] Signing up...');
 
-      // Check for referral code in localStorage
-      const referralCode = localStorage.getItem('referralCode');
+      // Check for referral code in sessionStorage (set by ReferralLanding page)
+      const referralCode = sessionStorage.getItem('referralCode');
       if (referralCode) {
         console.log('[AUTH] Including referral code:', referralCode);
       }
@@ -270,8 +270,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
 
         // Clear referral code after successful signup
-        localStorage.removeItem('referralCode');
-        localStorage.removeItem('referrerName');
+        sessionStorage.removeItem('referralCode');
+        sessionStorage.removeItem('referrerName');
 
         // Clear any legacy localStorage
         clearLegacyStorage();

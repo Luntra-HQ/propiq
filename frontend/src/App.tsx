@@ -1,5 +1,5 @@
 import React, { useState, useEffect, lazy, Suspense, useMemo } from 'react';
-import { Zap, Target, Lock, CreditCard, X, DollarSign, Loader2, BarChart, HelpCircle } from 'lucide-react';
+import { Zap, Target, Lock, CreditCard, X, DollarSign, Loader2, BarChart, HelpCircle, Users, Shield } from 'lucide-react';
 import { CookieConsent } from './components/CookieConsent';
 import { Dashboard } from './components/Dashboard';
 import { TrialCountdownCompact } from './components/TrialCountdown';
@@ -136,7 +136,9 @@ const Header = ({
   onHelpClick,
   onManageSubscription,
   onSettingsClick,
-  onUpgrade
+  onUpgrade,
+  onReferralClick,
+  onAdminClick
 }: {
   propIqUsed: number;
   propIqLimit: number;
@@ -148,9 +150,12 @@ const Header = ({
   onManageSubscription?: () => void;
   onSettingsClick?: () => void;
   onUpgrade?: () => void;
+  onReferralClick?: () => void;
+  onAdminClick?: () => void;
 }) => {
   const tierConfig = PRICING_TIERS[currentTier] || PRICING_TIERS.free;
   const isPaidTier = currentTier !== 'free';
+  const isAdmin = userEmail === 'bdusape@gmail.com';
 
   return (
     <header className="flex justify-between items-center p-4 md:px-6 md:py-4 bg-slate-800/80 backdrop-blur-glass border-b border-glass-border shadow-card sticky top-0 z-20">
@@ -195,6 +200,28 @@ const Header = ({
           />
         ) : (
           <UsageBadge used={propIqUsed} limit={propIqLimit} />
+        )}
+        {/* Refer & Earn Button */}
+        {onReferralClick && (
+          <button
+            onClick={onReferralClick}
+            className="hidden md:flex items-center space-x-1 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-gray-300 hover:text-white rounded-lg transition-colors"
+            title="Refer friends and earn rewards"
+          >
+            <Users className="h-4 w-4" />
+            <span className="text-xs font-semibold">Refer & Earn</span>
+          </button>
+        )}
+        {/* Admin Button (only for admin users) */}
+        {isAdmin && onAdminClick && (
+          <button
+            onClick={onAdminClick}
+            className="hidden md:flex items-center space-x-1 px-3 py-1.5 bg-amber-900/30 hover:bg-amber-800/40 text-amber-300 hover:text-amber-200 rounded-lg transition-colors border border-amber-700/50"
+            title="Admin Dashboard"
+          >
+            <Shield className="h-4 w-4" />
+            <span className="text-xs font-semibold">Admin</span>
+          </button>
         )}
         <button
           onClick={onHelpClick}
@@ -759,6 +786,19 @@ const App = () => {
     localStorage.setItem('upgradeBannerDismissed', Date.now().toString());
   };
 
+  const handleReferralClick = () => {
+    // Scroll to ReferralCard section
+    const referralSection = document.getElementById('referral-section');
+    if (referralSection) {
+      referralSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
+  const handleAdminClick = () => {
+    // Navigate to admin dashboard
+    window.location.href = '/admin';
+  };
+
   // Show product tour after user logs in (if they haven't seen it)
   useEffect(() => {
     if (userId && shouldShowTour && !showAuthModal) {
@@ -870,6 +910,8 @@ const App = () => {
         onManageSubscription={handleManageSubscription}
         onSettingsClick={() => setShowSettings(true)}
         onUpgrade={handleUpgradeClick}
+        onReferralClick={handleReferralClick}
+        onAdminClick={handleAdminClick}
       />
 
       {/* Onboarding Checklist (shows for first 7 days) */}
@@ -894,6 +936,7 @@ const App = () => {
           propIqLimit={propIqLimit}
           currentTier={currentTier}
           userEmail={userEmail}
+          userId={userId}
           onAnalyzeClick={() => setShowPropIQAnalysis(true)}
           onUpgradeClick={handleUpgradeClick}
           onManageSubscription={handleManageSubscription}

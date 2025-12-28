@@ -21,11 +21,13 @@ import {
 import { GlassCard, GlassCardHeader } from './ui/GlassCard';
 import { BentoBackground } from './ui/BentoGrid';
 import { DealCalculator } from './DealCalculator';
+import { ReferralCard } from './ReferralCard';
 import {
   PRICING_TIERS,
   getRemainingRuns,
   isAtHardCap,
 } from '../config/pricing';
+import type { Id } from '../../convex/_generated/dataModel';
 
 // ============================================
 // Stat Card Component (Glassmorphism)
@@ -346,6 +348,7 @@ interface DashboardProps {
   propIqLimit: number;
   currentTier: string;
   userEmail: string | null;
+  userId?: string | null;
   onAnalyzeClick: () => void;
   onUpgradeClick: () => void;
   onHelpClick: () => void;
@@ -358,6 +361,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   propIqLimit,
   currentTier,
   userEmail,
+  userId,
   onAnalyzeClick,
   onUpgradeClick,
   onHelpClick,
@@ -441,7 +445,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
 
         {/* Second Row - Calculator and Benefits */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-6 mb-8">
           {/* Calculator - Takes 2 columns */}
           <div className="lg:col-span-2">
             <CalculatorCard />
@@ -456,6 +460,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
             />
           </div>
         </div>
+
+        {/* Third Row - Referral Card */}
+        {userId && (
+          <div id="referral-section" className="max-w-2xl">
+            <ReferralCard userId={userId as Id<"users">} />
+          </div>
+        )}
       </main>
     </BentoBackground>
   );

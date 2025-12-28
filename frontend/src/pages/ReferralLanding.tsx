@@ -17,8 +17,9 @@ export const ReferralLanding: React.FC = () => {
   useEffect(() => {
     if (validation && validation.valid) {
       setReferrerName(validation.referrerName);
-      // Store referral code in sessionStorage to attach during signup
+      // Store referral code and referrer name in sessionStorage to attach during signup
       sessionStorage.setItem('referralCode', code || '');
+      sessionStorage.setItem('referrerName', validation.referrerName);
     } else if (validation && !validation.valid) {
       // Invalid code, redirect to regular signup after a moment
       setTimeout(() => navigate('/signup'), 3000);

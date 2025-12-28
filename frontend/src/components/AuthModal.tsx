@@ -42,6 +42,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [lastName, setLastName] = useState('');
   const [company, setCompany] = useState('');
 
+  // Check for referral code in sessionStorage
+  const referralCode = sessionStorage.getItem('referralCode');
+  const referrerName = sessionStorage.getItem('referrerName');
+
   if (!isOpen) return null;
 
   const resetForm = () => {
@@ -138,6 +142,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Referral Badge */}
+          {mode === 'signup' && referralCode && referrerName && (
+            <div className="flex items-center justify-center space-x-2 p-3 bg-violet-900/30 border border-violet-700/50 rounded-lg">
+              <span className="text-lg">🎉</span>
+              <p className="text-sm font-medium text-violet-200">
+                Referred by <span className="font-bold text-violet-100">{referrerName}</span>
+              </p>
+            </div>
+          )}
+
           {/* Error Message */}
           {error && (
             <div className="flex items-start space-x-3 p-4 bg-red-900/30 border border-red-700 rounded-lg">

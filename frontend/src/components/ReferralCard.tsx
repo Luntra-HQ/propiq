@@ -53,40 +53,40 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({ userId }) => {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 animate-pulse">
-        <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
-        <div className="h-4 bg-gray-200 rounded w-2/3 mb-2"></div>
-        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+      <div className="bg-slate-800/50 backdrop-blur-glass rounded-xl border border-slate-700/50 p-6 animate-pulse">
+        <div className="h-6 bg-slate-700 rounded w-1/3 mb-4"></div>
+        <div className="h-4 bg-slate-700 rounded w-2/3 mb-2"></div>
+        <div className="h-4 bg-slate-700 rounded w-1/2"></div>
       </div>
     );
   }
 
   return (
-    <div className="bg-gradient-to-br from-violet-50 to-indigo-50 rounded-xl shadow-sm border border-violet-200 p-6">
+    <div className="bg-slate-800/80 backdrop-blur-glass rounded-xl border border-glass-border hover:border-glass-border-hover shadow-card p-6 transition-all duration-300">
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-12 h-12 rounded-full bg-violet-500 flex items-center justify-center">
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
           <Users className="h-6 w-6 text-white" />
         </div>
         <div>
-          <h3 className="text-lg font-bold text-gray-900">Refer & Earn</h3>
-          <p className="text-sm text-gray-600">Get 1 month free for every friend who upgrades</p>
+          <h3 className="text-lg font-bold text-gray-50">Refer & Earn</h3>
+          <p className="text-sm text-gray-400">Get 1 month free for every friend who upgrades</p>
         </div>
       </div>
 
       {/* Referral Link */}
-      <div className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
-        <label className="block text-xs font-medium text-gray-500 mb-2">Your Referral Link</label>
+      <div className="bg-slate-900/50 rounded-lg p-4 mb-4 border border-slate-700/50">
+        <label className="block text-xs font-medium text-gray-400 mb-2">Your Referral Link</label>
         <div className="flex items-center gap-2">
           <input
             type="text"
             value={referralData?.url || ''}
             readOnly
-            className="flex-1 px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm font-mono text-gray-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-violet-500"
+            className="flex-1 px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-sm font-mono text-gray-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-violet-500"
             onClick={(e) => (e.target as HTMLInputElement).select()}
           />
           <button
             onClick={handleCopy}
-            className="px-4 py-2 bg-violet-500 hover:bg-violet-600 text-white font-medium rounded-lg transition-all flex items-center gap-2 min-w-[100px] justify-center"
+            className="px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white font-medium rounded-lg transition-all flex items-center gap-2 min-w-[100px] justify-center shadow-lg shadow-violet-500/30"
           >
             {copied ? (
               <>
@@ -105,17 +105,17 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({ userId }) => {
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3 mb-4">
-        <div className="bg-white rounded-lg p-3 text-center border border-gray-200">
-          <div className="text-2xl font-bold text-violet-600">{referralStats?.total || 0}</div>
-          <div className="text-xs text-gray-600 mt-1">Invited</div>
+        <div className="bg-slate-900/50 rounded-lg p-3 text-center border border-slate-700/50">
+          <div className="text-2xl font-bold text-violet-400">{referralStats?.total || 0}</div>
+          <div className="text-xs text-gray-400 mt-1">Invited</div>
         </div>
-        <div className="bg-white rounded-lg p-3 text-center border border-gray-200">
-          <div className="text-2xl font-bold text-green-600">{referralStats?.converted || 0}</div>
-          <div className="text-xs text-gray-600 mt-1">Converted</div>
+        <div className="bg-slate-900/50 rounded-lg p-3 text-center border border-slate-700/50">
+          <div className="text-2xl font-bold text-emerald-400">{referralStats?.converted || 0}</div>
+          <div className="text-xs text-gray-400 mt-1">Converted</div>
         </div>
-        <div className="bg-white rounded-lg p-3 text-center border border-gray-200">
-          <div className="text-2xl font-bold text-amber-600">{referralStats?.rewarded || 0}</div>
-          <div className="text-xs text-gray-600 mt-1">Months Earned</div>
+        <div className="bg-slate-900/50 rounded-lg p-3 text-center border border-slate-700/50">
+          <div className="text-2xl font-bold text-amber-400">{referralStats?.rewarded || 0}</div>
+          <div className="text-xs text-gray-400 mt-1">Months Earned</div>
         </div>
       </div>
 
@@ -123,14 +123,14 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({ userId }) => {
       <div className="flex items-center gap-2">
         <button
           onClick={() => handleShare('twitter')}
-          className="flex-1 px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-all border border-gray-300 flex items-center justify-center gap-2"
+          className="flex-1 px-4 py-2 bg-slate-700/50 hover:bg-slate-600/50 text-gray-200 font-medium rounded-lg transition-all border border-slate-600 hover:border-violet-500/50 flex items-center justify-center gap-2"
         >
           <Share2 className="h-4 w-4" />
           Twitter
         </button>
         <button
           onClick={() => handleShare('linkedin')}
-          className="flex-1 px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-all border border-gray-300 flex items-center justify-center gap-2"
+          className="flex-1 px-4 py-2 bg-slate-700/50 hover:bg-slate-600/50 text-gray-200 font-medium rounded-lg transition-all border border-slate-600 hover:border-violet-500/50 flex items-center justify-center gap-2"
         >
           <Share2 className="h-4 w-4" />
           LinkedIn
@@ -139,13 +139,13 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({ userId }) => {
 
       {/* Reward Info */}
       {(referralStats?.converted || 0) > 0 && (
-        <div className="mt-4 bg-green-100 border border-green-300 rounded-lg p-3 flex items-start gap-2">
-          <Award className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+        <div className="mt-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-3 flex items-start gap-2">
+          <Award className="h-5 w-5 text-emerald-400 flex-shrink-0 mt-0.5" />
           <div className="flex-1">
-            <p className="text-sm font-medium text-green-900">
+            <p className="text-sm font-medium text-emerald-300">
               You've earned {referralStats?.rewarded || 0} free {(referralStats?.rewarded || 0) === 1 ? 'month' : 'months'}!
             </p>
-            <p className="text-xs text-green-700 mt-1">
+            <p className="text-xs text-emerald-400/80 mt-1">
               Your rewards are automatically applied to your next billing cycle.
             </p>
           </div>
