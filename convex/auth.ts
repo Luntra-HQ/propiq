@@ -98,6 +98,28 @@ export const signup = mutation({
       createdAt: Date.now(),
     });
 
+    // Check if this user signed up after downloading a lead magnet
+    // If so, link the lead to the user account and mark as converted
+    try {
+      const existingLead = await ctx.db
+        .query("leadCaptures")
+        .withIndex("by_email", (q) => q.eq("email", email))
+        .first();
+
+      if (existingLead) {
+        // Update lead to link it to the new user
+        await ctx.db.patch(existingLead._id, {
+          status: "converted_trial",
+          userId,
+          convertedAt: Date.now(),
+        });
+        console.log(`[AUTH] Converted lead ${existingLead._id} to trial user ${userId}`);
+      }
+    } catch (e) {
+      console.error(`[AUTH] Failed to convert lead:`, e);
+      // Don't fail signup if lead conversion fails
+    }
+
     // Trigger onboarding email sequence (non-blocking)
     await ctx.scheduler.runAfter(0, internal.emails.sendOnboardingDay1, {
       userId,
@@ -880,6 +902,28 @@ export const signupWithSession = mutation({
       createdAt: now,
       lastLogin: now,
     });
+
+    // Check if this user signed up after downloading a lead magnet
+    // If so, link the lead to the user account and mark as converted
+    try {
+      const existingLead = await ctx.db
+        .query("leadCaptures")
+        .withIndex("by_email", (q) => q.eq("email", email))
+        .first();
+
+      if (existingLead) {
+        // Update lead to link it to the new user
+        await ctx.db.patch(existingLead._id, {
+          status: "converted_trial",
+          userId,
+          convertedAt: Date.now(),
+        });
+        console.log(`[AUTH] Converted lead ${existingLead._id} to trial user ${userId}`);
+      }
+    } catch (e) {
+      console.error(`[AUTH] Failed to convert lead:`, e);
+      // Don't fail signup if lead conversion fails
+    }
 
     // Create session - use _id as the token (matches validateSession logic)
     const sessionId = await ctx.db.insert("sessions", {
