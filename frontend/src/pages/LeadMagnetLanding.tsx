@@ -3,7 +3,6 @@ import { CheckCircle, Download, Mail, TrendingUp, Shield, Clock, AlertTriangle }
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useAction } from 'convex/react';
 import { api } from '../convex/_generated/api';
-import { Helmet } from 'react-helmet-async';
 
 const LeadMagnetLanding: React.FC = () => {
   const navigate = useNavigate();
@@ -76,10 +75,6 @@ const LeadMagnetLanding: React.FC = () => {
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-slate-900">
-        <Helmet>
-          <title>Check Your Email - PropIQ Due Diligence Checklist</title>
-        </Helmet>
-
         <div className="max-w-2xl mx-auto px-4 py-16">
           {/* Success State */}
           <div className="bg-emerald-900/30 border-2 border-emerald-500 rounded-xl p-8 mb-8 text-center">
@@ -151,34 +146,6 @@ const LeadMagnetLanding: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-900">
-      <Helmet>
-        <title>Free: Rental Property Due Diligence Checklist | PropIQ</title>
-        <meta
-          name="description"
-          content="Download the 10-point checklist smart investors use before making an offer. Catch red flags, verify income, and analyze deals like a pro."
-        />
-        <meta property="og:title" content="Free: Rental Property Due Diligence Checklist" />
-        <meta property="og:description" content="The same checklist used by investors who've analyzed 1,000+ properties" />
-        <meta property="og:type" content="website" />
-        <meta name="twitter:card" content="summary_large_image" />
-
-        {/* Schema.org markup */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "DigitalDocument",
-            "name": "The 10-Point Rental Property Due Diligence Checklist",
-            "description": "What Smart Investors Verify Before Making an Offer",
-            "author": {
-              "@type": "Organization",
-              "name": "PropIQ"
-            },
-            "about": "Real Estate Investment",
-            "keywords": "real estate, due diligence, property analysis, rental property, investment checklist"
-          })}
-        </script>
-      </Helmet>
-
       <div className="max-w-5xl mx-auto px-4 py-12">
         {/* Hero Section */}
         <div className="text-center mb-12">
