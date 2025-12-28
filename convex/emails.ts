@@ -1181,7 +1181,7 @@ function getTrialExpirationWarningHTML(userName: string): string {
             <p>Unlimited analyses<br>Advanced analytics<br>For serious investors</p>
         </div>
 
-        <a href="${APP_URL}/pricing" class="cta-button">Upgrade Now →</a>
+        <a href="${addUTMParams(APP_URL + '/pricing', 'trial_warning', 'cta_upgrade')}" class="cta-button">Upgrade Now →</a>
 
         <p style="margin-top: 32px;"><strong>Think about it:</strong> One bad investment can cost you tens of thousands. PropIQ Pro is $99/month. If it helps you avoid just one mistake, it's paid for itself 100x over.</p>
 
@@ -1191,7 +1191,7 @@ function getTrialExpirationWarningHTML(userName: string): string {
 
         <div class="footer">
             <p>© 2025 PropIQ by LUNTRA<br>
-            <a href="${APP_URL}" style="color: #4F46E5;">propiq.luntra.one</a></p>
+            <a href="${addUTMParams(APP_URL, 'trial_warning', 'footer_link')}" style="color: #4F46E5;">propiq.luntra.one</a></p>
         </div>
     </div>
 </body>
@@ -1295,7 +1295,7 @@ function getTrialExpiredHTML(userName: string, analysesUsed: number): string {
             <p style="font-size: 14px; opacity: 0.9; margin: 0;">Use code: <strong>COMEBACK20</strong></p>
         </div>
 
-        <a href="${APP_URL}/pricing?code=COMEBACK20" class="cta-button">Reactivate Now & Save 20% →</a>
+        <a href="${addUTMParams(APP_URL + '/pricing?code=COMEBACK20', 'trial_expired', 'cta_reactivate')}" class="cta-button">Reactivate Now & Save 20% →</a>
 
         <p style="margin-top: 32px;"><strong>The math is simple:</strong> If PropIQ helps you find just ONE good deal or avoid ONE bad investment, it's paid for itself dozens of times over.</p>
 
@@ -1307,7 +1307,7 @@ function getTrialExpiredHTML(userName: string, analysesUsed: number): string {
 
         <div class="footer">
             <p>© 2025 PropIQ by LUNTRA<br>
-            <a href="${APP_URL}" style="color: #4F46E5;">propiq.luntra.one</a></p>
+            <a href="${addUTMParams(APP_URL, 'trial_expired', 'footer_link')}" style="color: #4F46E5;">propiq.luntra.one</a></p>
         </div>
     </div>
 </body>
