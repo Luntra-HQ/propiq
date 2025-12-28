@@ -415,37 +415,122 @@ const SubscriptionTab: React.FC<{
 };
 
 // Preferences Tab
-const PreferencesTab: React.FC = () => (
-  <div className="space-y-6">
-    <SettingsCard title="Notifications" icon={Bell}>
-      <div className="space-y-4">
-        <PreferenceToggle
-          label="Email Notifications"
-          description="Receive updates about your analyses and subscription"
-          defaultChecked={true}
-        />
-        <PreferenceToggle
-          label="Usage Alerts"
-          description="Get notified when approaching analysis limit"
-          defaultChecked={true}
-        />
-        <PreferenceToggle
-          label="Product Updates"
-          description="Stay informed about new features and improvements"
-          defaultChecked={false}
-        />
-      </div>
-    </SettingsCard>
+const PreferencesTab: React.FC = () => {
+  const [npsScore, setNpsScore] = useState<number | null>(null);
+  const [npsComment, setNpsComment] = useState('');
+  const [npsSubmitted, setNpsSubmitted] = useState(false);
 
-    <SettingsCard title="Display Preferences" icon={User}>
-      <div className="space-y-4">
-        <p className="text-sm text-gray-400">
-          Additional preferences coming soon...
-        </p>
-      </div>
-    </SettingsCard>
-  </div>
-);
+  const handleNpsSubmit = () => {
+    if (npsScore === null) return;
+
+    // TODO: Wire to convex mutation (api.nps.submitResponse)
+    console.log('NPS submitted:', { score: npsScore, comment: npsComment });
+    setNpsSubmitted(true);
+
+    // Track in analytics
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', 'nps_survey_submit', {
+        event_category: 'engagement',
+        value: npsScore
+      });
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* NPS Survey */}
+      <SettingsCard title="Help Us Improve" icon={CheckCircle2}>
+        {npsSubmitted ? (
+          <div className="text-center py-6">
+            <CheckCircle2 className="h-12 w-12 text-emerald-500 mx-auto mb-3" />
+            <p className="text-white font-semibold mb-2">Thank you for your feedback!</p>
+            <p className="text-sm text-gray-400">
+              Your input helps us build a better product for investors like you.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <p className="text-gray-300 mb-4">
+              How likely are you to recommend PropIQ to a fellow investor?
+            </p>
+
+            {/* NPS Score Buttons (0-10) */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              {[...Array(11)].map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setNpsScore(i)}
+                  className={`w-12 h-12 rounded-lg font-bold transition-all ${
+                    npsScore === i
+                      ? 'bg-violet-600 text-white scale-110 shadow-lg'
+                      : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
+                  }`}
+                >
+                  {i}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex justify-between text-xs text-gray-400 mb-4">
+              <span>Not likely</span>
+              <span>Very likely</span>
+            </div>
+
+            {/* Optional Comment */}
+            {npsScore !== null && (
+              <div className="space-y-2">
+                <label className="block text-sm text-gray-300">
+                  What's the main reason for your score? (optional)
+                </label>
+                <textarea
+                  value={npsComment}
+                  onChange={(e) => setNpsComment(e.target.value)}
+                  placeholder="Tell us what you love or what we could improve..."
+                  className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-violet-500 transition"
+                  rows={3}
+                />
+                <button
+                  onClick={handleNpsSubmit}
+                  className="w-full px-4 py-3 bg-violet-600 hover:bg-violet-500 text-white font-semibold rounded-lg transition-all shadow-lg"
+                >
+                  Submit Feedback
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </SettingsCard>
+
+      <SettingsCard title="Notifications" icon={Bell}>
+        <div className="space-y-4">
+          <PreferenceToggle
+            label="Email Notifications"
+            description="Receive updates about your analyses and subscription"
+            defaultChecked={true}
+          />
+          <PreferenceToggle
+            label="Usage Alerts"
+            description="Get notified when approaching analysis limit"
+            defaultChecked={true}
+          />
+          <PreferenceToggle
+            label="Product Updates"
+            description="Stay informed about new features and improvements"
+            defaultChecked={false}
+          />
+        </div>
+      </SettingsCard>
+
+      <SettingsCard title="Display Preferences" icon={User}>
+        <div className="space-y-4">
+          <p className="text-sm text-gray-400">
+            Additional preferences coming soon...
+          </p>
+        </div>
+      </SettingsCard>
+    </div>
+  );
+};
 
 // Security Tab
 const SecurityTab: React.FC<{
