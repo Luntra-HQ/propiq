@@ -45,7 +45,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium, firefox, webkit]
+        browser: [chromium]  # Reduced from [chromium, firefox, webkit] to save 66% on GitHub Actions budget
 
     steps:
       - name: Checkout code

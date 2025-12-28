@@ -2,7 +2,8 @@ name: Deploy PropIQ
 
 on:
   push:
-    branches: [main]
+    tags:
+      - 'v*'  # Only deploy on version tags (v1.0.0, v1.1.0, etc.)
   pull_request:
     branches: [main]
   workflow_dispatch:  # Allow manual trigger
@@ -67,6 +68,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -91,7 +94,7 @@ jobs:
   deploy-backend:
     name: Deploy Backend to Azure
     needs: [test-backend, test-frontend]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     environment: production
 
@@ -150,7 +153,7 @@ jobs:
   deploy-frontend:
     name: Deploy Frontend to Netlify
     needs: [test-backend, test-frontend]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     environment: production
 
@@ -162,6 +165,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
         working-directory: ./frontend
@@ -208,7 +213,7 @@ jobs:
   verify-deployment:
     name: Verify Deployment
     needs: [deploy-backend, deploy-frontend]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
 
     steps:
@@ -250,7 +255,7 @@ jobs:
   rollback-on-failure:
     name: Rollback on Failure
     needs: [verify-deployment]
-    if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: failure() && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
 
     steps:
