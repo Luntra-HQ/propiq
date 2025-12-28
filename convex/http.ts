@@ -1138,4 +1138,42 @@ http.route({
   }),
 });
 
+// ============================================
+// SEO ENDPOINTS
+// ============================================
+
+// Dynamic sitemap endpoint
+http.route({
+  path: "/sitemap-dynamic.xml",
+  method: "GET",
+  handler: httpAction(async (ctx) => {
+    const xml = await ctx.runQuery(api.seo.generateSitemap);
+
+    return new Response(xml, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/xml",
+        "Cache-Control": "public, max-age=3600", // Cache for 1 hour
+      },
+    });
+  }),
+});
+
+// RSS feed endpoint
+http.route({
+  path: "/rss.xml",
+  method: "GET",
+  handler: httpAction(async (ctx) => {
+    const xml = await ctx.runQuery(api.seo.generateRSS);
+
+    return new Response(xml, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/rss+xml",
+        "Cache-Control": "public, max-age=3600", // Cache for 1 hour
+      },
+    });
+  }),
+});
+
 export default http;

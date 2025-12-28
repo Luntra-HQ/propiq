@@ -51,6 +51,17 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- Blog Index - Content Marketing Hub -->
+  <url>
+    <loc>https://propiq.luntra.one/blog</loc>
+    <lastmod>2025-12-28</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Note: Individual blog posts are included in the dynamic sitemap at /sitemap-dynamic.xml -->
+  <!-- Dynamic sitemap updates automatically when new posts are published -->
+
   <!--
   =====================================================
   FUTURE PAGES - RECOMMENDED CONTENT STRATEGY
