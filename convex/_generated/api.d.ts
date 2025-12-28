@@ -23,6 +23,7 @@ import type * as http from "../http.js";
 import type * as leadMagnet from "../leadMagnet.js";
 import type * as leads from "../leads.js";
 import type * as monitoring from "../monitoring.js";
+import type * as nps from "../nps.js";
 import type * as onboarding from "../onboarding.js";
 import type * as payments from "../payments.js";
 import type * as propiq from "../propiq.js";
@@ -54,6 +55,7 @@ declare const fullApi: ApiFromModules<{
   leadMagnet: typeof leadMagnet;
   leads: typeof leads;
   monitoring: typeof monitoring;
+  nps: typeof nps;
   onboarding: typeof onboarding;
   payments: typeof payments;
   propiq: typeof propiq;
