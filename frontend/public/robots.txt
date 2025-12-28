@@ -10,8 +10,9 @@ User-agent: *
 Allow: /
 Crawl-delay: 1
 
-# Sitemap location (for automated discovery)
+# Sitemap locations (for automated discovery)
 Sitemap: https://propiq.luntra.one/sitemap.xml
+Sitemap: https://propiq.luntra.one/sitemap-dynamic.xml
 
 # ==========================================
 # EXPLICIT ALLOW FOR MAJOR SEARCH ENGINES

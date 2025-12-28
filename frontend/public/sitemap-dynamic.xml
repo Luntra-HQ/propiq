@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
+  <!--
+    PropIQ Blog - Dynamic Sitemap
+    Generated: 2025-12-28T20:53:49.030Z
+    Posts: 5
+
+    This sitemap is automatically generated from Convex database.
+    Run: npm run generate-sitemap to regenerate.
+  -->
+
+  <!-- PropIQ vs Spreadsheets: Why AI Beats Your Excel Template -->
+  <url>
+    <loc>https://propiq.luntra.one/blog/propiq-vs-spreadsheets</loc>
+    <lastmod>2025-12-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&h=630&fit=crop</image:loc>
+      <image:title>PropIQ vs Spreadsheets: Why AI Beats Your Excel Template</image:title>
+    </image:image>
+  </url>
+
+  <!-- 7 Hidden Costs That Kill Your Rental Property ROI -->
+  <url>
+    <loc>https://propiq.luntra.one/blog/hidden-costs-rental-property-roi</loc>
+    <lastmod>2025-12-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://images.unsplash.com/photo-1554224154-22dec7ec8818?w=1200&h=630&fit=crop</image:loc>
+      <image:title>7 Hidden Costs That Kill Your Rental Property ROI</image:title>
+    </image:image>
+  </url>
+
+  <!-- The 1% Rule is Dead: What Smart Investors Use Instead -->
+  <url>
+    <loc>https://propiq.luntra.one/blog/1-percent-rule-dead</loc>
+    <lastmod>2025-12-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://images.unsplash.com/photo-1560520653-9e0e4c89eb11?w=1200&h=630&fit=crop</image:loc>
+      <image:title>The 1% Rule is Dead: What Smart Investors Use Instead</image:title>
+    </image:image>
+  </url>
+
+  <!-- Cap Rate Calculator: How to Value Investment Properties -->
+  <url>
+    <loc>https://propiq.luntra.one/blog/cap-rate-calculator-guide</loc>
+    <lastmod>2025-12-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1200&h=630&fit=crop</image:loc>
+      <image:title>Cap Rate Calculator: How to Value Investment Properties</image:title>
+    </image:image>
+  </url>
+
+  <!-- How to Analyze Rental Property Cash Flow in 2025 -->
+  <url>
+    <loc>https://propiq.luntra.one/blog/rental-property-cash-flow-analysis</loc>
+    <lastmod>2025-12-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1200&h=630&fit=crop</image:loc>
+      <image:title>How to Analyze Rental Property Cash Flow in 2025</image:title>
+    </image:image>
+  </url>
+
+</urlset>

@@ -1,8 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery } from 'convex/react';
-import { api } from '../../convex/_generated/api';
 import { SEO } from '../components/SEO';
-import { Search, Calendar, Clock, ArrowRight, Filter } from 'lucide-react';
+import { Search, Calendar, Clock, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 /**
@@ -49,7 +48,8 @@ export const Blog: React.FC = () => {
   const [email, setEmail] = useState('');
 
   // Fetch all published posts
-  const posts = useQuery(api.blog.getPublishedPosts) ?? [];
+  // Using string reference as workaround for api.blog undefined issue
+  const posts = useQuery('blog:getPublishedPosts' as any) ?? [];
 
   // Filter and search posts
   const filteredPosts = useMemo(() => {

@@ -1,9 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from 'convex/react';
-import { api } from '../../convex/_generated/api';
 import ReactMarkdown from 'react-markdown';
 import { SEO } from '../components/SEO';
+import {
+  FAQSchema,
+  CAP_RATE_FAQ,
+  CASH_FLOW_FAQ,
+  ROI_FAQ,
+  ONE_PERCENT_RULE_FAQ
+} from '../components/FAQSchema';
 import { Calendar, Clock, ArrowLeft, Share2, Twitter, Linkedin, Facebook, Link as LinkIcon } from 'lucide-react';
 
 /**
@@ -25,9 +31,10 @@ export const BlogPost: React.FC = () => {
   const [copied, setCopied] = useState(false);
 
   // Fetch post data
-  const post = useQuery(api.blog.getPostBySlug, slug ? { slug } : 'skip');
+  // Using string reference as workaround for api.blog undefined issue
+  const post = useQuery('blog:getPostBySlug' as any, slug ? { slug } : 'skip');
   const relatedPosts = useQuery(
-    api.blog.getRelatedPosts,
+    'blog:getRelatedPosts' as any,
     post ? { category: post.category, excludeSlug: post.slug, limit: 3 } : 'skip'
   );
 
@@ -61,6 +68,23 @@ export const BlogPost: React.FC = () => {
 
   const shareUrl = `https://propiq.luntra.one/blog/${slug}`;
   const shareTitle = post?.title || 'PropIQ Blog';
+
+  // Determine FAQ schema based on post slug
+  const getFAQForPost = () => {
+    if (!post) return null;
+
+    switch (post.slug) {
+      case 'cap-rate-calculator-guide':
+      case 'rental-property-cash-flow-analysis':
+        return CAP_RATE_FAQ;
+      case 'hidden-costs-rental-property-roi':
+        return ROI_FAQ;
+      case '1-percent-rule-dead':
+        return ONE_PERCENT_RULE_FAQ;
+      default:
+        return null;
+    }
+  };
 
   const handleShare = (platform: string) => {
     let url = '';
@@ -106,6 +130,8 @@ export const BlogPost: React.FC = () => {
     );
   }
 
+  const faqData = getFAQForPost();
+
   return (
     <>
       <SEO
@@ -137,6 +163,9 @@ export const BlogPost: React.FC = () => {
           },
         }}
       />
+
+      {/* FAQ Schema for calculator guides */}
+      {faqData && <FAQSchema questions={faqData} />}
 
       <div className="min-h-screen bg-slate-900 text-gray-100">
         {/* Hero Section */}

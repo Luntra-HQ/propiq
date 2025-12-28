@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!--
+Bing Webmaster Tools Verification File Placeholder
+
+INSTRUCTIONS FOR SETUP:
+1. Go to https://www.bing.com/webmasters
+2. Sign in with Microsoft account
+3. Click "Add a site" → Enter: https://propiq.luntra.one
+4. Choose "XML file authentication" method
+5. Download BingSiteAuth.xml
+6. Replace this file with your downloaded file
+7. Deploy to production
+8. Complete verification in Bing Webmaster Tools
+
+Alternative Methods:
+- Import from Google Search Console (easiest if GSC is already setup)
+- Use meta tag in index.html
+- Add CNAME record to DNS
+
+Current Status: ⏳ PENDING - Awaiting Brian's setup
+-->
+<users>
+  <user>REPLACE_WITH_YOUR_VERIFICATION_CODE</user>
+</users>

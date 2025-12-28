@@ -80,7 +80,9 @@
     "test:account-maintenance": "playwright test tests/account-settings.spec.ts tests/change-password.spec.ts tests/subscription-management.spec.ts tests/preferences.spec.ts --reporter=list",
     "test:account-maintenance:headed": "playwright test tests/account-settings.spec.ts tests/change-password.spec.ts tests/subscription-management.spec.ts tests/preferences.spec.ts --headed",
     "analytics": "node scripts/analytics-dashboard.js",
-    "analytics:export": "node scripts/analytics-dashboard.js --export"
+    "analytics:export": "node scripts/analytics-dashboard.js --export",
+    "generate-sitemap": "node scripts/generate-sitemap.cjs",
+    "prebuild": "npm run generate-sitemap"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.0",
