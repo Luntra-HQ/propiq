@@ -13,6 +13,23 @@ const FROM_EMAIL = "PropIQ <hello@propiq.luntra.one>"; // Verified domain via Cl
 const APP_URL = "https://propiq.luntra.one";
 
 /**
+ * Add UTM parameters to URL for email click tracking
+ * @param baseUrl - Base URL (e.g., APP_URL or APP_URL + "/pricing")
+ * @param campaign - Email campaign name (e.g., "onboarding_day_1", "trial_warning")
+ * @param content - Optional content identifier
+ */
+function addUTMParams(baseUrl: string, campaign: string, content?: string): string {
+  const url = new URL(baseUrl);
+  url.searchParams.set("utm_source", "email");
+  url.searchParams.set("utm_medium", "email");
+  url.searchParams.set("utm_campaign", campaign);
+  if (content) {
+    url.searchParams.set("utm_content", content);
+  }
+  return url.toString();
+}
+
+/**
  * Send Day 1 onboarding email
  * Triggered immediately after user signup
  */
@@ -506,7 +523,7 @@ function getDay1EmailHTML(userName: string, userEmail: string): string {
 
         <p><strong>Your free trial includes 3 AI-powered property analyses.</strong> Let's make the most of them!</p>
 
-        <a href="${APP_URL}" class="cta-button">Analyze Your First Property →</a>
+        <a href="${addUTMParams(APP_URL, 'onboarding_day_1', 'cta_analyze_first')}" class="cta-button">Analyze Your First Property →</a>
 
         <h2 style="color: #1f2937; font-size: 20px; margin-top: 32px;">Quick Start Guide</h2>
 
