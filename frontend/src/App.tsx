@@ -24,6 +24,7 @@ const ComponentTestPage = lazy(() => import('./pages/ComponentTestPage'));
 const ReferralLanding = lazy(() => import('./pages/ReferralLanding'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const SharedAnalysis = lazy(() => import('./pages/SharedAnalysis'));
+const LeadMagnetLanding = lazy(() => import('./pages/LeadMagnetLanding'));
 
 // Import hook directly (small, needed for initial render logic)
 import { useShouldShowTour } from './components/ProductTour';
@@ -842,6 +843,15 @@ const App = () => {
     return (
       <Suspense fallback={<SuspenseFallback minHeight="100vh" />}>
         <SharedAnalysis />
+      </Suspense>
+    );
+  }
+
+  // Lead Magnet Landing Page (PUBLIC - /free/due-diligence-checklist)
+  if (window.location.pathname.startsWith('/free/')) {
+    return (
+      <Suspense fallback={<SuspenseFallback minHeight="100vh" />}>
+        <LeadMagnetLanding />
       </Suspense>
     );
   }
