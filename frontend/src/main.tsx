@@ -17,6 +17,8 @@ const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
 const FAQPage = lazy(() => import('./pages/FAQPage'))
 const PricingPageWrapper = lazy(() => import('./pages/PricingPageWrapper'))
 const ReferralLandingPage = lazy(() => import('./pages/ReferralLandingPage'))
+const Blog = lazy(() => import('./pages/Blog'))
+const BlogPost = lazy(() => import('./pages/BlogPost'))
 const App = lazy(() => import('./App'))
 
 import './index.css'
@@ -74,6 +76,10 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                 <Route path="/pricing/*" element={<PricingPageWrapper />} />
                 <Route path="/faq" element={<FAQPage />} />
                 <Route path="/welcome" element={<WelcomePage />} />
+
+                {/* Blog routes - PUBLIC for SEO */}
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/:slug" element={<BlogPost />} />
 
                 {/* Referral landing page - /r/CODE */}
                 <Route path="/r/:code" element={<ReferralLandingPage />} />

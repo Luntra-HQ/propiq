@@ -400,4 +400,38 @@ export default defineSchema({
     .index("by_source", ["source"])
     .index("by_captured_date", ["capturedAt"])
     .index("by_user", ["userId"]),
+
+  // Blog posts - Content marketing for SEO and user acquisition
+  blogPosts: defineTable({
+    slug: v.string(), // URL-friendly unique identifier
+    title: v.string(),
+    excerpt: v.string(), // 150-200 chars for previews
+    content: v.string(), // Markdown content
+    coverImage: v.string(), // URL to cover image
+    category: v.string(), // "analysis-tips" | "market-insights" | "calculator-guides" | "case-studies"
+    tags: v.array(v.string()),
+
+    // Author info
+    author: v.string(),
+    authorAvatar: v.string(),
+
+    // Publishing
+    publishedAt: v.number(),
+    updatedAt: v.number(),
+    isPublished: v.boolean(),
+
+    // Metadata
+    readingTime: v.number(), // minutes
+
+    // SEO overrides
+    seoTitle: v.optional(v.string()),
+    seoDescription: v.optional(v.string()),
+
+    // Analytics
+    viewCount: v.optional(v.number()),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_category", ["category"])
+    .index("by_published_date", ["isPublished", "publishedAt"])
+    .index("by_is_published", ["isPublished"]),
 });
