@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from 'convex/react';
-import { api } from '../../convex/_generated/api';
+import { api } from '../convex/_generated/api';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 
 /**
@@ -15,7 +15,7 @@ const ReferralLandingPage: React.FC = () => {
 
   // Validate the referral code
   const validation = useQuery(
-    api.referrals.validateReferralCode,
+    api?.referrals?.validateReferralCode,
     code ? { code } : 'skip'
   );
 
