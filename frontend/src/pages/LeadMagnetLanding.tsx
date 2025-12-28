@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle, Download, Mail, TrendingUp, Shield, Clock, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation } from 'convex/react';
+import { useMutation, useAction } from 'convex/react';
 import { api } from '../convex/_generated/api';
 import { Helmet } from 'react-helmet-async';
 
@@ -15,6 +15,7 @@ const LeadMagnetLanding: React.FC = () => {
   const [utmParams, setUtmParams] = useState<Record<string, string>>({});
 
   const captureLead = useMutation(api.leads.captureLead);
+  const sendLeadMagnetEmail = useAction(api.emails.sendLeadMagnetEmail);
 
   // Extract UTM parameters from URL on mount
   useEffect(() => {
@@ -41,6 +42,7 @@ const LeadMagnetLanding: React.FC = () => {
     setIsSubmitting(true);
 
     try {
+      // Step 1: Capture lead in database
       await captureLead({
         email,
         firstName: firstName || undefined,
@@ -51,6 +53,13 @@ const LeadMagnetLanding: React.FC = () => {
         utm_campaign: utmParams.utm_campaign,
         utm_content: utmParams.utm_content,
         utm_term: utmParams.utm_term,
+      });
+
+      // Step 2: Send lead magnet email immediately
+      await sendLeadMagnetEmail({
+        email,
+        firstName: firstName || undefined,
+        leadMagnet: 'due-diligence-checklist',
       });
 
       setIsSubmitted(true);
