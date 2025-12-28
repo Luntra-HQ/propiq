@@ -653,7 +653,7 @@ function getDay2EmailHTML(userName: string): string {
             See 5-year financial projections with best/worst case scenarios. Know your cap rate, cash-on-cash return, and whether the property passes the 1% rule - all in seconds.
         </div>
 
-        <a href="${APP_URL}" class="cta-button">Analyze Your First Property →</a>
+        <a href="${addUTMParams(APP_URL, 'onboarding_day_2', 'cta_analyze')}" class="cta-button">Analyze Your First Property →</a>
 
         <p style="margin-top: 32px;"><strong>Pro tip:</strong> The best deals get snatched up fast. Use PropIQ to analyze properties the moment they hit the market, so you can make confident offers before your competition.</p>
 
@@ -663,7 +663,7 @@ function getDay2EmailHTML(userName: string): string {
 
         <div class="footer">
             <p>© 2025 PropIQ by LUNTRA<br>
-            <a href="${APP_URL}" style="color: #4F46E5;">propiq.luntra.one</a></p>
+            <a href="${addUTMParams(APP_URL, 'onboarding_day_2', 'footer_link')}" style="color: #4F46E5;">propiq.luntra.one</a></p>
         </div>
     </div>
 </body>
@@ -755,7 +755,7 @@ function getDay3EmailHTML(userName: string): string {
             <p style="margin: 8px 0 0 0; font-size: 14px;"><em>— Marcus L., Wholesaler</em></p>
         </div>
 
-        <a href="${APP_URL}" class="cta-button">See What You're Missing →</a>
+        <a href="${addUTMParams(APP_URL, 'onboarding_day_3', 'cta_see_missing')}" class="cta-button">See What You're Missing →</a>
 
         <p style="margin-top: 32px;"><strong>Your turn:</strong> What's your investment strategy? Whether you're flipping, renting, or wholesaling, PropIQ adapts to your needs.</p>
 
@@ -765,7 +765,7 @@ function getDay3EmailHTML(userName: string): string {
 
         <div class="footer">
             <p>© 2025 PropIQ by LUNTRA<br>
-            <a href="${APP_URL}" style="color: #4F46E5;">propiq.luntra.one</a></p>
+            <a href="${addUTMParams(APP_URL, 'onboarding_day_3', 'footer_link')}" style="color: #4F46E5;">propiq.luntra.one</a></p>
         </div>
     </div>
 </body>
@@ -870,7 +870,7 @@ function getDay4EmailHTML(userName: string, analysesRemaining: number): string {
             <p>Everything in Pro<br>Advanced analytics<br>Market alerts (coming soon)<br>For portfolio builders</p>
         </div>
 
-        <a href="${APP_URL}/pricing" class="cta-button">Upgrade to Pro →</a>
+        <a href="${addUTMParams(APP_URL + '/pricing', 'onboarding_day_4', 'cta_upgrade')}" class="cta-button">Upgrade to Pro →</a>
 
         <p style="margin-top: 32px;"><strong>Think about it:</strong> If PropIQ helps you avoid just ONE bad deal, it's paid for itself dozens of times over. Most investors lose $10K+ on their first mistake. We're $99/month.</p>
 
@@ -880,7 +880,7 @@ function getDay4EmailHTML(userName: string, analysesRemaining: number): string {
 
         <div class="footer">
             <p>© 2025 PropIQ by LUNTRA<br>
-            <a href="${APP_URL}" style="color: #4F46E5;">propiq.luntra.one</a></p>
+            <a href="${addUTMParams(APP_URL, 'onboarding_day_4', 'footer_link')}" style="color: #4F46E5;">propiq.luntra.one</a></p>
             <p style="font-size: 12px; color: #9ca3af; margin-top: 16px;">
                 No credit card required to continue your free trial.
             </p>
@@ -1415,7 +1415,7 @@ function getReengagementHTML(userName: string, daysSinceActive: number): string 
 
         <p>The investors who are winning right now? They're the ones analyzing deals quickly, making confident offers, and moving fast.</p>
 
-        <a href="${APP_URL}" class="cta-button">Analyze a Property Now →</a>
+        <a href="${addUTMParams(APP_URL, 'reengagement', 'cta_analyze_now')}" class="cta-button">Analyze a Property Now →</a>
 
         <p style="margin-top: 32px;">Your account is still active with all your previous analyses saved. Jump back in and see how PropIQ has improved.</p>
 
@@ -1425,7 +1425,7 @@ function getReengagementHTML(userName: string, daysSinceActive: number): string 
 
         <div class="footer">
             <p>© 2025 PropIQ by LUNTRA<br>
-            <a href="${APP_URL}" style="color: #4F46E5;">propiq.luntra.one</a></p>
+            <a href="${addUTMParams(APP_URL, 'reengagement', 'footer_link')}" style="color: #4F46E5;">propiq.luntra.one</a></p>
         </div>
     </div>
 </body>
@@ -1468,7 +1468,7 @@ function getLeadNurtureDay3HTML(userName: string): string {
   <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
     <h1>Quick question, ${userName}</h1>
     <p>Have you had a chance to use the Due Diligence Checklist?</p>
-    <a href="${APP_URL}?utm_source=lead_nurture&utm_medium=email&utm_campaign=day_3">Try PropIQ Free</a>
+    <a href="${addUTMParams(APP_URL, 'lead_nurture_day_3', 'cta_try_free')}">Try PropIQ Free</a>
   </div>
 </body>
 </html>
@@ -1483,7 +1483,7 @@ function getLeadNurtureDay7HTML(userName: string): string {
   <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
     <h1>The #1 mistake I see investors make</h1>
     <p>Hi ${userName}, I've analyzed over 1,000 rental properties.</p>
-    <a href="${APP_URL}?utm_source=lead_nurture&utm_medium=email&utm_campaign=day_7">Analyze Your First Property Free</a>
+    <a href="${addUTMParams(APP_URL, 'lead_nurture_day_7', 'cta_analyze_free')}">Analyze Your First Property Free</a>
   </div>
 </body>
 </html>
