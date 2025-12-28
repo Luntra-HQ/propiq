@@ -706,3 +706,545 @@ function getDay4EmailHTML(userName: string, analysesRemaining: number): string {
 </html>
   `;
 }
+
+/**
+ * Send Trial Expiration Warning Email
+ * Triggered when user has 1 analysis remaining
+ */
+export const sendTrialExpirationWarning = action({
+  args: {
+    userId: v.id("users"),
+    email: v.string(),
+    firstName: v.optional(v.string()),
+    analysesRemaining: v.number(),
+  },
+  handler: async (ctx, args) => {
+    if (!RESEND_API_KEY) {
+      console.error("[EMAIL] Resend API key not configured");
+      return { success: false, error: "Email service not configured" };
+    }
+
+    const userName = args.firstName || "there";
+    const html = getTrialExpirationWarningHTML(userName);
+
+    try {
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: FROM_EMAIL,
+          to: args.email,
+          subject: "⚠️ You have 1 free analysis left",
+          html,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        console.error(`[EMAIL] Failed to send trial warning to ${args.email}:`, error);
+        return { success: false, error };
+      }
+
+      const result = await response.json();
+      console.log(`[EMAIL] ✅ Trial warning email sent to ${args.email} (ID: ${result.id})`);
+
+      await ctx.runMutation(internal.emails.logEmailSent, {
+        userId: args.userId,
+        emailType: "trial_expiration_warning",
+        sentAt: Date.now(),
+        resendId: result.id,
+      });
+
+      return { success: true, emailId: result.id };
+    } catch (error) {
+      console.error(`[EMAIL] ❌ Error sending trial warning to ${args.email}:`, error);
+      return { success: false, error: String(error) };
+    }
+  },
+});
+
+/**
+ * Send Trial Expired Email
+ * Triggered when user has 0 analyses remaining
+ */
+export const sendTrialExpired = action({
+  args: {
+    userId: v.id("users"),
+    email: v.string(),
+    firstName: v.optional(v.string()),
+    analysesUsed: v.number(),
+  },
+  handler: async (ctx, args) => {
+    if (!RESEND_API_KEY) {
+      console.error("[EMAIL] Resend API key not configured");
+      return { success: false, error: "Email service not configured" };
+    }
+
+    const userName = args.firstName || "there";
+    const html = getTrialExpiredHTML(userName, args.analysesUsed);
+
+    try {
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: FROM_EMAIL,
+          to: args.email,
+          subject: "Your PropIQ trial has ended",
+          html,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        console.error(`[EMAIL] Failed to send trial expired to ${args.email}:`, error);
+        return { success: false, error };
+      }
+
+      const result = await response.json();
+      console.log(`[EMAIL] ✅ Trial expired email sent to ${args.email} (ID: ${result.id})`);
+
+      await ctx.runMutation(internal.emails.logEmailSent, {
+        userId: args.userId,
+        emailType: "trial_expired",
+        sentAt: Date.now(),
+        resendId: result.id,
+      });
+
+      return { success: true, emailId: result.id };
+    } catch (error) {
+      console.error(`[EMAIL] ❌ Error sending trial expired to ${args.email}:`, error);
+      return { success: false, error: String(error) };
+    }
+  },
+});
+
+/**
+ * Send Re-engagement Email
+ * Triggered for inactive users (14+ days)
+ */
+export const sendReengagement = action({
+  args: {
+    userId: v.id("users"),
+    email: v.string(),
+    firstName: v.optional(v.string()),
+    daysSinceActive: v.number(),
+  },
+  handler: async (ctx, args) => {
+    if (!RESEND_API_KEY) {
+      console.error("[EMAIL] Resend API key not configured");
+      return { success: false, error: "Email service not configured" };
+    }
+
+    const userName = args.firstName || "there";
+    const html = getReengagementHTML(userName, args.daysSinceActive);
+
+    try {
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: FROM_EMAIL,
+          to: args.email,
+          subject: "We've added new features you'll love",
+          html,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        console.error(`[EMAIL] Failed to send re-engagement to ${args.email}:`, error);
+        return { success: false, error };
+      }
+
+      const result = await response.json();
+      console.log(`[EMAIL] ✅ Re-engagement email sent to ${args.email} (ID: ${result.id})`);
+
+      await ctx.runMutation(internal.emails.logEmailSent, {
+        userId: args.userId,
+        emailType: "reengagement",
+        sentAt: Date.now(),
+        resendId: result.id,
+      });
+
+      return { success: true, emailId: result.id };
+    } catch (error) {
+      console.error(`[EMAIL] ❌ Error sending re-engagement to ${args.email}:`, error);
+      return { success: false, error: String(error) };
+    }
+  },
+});
+
+/**
+ * Trial Expiration Warning email template
+ */
+function getTrialExpirationWarningHTML(userName: string): string {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #1f2937;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9fafb;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #f59e0b;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #4F46E5;
+            color: white !important;
+            padding: 14px 28px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 20px 0;
+        }
+        .warning-box {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 16px;
+            margin: 16px 0;
+            border-radius: 4px;
+        }
+        .pricing-card {
+            background: #f3f4f6;
+            border: 2px solid #e5e7eb;
+            padding: 20px;
+            margin: 12px 0;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .pricing-card.featured {
+            background: linear-gradient(135deg, #4F46E5 0%, #7c3aed 100%);
+            border: none;
+        }
+        .price {
+            font-size: 36px;
+            font-weight: 700;
+            color: #4F46E5;
+        }
+        .footer {
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚠️ You Have 1 Free Analysis Left</h1>
+
+        <p>Hi ${userName},</p>
+
+        <div class="warning-box">
+            <strong>Make it count!</strong><br>
+            You're down to your last free property analysis. After this, you'll need to upgrade to continue.
+        </div>
+
+        <p>Here's why thousands of investors upgrade to PropIQ Pro:</p>
+
+        <ul>
+            <li><strong>Unlimited Analyses</strong> - Never run out. Analyze every property you're considering.</li>
+            <li><strong>Deal Alerts</strong> - Get notified when great deals hit the market in your target areas.</li>
+            <li><strong>Advanced Metrics</strong> - Cap rate, cash-on-cash return, 1% rule, and more.</li>
+            <li><strong>5-Year Projections</strong> - See your investment growth over time with best/worst case scenarios.</li>
+        </ul>
+
+        <div class="pricing-card">
+            <h3 style="margin-top: 0;">Starter</h3>
+            <div class="price">$49<span style="font-size: 16px;">/month</span></div>
+            <p>20 analyses/month<br>Perfect for new investors</p>
+        </div>
+
+        <div class="pricing-card featured">
+            <h3 style="margin-top: 0; color: white;">Pro ⭐</h3>
+            <div class="price" style="color: white;">$99<span style="font-size: 16px;">/month</span></div>
+            <p style="color: rgba(255,255,255,0.9);">100 analyses/month<br>Priority support<br>Most popular plan</p>
+        </div>
+
+        <div class="pricing-card">
+            <h3 style="margin-top: 0;">Elite</h3>
+            <div class="price">$199<span style="font-size: 16px;">/month</span></div>
+            <p>Unlimited analyses<br>Advanced analytics<br>For serious investors</p>
+        </div>
+
+        <a href="${APP_URL}/pricing" class="cta-button">Upgrade Now →</a>
+
+        <p style="margin-top: 32px;"><strong>Think about it:</strong> One bad investment can cost you tens of thousands. PropIQ Pro is $99/month. If it helps you avoid just one mistake, it's paid for itself 100x over.</p>
+
+        <p>Ready to level up your deal analysis?</p>
+
+        <p>The PropIQ Team</p>
+
+        <div class="footer">
+            <p>© 2025 PropIQ by LUNTRA<br>
+            <a href="${APP_URL}" style="color: #4F46E5;">propiq.luntra.one</a></p>
+        </div>
+    </div>
+</body>
+</html>
+  `;
+}
+
+/**
+ * Trial Expired email template
+ */
+function getTrialExpiredHTML(userName: string, analysesUsed: number): string {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #1f2937;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9fafb;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #4F46E5;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #10b981;
+            color: white !important;
+            padding: 14px 28px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 20px 0;
+        }
+        .stats-box {
+            background: #f0fdf4;
+            border-left: 4px solid #10b981;
+            padding: 16px;
+            margin: 16px 0;
+            border-radius: 4px;
+        }
+        .offer-box {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 24px;
+            margin: 20px 0;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .offer-box h3 {
+            margin: 0 0 8px 0;
+            font-size: 24px;
+        }
+        .footer {
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Your PropIQ Trial Has Ended</h1>
+
+        <p>Hi ${userName},</p>
+
+        <div class="stats-box">
+            <strong>You analyzed ${analysesUsed} ${analysesUsed === 1 ? 'property' : 'properties'} during your trial!</strong><br>
+            That's a great start. But you're just scratching the surface.
+        </div>
+
+        <p>Here's what you're missing without PropIQ:</p>
+
+        <ul>
+            <li><strong>Hidden Deal Opportunities</strong> - Stop relying on gut feelings and basic calculators.</li>
+            <li><strong>Risk Protection</strong> - Avoid bad deals that could cost you $10K-$50K+.</li>
+            <li><strong>Competitive Edge</strong> - While others spend hours on spreadsheets, you get instant AI insights.</li>
+            <li><strong>Confidence</strong> - Make offers knowing your numbers are solid.</li>
+        </ul>
+
+        <div class="offer-box">
+            <h3>🎉 Special Offer: 20% Off Your First Month</h3>
+            <p style="margin: 8px 0;">Come back and get 20% off any plan. Limited time only.</p>
+            <p style="font-size: 14px; opacity: 0.9; margin: 0;">Use code: <strong>COMEBACK20</strong></p>
+        </div>
+
+        <a href="${APP_URL}/pricing?code=COMEBACK20" class="cta-button">Reactivate Now & Save 20% →</a>
+
+        <p style="margin-top: 32px;"><strong>The math is simple:</strong> If PropIQ helps you find just ONE good deal or avoid ONE bad investment, it's paid for itself dozens of times over.</p>
+
+        <p>Most successful investors don't try to do everything themselves. They use the best tools. PropIQ is that tool for deal analysis.</p>
+
+        <p>Ready to come back?</p>
+
+        <p>The PropIQ Team</p>
+
+        <div class="footer">
+            <p>© 2025 PropIQ by LUNTRA<br>
+            <a href="${APP_URL}" style="color: #4F46E5;">propiq.luntra.one</a></p>
+        </div>
+    </div>
+</body>
+</html>
+  `;
+}
+
+/**
+ * Re-engagement email template
+ */
+function getReengagementHTML(userName: string, daysSinceActive: number): string {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #1f2937;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9fafb;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #4F46E5;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #4F46E5;
+            color: white !important;
+            padding: 14px 28px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 20px 0;
+        }
+        .feature-card {
+            background: #f3f4f6;
+            border-left: 4px solid #4F46E5;
+            padding: 16px;
+            margin: 16px 0;
+            border-radius: 4px;
+        }
+        .highlight {
+            background: #ede9fe;
+            border: 2px solid #7c3aed;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .footer {
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>We've Added New Features You'll Love 🚀</h1>
+
+        <p>Hi ${userName},</p>
+
+        <p>It's been ${daysSinceActive} days since you last used PropIQ. We've been busy building features you asked for!</p>
+
+        <div class="highlight">
+            <h3 style="margin-top: 0; color: #7c3aed;">🎉 What's New in PropIQ</h3>
+            <p style="margin-bottom: 0;">Enhanced AI analysis, faster results, and more accurate predictions</p>
+        </div>
+
+        <div class="feature-card">
+            <strong>🔍 Enhanced AI Analysis</strong><br>
+            Our AI now analyzes 20+ data points (up from 15) for even more accurate deal scoring. We've improved accuracy by 30% based on your feedback.
+        </div>
+
+        <div class="feature-card">
+            <strong>📊 Share Your Analyses</strong><br>
+            New feature: Share analysis results with partners, lenders, or your team with a simple link. Perfect for collaboration.
+        </div>
+
+        <div class="feature-card">
+            <strong>💰 Referral Rewards</strong><br>
+            Earn 1 month free for every friend who upgrades to a paid plan. Share your referral link and start earning.
+        </div>
+
+        <p><strong>But here's the real reason I'm reaching out:</strong></p>
+
+        <p>The market is moving. Interest rates are shifting. Property prices are changing. While you've been away, opportunities have come and gone.</p>
+
+        <p>The investors who are winning right now? They're the ones analyzing deals quickly, making confident offers, and moving fast.</p>
+
+        <a href="${APP_URL}" class="cta-button">Analyze a Property Now →</a>
+
+        <p style="margin-top: 32px;">Your account is still active with all your previous analyses saved. Jump back in and see how PropIQ has improved.</p>
+
+        <p>Ready to find your next deal?</p>
+
+        <p>The PropIQ Team</p>
+
+        <div class="footer">
+            <p>© 2025 PropIQ by LUNTRA<br>
+            <a href="${APP_URL}" style="color: #4F46E5;">propiq.luntra.one</a></p>
+        </div>
+    </div>
+</body>
+</html>
+  `;
+}
