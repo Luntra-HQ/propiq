@@ -1,25 +1,26 @@
 name: Account Maintenance Tests
 
 on:
-  push:
-    branches: [main, develop, staging]
-    paths:
-      # Trigger on account maintenance component changes
-      - 'frontend/src/pages/SettingsPage.tsx'
-      - 'frontend/src/components/ChangePasswordForm.tsx'
-      - 'frontend/src/components/CancelSubscriptionDialog.tsx'
-      - 'frontend/src/components/PlanChangeModal.tsx'
-      - 'frontend/src/utils/passwordValidation.ts'
-      - 'frontend/src/config/pricing.ts'
-      # Trigger on test changes
-      - 'frontend/tests/account-settings.spec.ts'
-      - 'frontend/tests/change-password.spec.ts'
-      - 'frontend/tests/subscription-management.spec.ts'
-      - 'frontend/tests/preferences.spec.ts'
-      # Trigger on backend auth changes
-      - 'convex/auth.ts'
-      # Trigger on workflow changes
-      - '.github/workflows/account-maintenance-tests.yml'
+  # DISABLED: Auto-run on push (to save GitHub Actions budget)
+  # push:
+  #   branches: [main, develop, staging]
+  #   paths:
+  #     # Trigger on account maintenance component changes
+  #     - 'frontend/src/pages/SettingsPage.tsx'
+  #     - 'frontend/src/components/ChangePasswordForm.tsx'
+  #     - 'frontend/src/components/CancelSubscriptionDialog.tsx'
+  #     - 'frontend/src/components/PlanChangeModal.tsx'
+  #     - 'frontend/src/utils/passwordValidation.ts'
+  #     - 'frontend/src/config/pricing.ts'
+  #     # Trigger on test changes
+  #     - 'frontend/tests/account-settings.spec.ts'
+  #     - 'frontend/tests/change-password.spec.ts'
+  #     - 'frontend/tests/subscription-management.spec.ts'
+  #     - 'frontend/tests/preferences.spec.ts'
+  #     # Trigger on backend auth changes
+  #     - 'convex/auth.ts'
+  #     # Trigger on workflow changes
+  #     - '.github/workflows/account-maintenance-tests.yml'
 
   pull_request:
     branches: [main, develop]
@@ -33,7 +34,7 @@ on:
       - 'frontend/tests/subscription-*.spec.ts'
       - 'frontend/tests/preferences.spec.ts'
 
-  workflow_dispatch: # Allow manual triggering
+  workflow_dispatch: # Allow manual triggering ONLY (saves budget)
 
 jobs:
   test-account-maintenance:
