@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { Target, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, X, Loader2, FileText, MapPin, DollarSign, BarChart3, Lightbulb, ArrowRight, Zap, Info } from 'lucide-react';
+import { Target, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, X, Loader2, FileText, MapPin, DollarSign, BarChart3, Lightbulb, ArrowRight, Zap, Info, Linkedin } from 'lucide-react';
 import { useAction } from 'convex/react';
+import { api } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
 import { PrintButton } from './PrintButton';
 import { PDFExportButton } from './PDFExportButton';
@@ -67,6 +68,7 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
   // Convex action for analysis (avoid REST API drift + prevents auth header issues)
   // Using string reference avoids anyApi proxy edge-cases in production builds.
   const analyzeProperty = useAction('propiq:analyzeProperty' as any);
+  const generateShareLink = useAction(api.sharing.generateShareLink);
 
   // Compute validation without extra setState loops (prevents flicker/flash while typing)
   const validationResult: ValidationResult | null = useMemo(() => {
@@ -590,6 +592,38 @@ export const PropIQAnalysis: React.FC<PropIQAnalysisProps> = ({ onClose, userId,
                 gap: '12px',
                 marginBottom: '24px'
               }}>
+                <button
+                  onClick={async () => {
+                    try {
+                      const result = await generateShareLink({
+                        analysisId: savedAnalysisId as Id<"propertyAnalyses">,
+                        userId: userId as Id<"users">
+                      });
+
+                      if (result.success && result.url) {
+                        const shareUrl = result.url;
+                        const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
+                        window.open(linkedinUrl, '_blank', 'width=550,height=420');
+
+                        // Track share
+                        if (typeof window !== 'undefined' && (window as any).gtag) {
+                          (window as any).gtag('event', 'share', {
+                            method: 'LinkedIn',
+                            content_type: 'property_analysis',
+                            content_id: savedAnalysisId
+                          });
+                        }
+                      }
+                    } catch (error) {
+                      console.error('Failed to share on LinkedIn:', error);
+                    }
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#0077B5] hover:bg-[#006399] text-white font-medium rounded-lg transition-all shadow-lg"
+                  title="Share on LinkedIn"
+                >
+                  <Linkedin className="h-4 w-4" />
+                  Share on LinkedIn
+                </button>
                 <ShareAnalysisButton
                   analysisId={savedAnalysisId as Id<"propertyAnalyses">}
                   userId={userId as Id<"users">}
