@@ -22,4 +22,30 @@ crons.weekly(
   internal.emailScheduler.checkInactiveUsers
 );
 
+/**
+ * Lead Nurture Day 3 - Daily at 10 AM EST (3 PM UTC)
+ * Sends nurture emails to leads captured 3 days ago
+ */
+crons.daily(
+  "lead-nurture-day-3",
+  {
+    hourUTC: 15, // 3 PM UTC = 10 AM EST
+    minuteUTC: 0,
+  },
+  internal.emailScheduler.checkLeadsForDay3Nurture
+);
+
+/**
+ * Lead Nurture Day 7 - Daily at 10:30 AM EST (3:30 PM UTC)
+ * Sends final nurture emails to leads captured 7 days ago
+ */
+crons.daily(
+  "lead-nurture-day-7",
+  {
+    hourUTC: 15, // 3:30 PM UTC = 10:30 AM EST
+    minuteUTC: 30,
+  },
+  internal.emailScheduler.checkLeadsForDay7Nurture
+);
+
 export default crons;

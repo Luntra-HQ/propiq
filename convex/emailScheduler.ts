@@ -178,6 +178,96 @@ export const checkInactiveUsers = internalAction({
 });
 
 /**
+ * Check and Send Lead Nurture Emails (Day 3)
+ * Runs daily to find leads captured 3 days ago and send nurture emails
+ */
+export const checkLeadsForDay3Nurture = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    console.log("[EMAIL SCHEDULER] Starting Day 3 lead nurture check...");
+
+    // Get leads eligible for Day 3 nurture email
+    const eligibleLeads = await ctx.runQuery(internal.leads.getLeadsForNurture, {
+      day: 3,
+    });
+
+    console.log(`[EMAIL SCHEDULER] Found ${eligibleLeads.length} leads eligible for Day 3 nurture`);
+
+    let emailsSent = 0;
+    let emailsSkipped = 0;
+
+    for (const lead of eligibleLeads) {
+      try {
+        // Send Day 3 nurture email
+        const result = await ctx.runAction(internal.emails.sendLeadNurtureDay3, {
+          leadId: lead._id,
+          email: lead.email,
+          firstName: lead.firstName,
+        });
+
+        if (result.success) {
+          emailsSent++;
+          console.log(`[EMAIL SCHEDULER] ✅ Sent Day 3 nurture to ${lead.email}`);
+        } else {
+          emailsSkipped++;
+          console.log(`[EMAIL SCHEDULER] ⏭ Skipped ${lead.email}: ${result.error}`);
+        }
+      } catch (error) {
+        console.error(`[EMAIL SCHEDULER] ❌ Failed to send Day 3 nurture to ${lead.email}:`, error);
+      }
+    }
+
+    console.log(`[EMAIL SCHEDULER] ✅ Day 3 nurture check complete. Sent: ${emailsSent}, Skipped: ${emailsSkipped}`);
+    return { success: true, emailsSent, emailsSkipped, totalChecked: eligibleLeads.length };
+  },
+});
+
+/**
+ * Check and Send Lead Nurture Emails (Day 7)
+ * Runs daily to find leads captured 7 days ago and send nurture emails
+ */
+export const checkLeadsForDay7Nurture = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    console.log("[EMAIL SCHEDULER] Starting Day 7 lead nurture check...");
+
+    // Get leads eligible for Day 7 nurture email
+    const eligibleLeads = await ctx.runQuery(internal.leads.getLeadsForNurture, {
+      day: 7,
+    });
+
+    console.log(`[EMAIL SCHEDULER] Found ${eligibleLeads.length} leads eligible for Day 7 nurture`);
+
+    let emailsSent = 0;
+    let emailsSkipped = 0;
+
+    for (const lead of eligibleLeads) {
+      try {
+        // Send Day 7 nurture email
+        const result = await ctx.runAction(internal.emails.sendLeadNurtureDay7, {
+          leadId: lead._id,
+          email: lead.email,
+          firstName: lead.firstName,
+        });
+
+        if (result.success) {
+          emailsSent++;
+          console.log(`[EMAIL SCHEDULER] ✅ Sent Day 7 nurture to ${lead.email}`);
+        } else {
+          emailsSkipped++;
+          console.log(`[EMAIL SCHEDULER] ⏭ Skipped ${lead.email}: ${result.error}`);
+        }
+      } catch (error) {
+        console.error(`[EMAIL SCHEDULER] ❌ Failed to send Day 7 nurture to ${lead.email}:`, error);
+      }
+    }
+
+    console.log(`[EMAIL SCHEDULER] ✅ Day 7 nurture check complete. Sent: ${emailsSent}, Skipped: ${emailsSkipped}`);
+    return { success: true, emailsSent, emailsSkipped, totalChecked: eligibleLeads.length };
+  },
+});
+
+/**
  * Get Inactive Users (Internal Query)
  * Find free tier users who haven't been active in 14+ days
  */
