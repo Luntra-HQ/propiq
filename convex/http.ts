@@ -1176,4 +1176,77 @@ http.route({
   }),
 });
 
+// ============================================
+// FORMSPREE WEBHOOK - Lead Capture
+// ============================================
+
+/**
+ * POST /webhook/formspree
+ * Receive lead captures from Formspree landing page forms
+ */
+http.route({
+  path: "/webhook/formspree",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    try {
+      const body = await request.json();
+      console.log("[FORMSPREE] Received webhook:", body);
+
+      // Formspree sends form data in the request body
+      // Expected fields: email, firstName (optional), leadMagnet, source
+      const { email, firstName, leadMagnet, source, ...utmParams } = body;
+
+      if (!email) {
+        console.error("[FORMSPREE] Missing email in webhook payload");
+        return new Response(
+          JSON.stringify({ success: false, error: "Email required" }),
+          { status: 400, headers: { "Content-Type": "application/json" } }
+        );
+      }
+
+      // Extract UTM parameters if present
+      const utm_source = utmParams.utm_source || utmParams.utmSource;
+      const utm_medium = utmParams.utm_medium || utmParams.utmMedium;
+      const utm_campaign = utmParams.utm_campaign || utmParams.utmCampaign;
+      const utm_content = utmParams.utm_content || utmParams.utmContent;
+      const utm_term = utmParams.utm_term || utmParams.utmTerm;
+
+      // Call the captureLead mutation
+      const result = await ctx.runMutation(api.leads.captureLead, {
+        email,
+        firstName,
+        leadMagnet: leadMagnet || "landing-page-form",
+        source: source || "formspree",
+        utm_source,
+        utm_medium,
+        utm_campaign,
+        utm_content,
+        utm_term,
+      });
+
+      console.log("[FORMSPREE] Lead captured:", result);
+
+      return new Response(
+        JSON.stringify({ success: true, leadId: result.leadId }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    } catch (error) {
+      console.error("[FORMSPREE] Webhook error:", error);
+      return new Response(
+        JSON.stringify({ success: false, error: String(error) }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
+    }
+  }),
+});
+
+// OPTIONS for CORS preflight
+http.route({
+  path: "/webhook/formspree",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }),
+});
+
 export default http;

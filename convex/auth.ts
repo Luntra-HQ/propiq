@@ -100,6 +100,7 @@ export const signup = mutation({
 
     // Check if this user signed up after downloading a lead magnet
     // If so, link the lead to the user account and mark as converted
+    // If not, create a new lead capture to track them in the nurture system
     try {
       const existingLead = await ctx.db
         .query("leadCaptures")
@@ -114,9 +115,23 @@ export const signup = mutation({
           convertedAt: Date.now(),
         });
         console.log(`[AUTH] Converted lead ${existingLead._id} to trial user ${userId}`);
+      } else {
+        // No existing lead - user signed up directly via app
+        // Create a lead capture entry to track them in the nurture system
+        await ctx.db.insert("leadCaptures", {
+          email,
+          firstName: args.firstName,
+          leadMagnet: "direct-signup",
+          source: "app-auth",
+          status: "converted_trial",
+          userId,
+          convertedAt: Date.now(),
+          capturedAt: Date.now(),
+        });
+        console.log(`[AUTH] Created lead capture for direct signup: ${email}`);
       }
     } catch (e) {
-      console.error(`[AUTH] Failed to convert lead:`, e);
+      console.error(`[AUTH] Failed to convert/create lead:`, e);
       // Don't fail signup if lead conversion fails
     }
 
@@ -905,6 +920,7 @@ export const signupWithSession = mutation({
 
     // Check if this user signed up after downloading a lead magnet
     // If so, link the lead to the user account and mark as converted
+    // If not, create a new lead capture to track them in the nurture system
     try {
       const existingLead = await ctx.db
         .query("leadCaptures")
@@ -919,9 +935,23 @@ export const signupWithSession = mutation({
           convertedAt: Date.now(),
         });
         console.log(`[AUTH] Converted lead ${existingLead._id} to trial user ${userId}`);
+      } else {
+        // No existing lead - user signed up directly via app
+        // Create a lead capture entry to track them in the nurture system
+        await ctx.db.insert("leadCaptures", {
+          email,
+          firstName: args.firstName,
+          leadMagnet: "direct-signup",
+          source: "app-auth",
+          status: "converted_trial",
+          userId,
+          convertedAt: Date.now(),
+          capturedAt: Date.now(),
+        });
+        console.log(`[AUTH] Created lead capture for direct signup: ${email}`);
       }
     } catch (e) {
-      console.error(`[AUTH] Failed to convert lead:`, e);
+      console.error(`[AUTH] Failed to convert/create lead:`, e);
       // Don't fail signup if lead conversion fails
     }
 

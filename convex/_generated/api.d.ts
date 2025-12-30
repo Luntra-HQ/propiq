@@ -13,6 +13,7 @@ import type * as analytics from "../analytics.js";
 import type * as articles from "../articles.js";
 import type * as auth from "../auth.js";
 import type * as authUtils from "../authUtils.js";
+import type * as backfillLeads from "../backfillLeads.js";
 import type * as blog from "../blog.js";
 import type * as cancellations from "../cancellations.js";
 import type * as crons from "../crons.js";
@@ -53,6 +54,7 @@ declare const fullApi: ApiFromModules<{
   articles: typeof articles;
   auth: typeof auth;
   authUtils: typeof authUtils;
+  backfillLeads: typeof backfillLeads;
   blog: typeof blog;
   cancellations: typeof cancellations;
   crons: typeof crons;
