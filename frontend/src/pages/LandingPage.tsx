@@ -722,18 +722,46 @@ const LandingPage: React.FC = () => {
           {/* Email Signup Form */}
           <form
             className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto mb-6"
-            action="https://formspree.io/f/xldqywge"
-            method="POST"
-            onSubmit={(e) => {
-              // Track signup conversion in GA4
-              if (typeof window !== 'undefined' && (window as any).gtag) {
-                (window as any).gtag('event', 'generate_lead', {
-                  event_category: 'Signup',
-                  event_label: 'Waitlist Signup',
-                  value: 1
+            onSubmit={async (e) => {
+              e.preventDefault();
+
+              const form = e.currentTarget;
+              const email = (form.elements.namedItem('email') as HTMLInputElement).value;
+
+              try {
+                // Track signup conversion in GA4
+                if (typeof window !== 'undefined' && (window as any).gtag) {
+                  (window as any).gtag('event', 'generate_lead', {
+                    event_category: 'Signup',
+                    event_label: 'Waitlist Signup',
+                    value: 1
+                  });
+                }
+
+                // Submit directly to Convex webhook
+                const response = await fetch('https://mild-tern-361.convex.site/webhook/formspree', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    email,
+                    leadMagnet: 'landing-page-early-access',
+                    source: 'landing-page',
+                    utm_source: new URLSearchParams(window.location.search).get('utm_source'),
+                    utm_medium: new URLSearchParams(window.location.search).get('utm_medium'),
+                    utm_campaign: new URLSearchParams(window.location.search).get('utm_campaign'),
+                  }),
                 });
+
+                if (response.ok) {
+                  alert('🎉 Thanks! You\'re on the waitlist. Check your email for next steps.');
+                  form.reset();
+                } else {
+                  alert('Oops! Something went wrong. Please try again.');
+                }
+              } catch (error) {
+                console.error('Signup error:', error);
+                alert('Oops! Something went wrong. Please try again.');
               }
-              // Form will continue to submit to Formspree
             }}
           >
             <input
