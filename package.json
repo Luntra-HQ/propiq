@@ -6,13 +6,17 @@
   "scripts": {
     "dev": "convex dev",
     "build": "convex deploy",
-    "build:frontend": "echo '📦 Installing frontend dependencies...' && cd frontend && npm install && echo '🔨 Building frontend...' && npm run build:prod && echo '✅ Frontend build complete!'"
+    "build:frontend": "echo '📦 Installing frontend dependencies...' && cd frontend && npm install && echo '🔨 Building frontend...' && npm run build:prod && echo '✅ Frontend build complete!'",
+    "export:users": "tsx scripts/export-users-to-csv.ts",
+    "export:segments": "tsx scripts/export-users-to-csv.ts --segment",
+    "export:free": "tsx scripts/export-users-to-csv.ts --free"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "convex": "^1.31.2"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.11.0"
+    "@axe-core/playwright": "^4.11.0",
+    "tsx": "^4.19.2"
   }
 }
