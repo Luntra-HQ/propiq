@@ -5,6 +5,37 @@
  * Ported from original Streamlit calculator
  */
 
+// Market tier definitions with cap rate targets
+export const CAP_RATE_TARGETS = {
+  A: { min: 4, target: 4.5, good: 5 },    // Hot, high-cost metros
+  B: { min: 5, target: 6, good: 7 },      // Growth markets, suburbs
+  C: { min: 7, target: 8, good: 9 },      // Cash flow markets
+  D: { min: 9, target: 10, good: 11 }     // Distressed/rural, high-risk
+} as const;
+
+export const COC_BENCHMARKS = {
+  excellent: 12,  // Strong in today's higher-rate climate
+  good: 10,       // Solid return
+  target: 8,      // Minimum acceptable
+  acceptable: 6,  // May accept for BRRRR initial
+  poor: 4         // Below standard
+} as const;
+
+export const RENT_GROWTH_PRESETS = {
+  conservative: 2,  // Stabilized urban markets
+  average: 3,       // National 10-year average
+  aggressive: 5     // High-growth Sunbelt markets
+} as const;
+
+export const APPRECIATION_PRESETS = {
+  conservative: 3,  // Long-term safe assumption
+  average: 4,       // Historical average
+  optimistic: 5,    // Inflation + scarcity markets
+  aggressive: 6     // Hot markets only
+} as const;
+
+export type MarketTier = 'A' | 'B' | 'C' | 'D';
+
 export interface PropertyInputs {
   purchasePrice: number;
   downPaymentPercent: number;
@@ -21,6 +52,7 @@ export interface PropertyInputs {
   closingCosts: number;
   rehabCosts: number;
   strategy: 'rental' | 'houseHack' | 'brrrr' | 'fixFlip' | 'commercial';
+  marketTier?: MarketTier;
 }
 
 export interface CalculatedMetrics {
@@ -257,14 +289,17 @@ export const calculateAllMetrics = (inputs: PropertyInputs): CalculatedMetrics =
     annualGrossIncome
   );
 
-  // Calculate deal score
-  const { score, rating, recommendation } = calculateDealScore({
-    monthlyCashFlow,
-    capRate,
-    cashOnCashReturn,
-    onePercentRule,
-    debtCoverageRatio
-  });
+  // Calculate deal score with market tier awareness
+  const { score, rating, recommendation } = calculateDealScore(
+    {
+      monthlyCashFlow,
+      capRate,
+      cashOnCashReturn,
+      onePercentRule,
+      debtCoverageRatio
+    },
+    inputs.marketTier || 'B' // Default to B-class market
+  );
 
   return {
     monthlyPI,
@@ -292,16 +327,22 @@ export const calculateAllMetrics = (inputs: PropertyInputs): CalculatedMetrics =
 };
 
 /**
- * Calculate deal score (0-100 points)
+ * Calculate deal score (0-100 points) with market-aware targets
  */
-export const calculateDealScore = (metrics: {
-  monthlyCashFlow: number;
-  capRate: number;
-  cashOnCashReturn: number;
-  onePercentRule: number;
-  debtCoverageRatio: number;
-}): { score: number; rating: 'Excellent' | 'Good' | 'Fair' | 'Poor' | 'Avoid'; recommendation: string } => {
+export const calculateDealScore = (
+  metrics: {
+    monthlyCashFlow: number;
+    capRate: number;
+    cashOnCashReturn: number;
+    onePercentRule: number;
+    debtCoverageRatio: number;
+  },
+  marketTier: MarketTier = 'B'
+): { score: number; rating: 'Excellent' | 'Good' | 'Fair' | 'Poor' | 'Avoid'; recommendation: string } => {
   let score = 0;
+
+  // Get market-specific cap rate targets
+  const capTarget = CAP_RATE_TARGETS[marketTier];
 
   // Cash Flow Score (40 points)
   if (metrics.monthlyCashFlow >= 500) score += 40;
@@ -310,18 +351,18 @@ export const calculateDealScore = (metrics: {
   else if (metrics.monthlyCashFlow >= 0) score += 10;
   else score += 0; // Negative cash flow
 
-  // Cap Rate Score (30 points)
-  if (metrics.capRate >= 10) score += 30;
-  else if (metrics.capRate >= 8) score += 25;
-  else if (metrics.capRate >= 6) score += 20;
-  else if (metrics.capRate >= 4) score += 10;
+  // Cap Rate Score (30 points) - Market-aware
+  if (metrics.capRate >= capTarget.good) score += 30;
+  else if (metrics.capRate >= capTarget.target) score += 25;
+  else if (metrics.capRate >= capTarget.min) score += 20;
+  else if (metrics.capRate >= capTarget.min * 0.8) score += 10;
   else score += 0;
 
-  // Cash-on-Cash Return Score (20 points)
-  if (metrics.cashOnCashReturn >= 12) score += 20;
-  else if (metrics.cashOnCashReturn >= 10) score += 15;
-  else if (metrics.cashOnCashReturn >= 8) score += 10;
-  else if (metrics.cashOnCashReturn >= 6) score += 5;
+  // Cash-on-Cash Return Score (20 points) - Using COC_BENCHMARKS
+  if (metrics.cashOnCashReturn >= COC_BENCHMARKS.excellent) score += 20;
+  else if (metrics.cashOnCashReturn >= COC_BENCHMARKS.good) score += 15;
+  else if (metrics.cashOnCashReturn >= COC_BENCHMARKS.target) score += 10;
+  else if (metrics.cashOnCashReturn >= COC_BENCHMARKS.acceptable) score += 5;
   else score += 0;
 
   // 1% Rule Score (10 points)
@@ -336,22 +377,84 @@ export const calculateDealScore = (metrics: {
 
   if (score >= 80) {
     rating = 'Excellent';
-    recommendation = 'Strong investment opportunity. Proceed with thorough due diligence.';
+    recommendation = `Strong investment opportunity for Class ${marketTier} market. Proceed with thorough due diligence.`;
   } else if (score >= 65) {
     rating = 'Good';
-    recommendation = 'Solid investment with good fundamentals. Consider negotiating better terms.';
+    recommendation = `Solid investment with good fundamentals for Class ${marketTier}. Consider negotiating better terms.`;
   } else if (score >= 50) {
     rating = 'Fair';
-    recommendation = 'Marginal deal. Look for ways to improve cash flow or reduce purchase price.';
+    recommendation = `Marginal deal for Class ${marketTier} market. Look for ways to improve cash flow or reduce purchase price.`;
   } else if (score >= 35) {
     rating = 'Poor';
-    recommendation = 'Weak investment metrics. Consider passing unless you can significantly improve terms.';
+    recommendation = `Weak investment metrics for Class ${marketTier}. Consider passing unless you can significantly improve terms.`;
   } else {
     rating = 'Avoid';
-    recommendation = 'Not recommended. Negative cash flow or very poor returns.';
+    recommendation = `Not recommended for Class ${marketTier} market. Negative cash flow or very poor returns.`;
   }
 
   return { score, rating, recommendation };
+};
+
+/**
+ * Get red flag warnings for a deal
+ */
+export const getRedFlags = (metrics: CalculatedMetrics): string[] => {
+  const flags: string[] = [];
+
+  if (metrics.monthlyCashFlow < 0) {
+    flags.push('⚠️ Negative Cash Flow - High risk without appreciation plan');
+  }
+
+  if (metrics.debtCoverageRatio < 1.0) {
+    flags.push('🚨 DCR < 1.0 - Income doesn\'t cover debt service');
+  }
+
+  if (metrics.debtCoverageRatio >= 1.0 && metrics.debtCoverageRatio < 1.2) {
+    flags.push('⚠️ DCR < 1.2 - Tight margins, risky for unexpected costs');
+  }
+
+  if (metrics.operatingExpenseRatio > 50) {
+    flags.push('⚠️ High expenses - Over 50% of income goes to operating costs');
+  }
+
+  if (metrics.onePercentRule < 0.7) {
+    flags.push('⚠️ Below 1% Rule - Rent may be too low for this price');
+  }
+
+  if (metrics.cashOnCashReturn < 6) {
+    flags.push('⚠️ Low CoC Return - Below typical investor expectations');
+  }
+
+  return flags;
+};
+
+/**
+ * Get green light signals for a deal
+ */
+export const getGreenLights = (metrics: CalculatedMetrics): string[] => {
+  const positives: string[] = [];
+
+  if (metrics.monthlyCashFlow >= 200) {
+    positives.push('✅ Strong positive cash flow ($200+/month)');
+  }
+
+  if (metrics.debtCoverageRatio >= 1.35) {
+    positives.push('✅ Excellent debt coverage - Healthy margin of safety');
+  }
+
+  if (metrics.cashOnCashReturn >= 10) {
+    positives.push('✅ Great CoC Return - Above 10% annual return');
+  }
+
+  if (metrics.capRate >= 6) {
+    positives.push('✅ Solid cap rate for long-term appreciation');
+  }
+
+  if (metrics.onePercentRule >= 1.0) {
+    positives.push('✅ Meets 1% Rule - Good rent-to-price ratio');
+  }
+
+  return positives;
 };
 
 /**
