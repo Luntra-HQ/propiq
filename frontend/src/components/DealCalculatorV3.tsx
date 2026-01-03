@@ -354,14 +354,13 @@ const BasicAnalysisTab = ({ form, metrics }: BasicAnalysisTabProps) => {
                   />
                 </GlassFormGrid>
 
-                {/* Investment Strategy - TEMPORARILY DISABLED DUE TO INFINITE LOOP */}
-                {/* TODO: Fix Select component infinite render issue */}
-                {/* <FormField
+                {/* Investment Strategy */}
+                <FormField
                   control={form.control}
                   name="strategy"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{fieldMetadata.strategy.label}</FormLabel>
+                      <FormLabel className="text-gray-200">{fieldMetadata.strategy.label}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger className="bg-surface-200 border-glass-border text-gray-100">
@@ -370,7 +369,7 @@ const BasicAnalysisTab = ({ form, metrics }: BasicAnalysisTabProps) => {
                         </FormControl>
                         <SelectContent className="bg-surface-300 border-glass-border backdrop-blur-glass">
                           {fieldMetadata.strategy.options.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
+                            <SelectItem key={option.value} value={option.value} className="text-gray-100">
                               {option.label}
                             </SelectItem>
                           ))}
@@ -379,27 +378,29 @@ const BasicAnalysisTab = ({ form, metrics }: BasicAnalysisTabProps) => {
                       <FormMessage />
                     </FormItem>
                   )}
-                /> */}
+                />
 
-                {/* Market Tier Classification - Using simple select to avoid infinite loop */}
+                {/* Market Tier Classification */}
                 <FormField
                   control={form.control}
                   name="marketTier"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-gray-200">{fieldMetadata.marketTier.label}</FormLabel>
-                      <FormControl>
-                        <select
-                          {...field}
-                          className="flex h-9 w-full rounded-md border border-glass-border bg-surface-200 px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary text-gray-100"
-                        >
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="bg-surface-200 border-glass-border text-gray-100">
+                            <SelectValue placeholder="Select market tier" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="bg-surface-300 border-glass-border backdrop-blur-glass">
                           {fieldMetadata.marketTier.options.map((option) => (
-                            <option key={option.value} value={option.value} className="bg-surface-300">
+                            <SelectItem key={option.value} value={option.value} className="text-gray-100">
                               {option.label}
-                            </option>
+                            </SelectItem>
                           ))}
-                        </select>
-                      </FormControl>
+                        </SelectContent>
+                      </Select>
                       <FormDescription className="text-xs text-gray-400">
                         {fieldMetadata.marketTier.description}
                       </FormDescription>
@@ -902,18 +903,21 @@ const ScenariosTab = ({ scenarios, projections, projectionForm }: ScenariosTabPr
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-gray-200">Annual Rent Growth</FormLabel>
-                    <FormControl>
-                      <select
-                        {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                        value={field.value}
-                        className="flex h-9 w-full rounded-md border border-glass-border bg-surface-200 px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary text-gray-100"
-                      >
-                        <option value={2} className="bg-surface-300">Conservative (2%)</option>
-                        <option value={3} className="bg-surface-300">Average (3%)</option>
-                        <option value={5} className="bg-surface-300">Aggressive (5%)</option>
-                      </select>
-                    </FormControl>
+                    <Select
+                      onValueChange={(value) => field.onChange(parseFloat(value))}
+                      value={field.value.toString()}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="bg-surface-200 border-glass-border text-gray-100">
+                          <SelectValue placeholder="Select rent growth" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-surface-300 border-glass-border backdrop-blur-glass">
+                        <SelectItem value="2" className="text-gray-100">Conservative (2%)</SelectItem>
+                        <SelectItem value="3" className="text-gray-100">Average (3%)</SelectItem>
+                        <SelectItem value="5" className="text-gray-100">Aggressive (5%)</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormDescription className="text-xs text-gray-400">
                       Conservative: Stabilized markets. Average: National 10-year avg. Aggressive: High-growth Sunbelt
                     </FormDescription>
@@ -929,18 +933,21 @@ const ScenariosTab = ({ scenarios, projections, projectionForm }: ScenariosTabPr
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-gray-200">Annual Expense Growth</FormLabel>
-                    <FormControl>
-                      <select
-                        {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                        value={field.value}
-                        className="flex h-9 w-full rounded-md border border-glass-border bg-surface-200 px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary text-gray-100"
-                      >
-                        <option value={1.5} className="bg-surface-300">Low (1.5%)</option>
-                        <option value={2} className="bg-surface-300">Typical (2%)</option>
-                        <option value={3} className="bg-surface-300">High (3%)</option>
-                      </select>
-                    </FormControl>
+                    <Select
+                      onValueChange={(value) => field.onChange(parseFloat(value))}
+                      value={field.value.toString()}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="bg-surface-200 border-glass-border text-gray-100">
+                          <SelectValue placeholder="Select expense growth" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-surface-300 border-glass-border backdrop-blur-glass">
+                        <SelectItem value="1.5" className="text-gray-100">Low (1.5%)</SelectItem>
+                        <SelectItem value="2" className="text-gray-100">Typical (2%)</SelectItem>
+                        <SelectItem value="3" className="text-gray-100">High (3%)</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormDescription className="text-xs text-gray-400">
                       Account for insurance, taxes, and maintenance cost increases over time
                     </FormDescription>
@@ -956,19 +963,22 @@ const ScenariosTab = ({ scenarios, projections, projectionForm }: ScenariosTabPr
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-gray-200">Annual Property Appreciation</FormLabel>
-                    <FormControl>
-                      <select
-                        {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                        value={field.value}
-                        className="flex h-9 w-full rounded-md border border-glass-border bg-surface-200 px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary text-gray-100"
-                      >
-                        <option value={3} className="bg-surface-300">Conservative (3%)</option>
-                        <option value={4} className="bg-surface-300">Average (4%)</option>
-                        <option value={5} className="bg-surface-300">Optimistic (5%)</option>
-                        <option value={6} className="bg-surface-300">Aggressive (6%)</option>
-                      </select>
-                    </FormControl>
+                    <Select
+                      onValueChange={(value) => field.onChange(parseFloat(value))}
+                      value={field.value.toString()}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="bg-surface-200 border-glass-border text-gray-100">
+                          <SelectValue placeholder="Select appreciation rate" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-surface-300 border-glass-border backdrop-blur-glass">
+                        <SelectItem value="3" className="text-gray-100">Conservative (3%)</SelectItem>
+                        <SelectItem value="4" className="text-gray-100">Average (4%)</SelectItem>
+                        <SelectItem value="5" className="text-gray-100">Optimistic (5%)</SelectItem>
+                        <SelectItem value="6" className="text-gray-100">Aggressive (6%)</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormDescription className="text-xs text-gray-400">
                       Conservative: Long-term safe. Average: Historical avg. Optimistic: Inflation + scarcity. Aggressive: Hot markets
                     </FormDescription>
