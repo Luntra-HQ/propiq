@@ -20,7 +20,8 @@ import {
 } from 'lucide-react';
 import { GlassCard, GlassCardHeader } from './ui/GlassCard';
 import { BentoBackground } from './ui/BentoGrid';
-import { DealCalculator } from './DealCalculator';
+import { DealCalculator } from './DealCalculatorV3';
+import { SimpleModeWizard } from './SimpleModeWizard';
 import { ReferralCard } from './ReferralCard';
 import { ErrorBoundary } from './ErrorBoundary';
 import {
@@ -212,6 +213,8 @@ interface CalculatorCardProps {
 }
 
 export const CalculatorCard: React.FC<CalculatorCardProps> = ({ expanded = false }) => {
+  const [mode, setMode] = React.useState<'simple' | 'advanced'>('simple');
+
   return (
     <GlassCard variant="default" size="lg" className="h-full">
       <GlassCardHeader
@@ -224,8 +227,33 @@ export const CalculatorCard: React.FC<CalculatorCardProps> = ({ expanded = false
           </span>
         }
       />
+
+      {/* Mode Toggle */}
+      <div className="mt-4 mb-6 flex gap-2">
+        <button
+          onClick={() => setMode('simple')}
+          className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            mode === 'simple'
+              ? 'bg-primary text-white'
+              : 'bg-surface-200 text-gray-400 border border-glass-border hover:bg-surface-300 hover:text-gray-200'
+          }`}
+        >
+          🎯 Simple Mode
+        </button>
+        <button
+          onClick={() => setMode('advanced')}
+          className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            mode === 'advanced'
+              ? 'bg-primary text-white'
+              : 'bg-surface-200 text-gray-400 border border-glass-border hover:bg-surface-300 hover:text-gray-200'
+          }`}
+        >
+          📊 Advanced Mode
+        </button>
+      </div>
+
       <div className="mt-4">
-        <DealCalculator />
+        {mode === 'simple' ? <SimpleModeWizard /> : <DealCalculator />}
       </div>
     </GlassCard>
   );
@@ -463,7 +491,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
 
         {/* Third Row - Referral Card */}
-        {userId && (
+        {/* TEMPORARILY DISABLED: ReferralCard has API error */}
+        {/* TODO: Fix api.referrals.getOrCreateReferralCode undefined error */}
+        {/* {userId && (
           <div id="referral-section" className="max-w-2xl">
             <ErrorBoundary
               componentName="ReferralCard"
@@ -476,7 +506,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <ReferralCard userId={userId as Id<"users">} />
             </ErrorBoundary>
           </div>
-        )}
+        )} */}
       </main>
     </BentoBackground>
   );
