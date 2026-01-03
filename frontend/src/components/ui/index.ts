@@ -117,3 +117,7 @@ export {
 
 // Radio Group
 export { RadioGroup, RadioGroupItem } from './radio-group';
+
+// Progress & Wizard Components
+export { ProgressBar } from './progress-bar';
+export { WizardSteps } from './wizard-steps';

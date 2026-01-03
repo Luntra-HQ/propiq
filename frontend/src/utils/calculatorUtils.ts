@@ -458,6 +458,59 @@ export const getGreenLights = (metrics: CalculatedMetrics): string[] => {
 };
 
 /**
+ * Calculate Simple Mode verdict
+ */
+export type SimpleModeVerdict = 'Great Deal' | 'Good Deal' | 'Risky' | 'Pass';
+
+export const calculateSimpleModeVerdict = (
+  metrics: CalculatedMetrics
+): SimpleModeVerdict => {
+  if (metrics.dealScore >= 80 && metrics.monthlyCashFlow > 0) {
+    return 'Great Deal';
+  } else if (metrics.dealScore >= 65 && metrics.monthlyCashFlow >= 0) {
+    return 'Good Deal';
+  } else if (metrics.dealScore >= 35 || metrics.monthlyCashFlow >= -200) {
+    return 'Risky';
+  } else {
+    return 'Pass';
+  }
+};
+
+/**
+ * Verdict copy and metadata
+ */
+export const VERDICT_COPY = {
+  'Great Deal': {
+    emoji: '🎉',
+    headline: 'Excellent Investment Opportunity!',
+    message: 'Strong cash flow and solid returns. This deal meets professional investor criteria.',
+    cta: 'See full 5-year wealth projection',
+    color: '#28a745'
+  },
+  'Good Deal': {
+    emoji: '✅',
+    headline: 'Solid Investment',
+    message: 'Positive cash flow with good fundamentals. Worth pursuing with verified rent comps.',
+    cta: 'Analyze advanced metrics & scenarios',
+    color: '#17a2b8'
+  },
+  'Risky': {
+    emoji: '⚠️',
+    headline: 'Proceed with Caution',
+    message: 'Tight margins or negative cash flow. Consider negotiating price or increasing rent.',
+    cta: 'See what price would make this a good deal',
+    color: '#ffc107'
+  },
+  'Pass': {
+    emoji: '❌',
+    headline: 'Not Recommended',
+    message: 'This deal doesn\'t meet investment criteria. Better opportunities exist.',
+    cta: 'Learn what makes a good deal',
+    color: '#dc3545'
+  }
+} as const;
+
+/**
  * Generate scenario analysis (best case, base case, worst case)
  */
 export const generateScenarioAnalysis = (baseInputs: PropertyInputs): ScenarioAnalysis => {
