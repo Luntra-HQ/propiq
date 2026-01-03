@@ -121,3 +121,6 @@ export { RadioGroup, RadioGroupItem } from './radio-group';
 // Progress & Wizard Components
 export { ProgressBar } from './progress-bar';
 export { WizardSteps } from './wizard-steps';
+
+// Confidence & Trust Components
+export { ConfidenceMeter } from './ConfidenceMeter';

@@ -511,6 +511,52 @@ export const VERDICT_COPY = {
 } as const;
 
 /**
+ * Calculate confidence score for deal analysis
+ */
+export type InputQuality = 'estimated' | 'researched' | 'verified';
+
+export interface ConfidenceScore {
+  score: number;
+  message: string;
+  color: string;
+}
+
+export const calculateConfidenceScore = (
+  metrics: CalculatedMetrics,
+  userInputQuality: InputQuality = 'estimated'
+): ConfidenceScore => {
+  let confidence = 0;
+
+  // Base metrics quality (70 points)
+  if (metrics.monthlyCashFlow > 0) confidence += 30;
+  if (metrics.debtCoverageRatio >= 1.25) confidence += 25;
+  if (metrics.cashOnCashReturn >= 8) confidence += 15;
+
+  // Input data quality (30 points)
+  if (userInputQuality === 'verified') confidence += 30;
+  else if (userInputQuality === 'researched') confidence += 20;
+  else confidence += 10;
+
+  let message = '';
+  let color = '';
+  if (confidence >= 80) {
+    message = '🎯 High confidence - Strong deal with verified data';
+    color = '#28a745';
+  } else if (confidence >= 60) {
+    message = '✅ Good confidence - Solid deal, verify rent comps';
+    color = '#17a2b8';
+  } else if (confidence >= 40) {
+    message = '⚠️ Medium confidence - Research more before committing';
+    color = '#ffc107';
+  } else {
+    message = '⚠️ Low confidence - Deal needs more work or better data';
+    color = '#dc3545';
+  }
+
+  return { score: confidence, message, color };
+};
+
+/**
  * Generate scenario analysis (best case, base case, worst case)
  */
 export const generateScenarioAnalysis = (baseInputs: PropertyInputs): ScenarioAnalysis => {

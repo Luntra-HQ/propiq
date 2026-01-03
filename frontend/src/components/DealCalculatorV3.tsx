@@ -40,6 +40,8 @@ import {
   YearlyProjection,
   getRedFlags,
   getGreenLights,
+  calculateConfidenceScore,
+  type InputQuality,
 } from '../utils/calculatorUtils';
 import {
   Form,
@@ -52,6 +54,7 @@ import {
   GlassFormContainer,
   GlassFormSection,
   GlassFormGrid,
+  ConfidenceMeter,
 } from '@/components/ui';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -86,6 +89,7 @@ export const DealCalculator = () => {
   const [metrics, setMetrics] = useState<CalculatedMetrics | null>(null);
   const [scenarios, setScenarios] = useState<ScenarioAnalysis | null>(null);
   const [projections, setProjections] = useState<YearlyProjection[]>([]);
+  const [inputQuality, setInputQuality] = useState<InputQuality>('estimated');
 
   // Recalculate whenever inputs change
   useEffect(() => {
@@ -645,8 +649,19 @@ const ResultsDisplay = ({ metrics }: ResultsDisplayProps) => {
   const redFlags = getRedFlags(metrics);
   const greenLights = getGreenLights(metrics);
 
+  // Calculate confidence score
+  const confidenceScore = calculateConfidenceScore(metrics, inputQuality);
+
   return (
     <>
+      {/* Confidence Meter */}
+      <ConfidenceMeter
+        confidence={confidenceScore}
+        inputQuality={inputQuality}
+        onInputQualityChange={setInputQuality}
+        className="mb-6 animate-in fade-in duration-500"
+      />
+
       {/* Deal Score Badge */}
       <div className="deal-score-badge" style={{ borderColor: scoreColor }}>
         <div className="score-value" style={{ color: scoreColor }}>
