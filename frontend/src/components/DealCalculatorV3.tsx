@@ -659,11 +659,17 @@ const ResultsDisplay = ({ metrics }: ResultsDisplayProps) => {
 
       {/* Red Flags Warning */}
       {redFlags.length > 0 && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-4">
-          <h4 className="text-red-400 font-semibold mb-2">⚠️ Warning Signs</h4>
-          <ul className="space-y-1">
+        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-4 animate-in fade-in slide-in-from-top-2 duration-300">
+          <h4 className="text-red-400 font-semibold mb-2 flex items-center gap-2">
+            <span className="text-xl">⚠️</span>
+            <span>Warning Signs</span>
+          </h4>
+          <ul className="space-y-2">
             {redFlags.map((flag, i) => (
-              <li key={i} className="text-sm text-red-300">{flag}</li>
+              <li key={i} className="text-sm text-red-300 flex items-start gap-2 pl-1">
+                <span className="mt-0.5">•</span>
+                <span>{flag.replace(/^[⚠️🚨]\s*/, '')}</span>
+              </li>
             ))}
           </ul>
         </div>
@@ -671,11 +677,17 @@ const ResultsDisplay = ({ metrics }: ResultsDisplayProps) => {
 
       {/* Green Lights Success */}
       {greenLights.length > 0 && (
-        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 mb-4">
-          <h4 className="text-emerald-400 font-semibold mb-2">✅ Deal Strengths</h4>
-          <ul className="space-y-1">
+        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 mb-4 animate-in fade-in slide-in-from-top-2 duration-300">
+          <h4 className="text-emerald-400 font-semibold mb-2 flex items-center gap-2">
+            <span className="text-xl">✅</span>
+            <span>Deal Strengths</span>
+          </h4>
+          <ul className="space-y-2">
             {greenLights.map((light, i) => (
-              <li key={i} className="text-sm text-emerald-300">{light}</li>
+              <li key={i} className="text-sm text-emerald-300 flex items-start gap-2 pl-1">
+                <span className="mt-0.5">•</span>
+                <span>{light.replace(/^✅\s*/, '')}</span>
+              </li>
             ))}
           </ul>
         </div>
