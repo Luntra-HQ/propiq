@@ -124,3 +124,6 @@ export { WizardSteps } from './wizard-steps';
 
 // Confidence & Trust Components
 export { ConfidenceMeter } from './ConfidenceMeter';
+
+// Enhanced Tooltips
+export { EnhancedTooltip, FormLabelWithTooltip } from './EnhancedTooltip';

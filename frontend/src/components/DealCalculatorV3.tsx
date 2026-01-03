@@ -55,7 +55,9 @@ import {
   GlassFormSection,
   GlassFormGrid,
   ConfidenceMeter,
+  EnhancedTooltip,
 } from '@/components/ui';
+import { BEGINNER_TOOLTIPS } from '@/data/tooltipData';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -224,7 +226,10 @@ const BasicAnalysisTab = ({ form, metrics }: BasicAnalysisTabProps) => {
                     name="purchasePrice"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{fieldMetadata.purchasePrice.label}</FormLabel>
+                        <FormLabel className="inline-flex items-center">
+                          {fieldMetadata.purchasePrice.label}
+                          <EnhancedTooltip metadata={BEGINNER_TOOLTIPS.purchasePrice} />
+                        </FormLabel>
                         <FormControl>
                           <Input
                             type="number"
@@ -247,7 +252,10 @@ const BasicAnalysisTab = ({ form, metrics }: BasicAnalysisTabProps) => {
                     name="downPaymentPercent"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{fieldMetadata.downPaymentPercent.label}</FormLabel>
+                        <FormLabel className="inline-flex items-center">
+                          {fieldMetadata.downPaymentPercent.label}
+                          <EnhancedTooltip metadata={BEGINNER_TOOLTIPS.downPaymentPercent} />
+                        </FormLabel>
                         <FormControl>
                           <Input
                             type="number"
@@ -272,7 +280,10 @@ const BasicAnalysisTab = ({ form, metrics }: BasicAnalysisTabProps) => {
                     name="interestRate"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{fieldMetadata.interestRate.label}</FormLabel>
+                        <FormLabel className="inline-flex items-center">
+                          {fieldMetadata.interestRate.label}
+                          <EnhancedTooltip metadata={BEGINNER_TOOLTIPS.interestRate} />
+                        </FormLabel>
                         <FormControl>
                           <Input
                             type="number"
@@ -421,7 +432,10 @@ const BasicAnalysisTab = ({ form, metrics }: BasicAnalysisTabProps) => {
                   name="monthlyRent"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{fieldMetadata.monthlyRent.label}</FormLabel>
+                      <FormLabel className="inline-flex items-center">
+                        {fieldMetadata.monthlyRent.label}
+                        <EnhancedTooltip metadata={BEGINNER_TOOLTIPS.monthlyRent} />
+                      </FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -540,7 +554,10 @@ const BasicAnalysisTab = ({ form, metrics }: BasicAnalysisTabProps) => {
                     name="monthlyMaintenance"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{fieldMetadata.monthlyMaintenance.label}</FormLabel>
+                        <FormLabel className="inline-flex items-center">
+                          {fieldMetadata.monthlyMaintenance.label}
+                          <EnhancedTooltip metadata={BEGINNER_TOOLTIPS.monthlyMaintenance} />
+                        </FormLabel>
                         <FormControl>
                           <Input
                             type="number"
