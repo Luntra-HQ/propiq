@@ -354,34 +354,40 @@ const BasicAnalysisTab = ({ form, metrics }: BasicAnalysisTabProps) => {
                   />
                 </GlassFormGrid>
 
-                {/* Investment Strategy - TEMPORARILY DISABLED DUE TO INFINITE LOOP */}
-                {/* TODO: Fix Select component infinite render issue */}
-                {/* <FormField
+                {/* Investment Strategy - Fixed: Using RadioGroup with correct pattern */}
+                <FormField
                   control={form.control}
                   name="strategy"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{fieldMetadata.strategy.label}</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="bg-surface-200 border-glass-border text-gray-100">
-                            <SelectValue placeholder="Select strategy" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="bg-surface-300 border-glass-border backdrop-blur-glass">
+                      <FormLabel className="text-gray-200">{fieldMetadata.strategy.label}</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          className="flex flex-col space-y-2"
+                        >
                           {fieldMetadata.strategy.options.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
+                            <FormItem key={option.value} className="flex items-center space-x-3 space-y-0">
+                              <FormControl>
+                                <RadioGroupItem value={option.value} />
+                              </FormControl>
+                              <FormLabel className="font-normal text-gray-200 cursor-pointer">
+                                {option.label}
+                              </FormLabel>
+                            </FormItem>
                           ))}
-                        </SelectContent>
-                      </Select>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormDescription className="text-xs text-gray-400">
+                        {fieldMetadata.strategy.description}
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
-                /> */}
+                />
 
-                {/* Market Tier Classification - Using simple select to avoid infinite loop */}
+                {/* Market Tier Classification - Fixed: Using RadioGroup with correct pattern */}
                 <FormField
                   control={form.control}
                   name="marketTier"
@@ -389,16 +395,22 @@ const BasicAnalysisTab = ({ form, metrics }: BasicAnalysisTabProps) => {
                     <FormItem>
                       <FormLabel className="text-gray-200">{fieldMetadata.marketTier.label}</FormLabel>
                       <FormControl>
-                        <select
-                          {...field}
-                          className="flex h-9 w-full rounded-md border border-glass-border bg-surface-200 px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary text-gray-100"
+                        <RadioGroup
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          className="flex flex-col space-y-2"
                         >
                           {fieldMetadata.marketTier.options.map((option) => (
-                            <option key={option.value} value={option.value} className="bg-surface-300">
-                              {option.label}
-                            </option>
+                            <FormItem key={option.value} className="flex items-center space-x-3 space-y-0">
+                              <FormControl>
+                                <RadioGroupItem value={option.value} />
+                              </FormControl>
+                              <FormLabel className="font-normal text-gray-200 cursor-pointer">
+                                {option.label}
+                              </FormLabel>
+                            </FormItem>
                           ))}
-                        </select>
+                        </RadioGroup>
                       </FormControl>
                       <FormDescription className="text-xs text-gray-400">
                         {fieldMetadata.marketTier.description}
