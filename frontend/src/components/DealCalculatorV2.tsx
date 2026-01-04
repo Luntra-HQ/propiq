@@ -94,7 +94,8 @@ export const DealCalculatorV2 = () => {
   if (!metrics) return null;
 
   return (
-    <div className="deal-calculator" id="deal-calculator-printable">
+    <TooltipProvider>
+      <div className="deal-calculator" id="deal-calculator-printable">
       <div className="calculator-header">
         <div>
           <h2>Deal Calculator</h2>
@@ -156,6 +157,7 @@ export const DealCalculatorV2 = () => {
         </TabsContent>
       </Tabs>
     </div>
+    </TooltipProvider>
   );
 };
 
@@ -170,23 +172,21 @@ interface BasicAnalysisTabProps {
 }
 
 const BasicAnalysisTabV2 = ({ inputs, metrics, updateInput }: BasicAnalysisTabProps) => {
-  // Tooltip helper component
+  // Tooltip helper component - NO TooltipProvider here!
   const InputTooltip = ({ content }: { content: string }) => (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <button
-            type="button"
-            className="text-violet-400 hover:text-violet-300 transition-colors ml-1"
-          >
-            <Info className="h-3.5 w-3.5" />
-          </button>
-        </TooltipTrigger>
-        <TooltipContent className="bg-surface-300 border-glass-border backdrop-blur-glass max-w-xs">
-          <p className="text-xs text-gray-200">{content}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          className="text-violet-400 hover:text-violet-300 transition-colors ml-1"
+        >
+          <Info className="h-3.5 w-3.5" />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent className="bg-surface-300 border-glass-border backdrop-blur-glass max-w-xs">
+        <p className="text-xs text-gray-200">{content}</p>
+      </TooltipContent>
+    </Tooltip>
   );
 
   return (
