@@ -5,10 +5,10 @@
  */
 
 // Layout Components
-export { GlassCard, GlassCardHeader, GlassCardFooter } from './GlassCard';
-export type { GlassCardVariant, GlassCardSize } from './GlassCard';
+export { GlassCard, GlassCardHeader, GlassCardFooter } from './glass-card';
+export type { GlassCardVariant, GlassCardSize } from './glass-card';
 
-export { BentoGrid, BentoItem, BentoDashboard, BentoBackground } from './BentoGrid';
+export { BentoGrid, BentoItem, BentoDashboard, BentoBackground } from './bento-grid';
 
 // Accessibility Components
 export {
@@ -30,8 +30,8 @@ export {
 } from './CommandPalette';
 
 // Interactive Components
-export { Button, IconButton } from './Button';
-export type { ButtonVariant, ButtonSize } from './Button';
+export { Button, IconButton } from './button';
+export type { ButtonVariant, ButtonSize } from './button';
 
 // Feedback Components
 export { ToastProvider, useToast } from './Toast';

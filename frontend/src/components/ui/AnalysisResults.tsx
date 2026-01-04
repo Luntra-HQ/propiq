@@ -20,7 +20,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
-import { GlassCard } from './GlassCard';
+import { GlassCard } from './glass-card';
 import { DealScore, RecommendationBadge, ConfidenceIndicator, RiskLevel, MetricCard } from './DealScore';
 import { StreamingText, StreamingList } from './StreamingText';
 

@@ -20,7 +20,7 @@ import {
   Calendar,
   BarChart,
 } from 'lucide-react';
-import { GlassCard } from './GlassCard';
+import { GlassCard } from './glass-card';
 
 /**
  * PersonalizedGreeting - Time-based greeting with user name
