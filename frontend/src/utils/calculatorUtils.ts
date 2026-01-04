@@ -87,6 +87,7 @@ export interface CalculatedMetrics {
 
   // Advanced metrics
   irr: number; // Internal Rate of Return (5-year hold)
+  equityMultiple: number; // Equity Multiple (5-year hold)
 }
 
 export interface ScenarioAnalysis {
@@ -342,6 +343,21 @@ export const calculateAllMetrics = (inputs: PropertyInputs): CalculatedMetrics =
   const cashFlows = getPropertyCashFlows(inputs, tempMetrics, projections);
   const irr = calculateIRR(cashFlows);
 
+  // Calculate Equity Multiple (5-year hold)
+  const cumulativeCashFlow = projections.reduce((sum, proj) => sum + proj.annualCashFlow, 0);
+  const finalProjection = projections[projections.length - 1];
+
+  // Equity at exit = property value - remaining loan balance - selling costs
+  const salePrice = finalProjection.propertyValue;
+  const sellingCosts = salePrice * 0.06; // 6% selling costs
+  const equityAtExit = salePrice - finalProjection.loanBalance - sellingCosts;
+
+  const equityMultiple = calculateEquityMultiple(
+    totalCashInvested,
+    cumulativeCashFlow,
+    equityAtExit
+  );
+
   return {
     monthlyPI,
     monthlyPITI,
@@ -364,7 +380,8 @@ export const calculateAllMetrics = (inputs: PropertyInputs): CalculatedMetrics =
     dealScore: score,
     dealRating: rating,
     recommendation,
-    irr
+    irr,
+    equityMultiple
   };
 };
 
@@ -683,6 +700,40 @@ export const getPropertyCashFlows = (
   });
 
   return cashFlows;
+};
+
+/**
+ * Calculate Equity Multiple
+ *
+ * Equity Multiple shows how many times your initial investment is returned
+ * over the hold period. It's the total cash returned divided by total cash invested.
+ *
+ * Formula: (Cumulative Cash Flow + Equity at Exit) / Total Cash Invested
+ *
+ * @param totalCashInvested - Initial cash invested (down payment + closing + rehab)
+ * @param cumulativeCashFlow - Total cash flow over hold period
+ * @param equityAtExit - Equity gained when property is sold
+ * @returns Equity multiple (e.g., 2.0 means you doubled your money)
+ *
+ * @example
+ * const em = calculateEquityMultiple(100000, 18000, 120000);
+ * // em = 1.38 (you got back $138k on $100k invested = 1.38x)
+ *
+ * Interpretation:
+ * - 1.0x = Break even (got your money back)
+ * - 1.5x = Good (50% total return)
+ * - 2.0x = Strong (doubled your money)
+ * - 3.0x = Excellent (tripled your money)
+ */
+export const calculateEquityMultiple = (
+  totalCashInvested: number,
+  cumulativeCashFlow: number,
+  equityAtExit: number
+): number => {
+  if (totalCashInvested === 0) return 0;
+
+  const totalReturns = cumulativeCashFlow + equityAtExit;
+  return totalReturns / totalCashInvested;
 };
 
 /**

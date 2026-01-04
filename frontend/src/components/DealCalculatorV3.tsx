@@ -821,6 +821,22 @@ const ResultsDisplay = ({ metrics, inputQuality }: ResultsDisplayProps) => {
         </div>
 
         <div className="metric-card">
+          <div className="metric-label">
+            <FormLabelWithTooltip metadata={METRIC_TOOLTIPS.equityMultiple}>
+              Equity Multiple (5-Year)
+            </FormLabelWithTooltip>
+          </div>
+          <div className="metric-value">
+            {metrics.equityMultiple.toFixed(2)}x
+            {metrics.equityMultiple >= 2.0 && (
+              <span className="badge success" style={{ marginLeft: '8px' }}>
+                ✓ Strong
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="metric-card">
           <div className="metric-label">1% Rule</div>
           <div className="metric-value">
             {formatPercent(metrics.onePercentRule)}

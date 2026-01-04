@@ -227,6 +227,14 @@ export const METRIC_TOOLTIPS: Record<string, TooltipMetadata> = {
     interpretation: "IRR accounts for cash flows over time AND sale proceeds. More accurate than simple ROI or CoC return for buy-and-hold investors.",
     goodRange: "15%+ = Strong, 20%+ = Excellent",
     concernRange: "Below 10% = Weak returns"
+  },
+
+  equityMultiple: {
+    title: "Equity Multiple (5-Year)",
+    help: "Total cash returned divided by total cash invested. Shows how many times you get your money back.",
+    interpretation: "Includes cumulative cash flow + equity at sale. Simple metric: 2.0x means you doubled your money.",
+    goodRange: "2.0x+ = Strong (doubled money), 3.0x+ = Excellent",
+    concernRange: "Below 1.5x = Weak returns"
   }
 };
 
