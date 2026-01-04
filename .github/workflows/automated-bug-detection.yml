@@ -1,0 +1,117 @@
+name: Automated Bug Detection
+
+on:
+  push:
+    branches: [main, develop, staging]
+  pull_request:
+    branches: [main, develop]
+  # Manual trigger
+  workflow_dispatch:
+
+jobs:
+  playwright-console-monitoring:
+    name: Console Monitoring & Bug Detection
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Install Playwright browsers
+        run: |
+          cd frontend
+          npx playwright install --with-deps chromium
+
+      - name: Run automated bug detection tests
+        run: |
+          cd frontend
+          npm run test:bugs
+        env:
+          PLAYWRIGHT_BASE_URL: https://propiq.luntra.one
+          CI: true
+
+      - name: Upload console logs (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: console-logs-${{ github.run_number }}
+          path: frontend/test-results/console-logs/
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Upload bug reports (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bug-reports-${{ github.run_number }}
+          path: frontend/test-results/bug-reports/
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Upload Playwright report (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.run_number }}
+          path: frontend/playwright-report/
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Comment PR with results (on pull request)
+        if: github.event_name == 'pull_request' && failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            // Try to read bug report if it exists
+            let comment = '🚨 **Automated Bug Detection Failed**\n\n';
+            comment += '❌ Console errors or test failures detected.\n\n';
+            comment += '**Artifacts:**\n';
+            comment += '- Console logs\n';
+            comment += '- Bug reports\n';
+            comment += '- Playwright report\n\n';
+            comment += 'Please review the artifacts to see detailed error information.';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## 🧪 Automated Bug Detection Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ ${{ job.status }} == 'success' ]; then
+            echo "✅ **All tests passed** - No bugs detected" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "- BUG-001: Tooltip infinite loop ✅" >> $GITHUB_STEP_SUMMARY
+            echo "- BUG-002: CORS errors ✅" >> $GITHUB_STEP_SUMMARY
+            echo "- BUG-003: Calculator errors ✅" >> $GITHUB_STEP_SUMMARY
+            echo "- BUG-004: Stripe errors ✅" >> $GITHUB_STEP_SUMMARY
+            echo "- ISSUE-018: Password reset timeout ✅" >> $GITHUB_STEP_SUMMARY
+            echo "- ISSUE-019: Duplicate fetch ✅" >> $GITHUB_STEP_SUMMARY
+            echo "- Homepage health check ✅" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Tests failed** - Bugs detected or tests failing" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Check the uploaded artifacts for detailed error information." >> $GITHUB_STEP_SUMMARY
+          fi
