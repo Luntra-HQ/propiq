@@ -40,7 +40,10 @@ import {
   YearlyProjection,
   getRedFlags,
   getGreenLights,
+  calculateConfidenceScore,
+  InputQuality,
 } from '../utils/calculatorUtils';
+import { ConfidenceMeter } from './ui/confidence-meter';
 import {
   Form,
   FormField,
@@ -86,6 +89,7 @@ export const DealCalculator = () => {
   const [metrics, setMetrics] = useState<CalculatedMetrics | null>(null);
   const [scenarios, setScenarios] = useState<ScenarioAnalysis | null>(null);
   const [projections, setProjections] = useState<YearlyProjection[]>([]);
+  const [inputQuality, setInputQuality] = useState<InputQuality>('estimated');
 
   // Recalculate whenever inputs change
   useEffect(() => {
@@ -144,6 +148,47 @@ export const DealCalculator = () => {
           }}
           tooltipText="Print Calculator Results"
         />
+      </div>
+
+      {/* Input Quality Toggle */}
+      <div className="px-6 py-3 bg-surface-200/50 backdrop-blur-sm border-b border-glass-border">
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-gray-400">
+            Input Data Quality:
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setInputQuality('estimated')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                inputQuality === 'estimated'
+                  ? 'bg-violet-600 text-white shadow-lg'
+                  : 'bg-surface-300 text-gray-400 hover:bg-surface-400'
+              }`}
+            >
+              Estimated
+            </button>
+            <button
+              onClick={() => setInputQuality('researched')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                inputQuality === 'researched'
+                  ? 'bg-blue-600 text-white shadow-lg'
+                  : 'bg-surface-300 text-gray-400 hover:bg-surface-400'
+              }`}
+            >
+              Researched
+            </button>
+            <button
+              onClick={() => setInputQuality('verified')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                inputQuality === 'verified'
+                  ? 'bg-emerald-600 text-white shadow-lg'
+                  : 'bg-surface-300 text-gray-400 hover:bg-surface-400'
+              }`}
+            >
+              Verified
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Tab Navigation with ShadCN Tabs */}
@@ -617,7 +662,7 @@ const BasicAnalysisTab = ({ form, metrics }: BasicAnalysisTabProps) => {
 
         {/* Right Column: Results */}
         <div className="results-section">
-          <ResultsDisplay metrics={metrics} />
+          <ResultsDisplay metrics={metrics} inputQuality={inputQuality} />
         </div>
       </div>
     </div>
@@ -630,9 +675,10 @@ const BasicAnalysisTab = ({ form, metrics }: BasicAnalysisTabProps) => {
 
 interface ResultsDisplayProps {
   metrics: CalculatedMetrics;
+  inputQuality: InputQuality;
 }
 
-const ResultsDisplay = ({ metrics }: ResultsDisplayProps) => {
+const ResultsDisplay = ({ metrics, inputQuality }: ResultsDisplayProps) => {
   const getDealScoreColor = (score: number): string => {
     if (score >= 80) return '#28a745'; // Excellent - Green
     if (score >= 65) return '#17a2b8'; // Good - Blue
@@ -656,8 +702,18 @@ const ResultsDisplay = ({ metrics }: ResultsDisplayProps) => {
   const redFlags = getRedFlags(metrics);
   const greenLights = getGreenLights(metrics);
 
+  // Calculate confidence score
+  const confidenceScore = calculateConfidenceScore(metrics, inputQuality);
+
   return (
     <>
+      {/* Confidence Meter */}
+      <ConfidenceMeter
+        score={confidenceScore.score}
+        message={confidenceScore.message}
+        color={confidenceScore.color}
+      />
+
       {/* Deal Score Badge */}
       <div className="deal-score-badge" style={{ borderColor: scoreColor }}>
         <div className="score-value" style={{ color: scoreColor }}>

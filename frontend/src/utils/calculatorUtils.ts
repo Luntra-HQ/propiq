@@ -543,6 +543,89 @@ export const generate5YearProjections = (
 };
 
 /**
+ * Input quality level for confidence score calculation
+ */
+export type InputQuality = 'estimated' | 'researched' | 'verified';
+
+/**
+ * Confidence score result
+ */
+export interface ConfidenceScore {
+  score: number;
+  message: string;
+  color: string;
+}
+
+/**
+ * Calculate confidence score based on deal metrics and input data quality
+ *
+ * Builds trust by showing users how reliable their analysis is.
+ * Score is based on:
+ * - 70 points from deal metrics quality (cash flow, DCR, CoC)
+ * - 30 points from input data quality (estimated/researched/verified)
+ *
+ * @param metrics - Calculated financial metrics
+ * @param inputQuality - Quality of user's input data
+ * @returns Confidence score (0-100), message, and color
+ *
+ * @example
+ * const confidence = calculateConfidenceScore(metrics, 'verified');
+ * // { score: 85, message: '🎯 High confidence...', color: '#28a745' }
+ */
+export const calculateConfidenceScore = (
+  metrics: CalculatedMetrics,
+  inputQuality: InputQuality = 'estimated'
+): ConfidenceScore => {
+  let score = 0;
+
+  // Base metrics quality (70 points total)
+  // Positive cash flow is critical for rental success
+  if (metrics.monthlyCashFlow > 0) {
+    score += 30;
+  }
+
+  // Debt coverage ratio >= 1.25 means strong income relative to debt
+  if (metrics.debtCoverageRatio >= 1.25) {
+    score += 25;
+  }
+
+  // Cash-on-cash return >= 8% is solid in today's market
+  if (metrics.cashOnCashReturn >= 8) {
+    score += 15;
+  }
+
+  // Input data quality (30 points total)
+  // More thorough research = higher confidence
+  if (inputQuality === 'verified') {
+    score += 30; // Confirmed with property manager, recent comps
+  } else if (inputQuality === 'researched') {
+    score += 20; // Checked 3+ comparable rentals
+  } else {
+    score += 10; // Rough estimate or Zillow only
+  }
+
+  // Generate user-facing message and color based on score
+  let message = '';
+  let color = '';
+
+  if (score >= 80) {
+    message = '🎯 High confidence - Strong deal with verified data';
+    color = '#28a745'; // Green
+  } else if (score >= 60) {
+    message = '✅ Good confidence - Solid deal, verify rent comps';
+    color = '#17a2b8'; // Blue
+  } else if (score >= 40) {
+    message = '⚠️ Medium confidence - Research more before committing';
+    color = '#ffc107'; // Yellow
+  } else {
+    message = '❌ Low confidence - Deal needs more work or better data';
+    color = '#dc3545'; // Red
+  }
+
+  return { score, message, color };
+};
+
+/**
  * Format currency for display
  */
 export const formatCurrency = (value: number): string => {
