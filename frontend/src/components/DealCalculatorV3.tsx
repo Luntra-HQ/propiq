@@ -44,6 +44,8 @@ import {
   InputQuality,
 } from '../utils/calculatorUtils';
 import { ConfidenceMeter } from './ui/confidence-meter';
+import { FormLabelWithTooltip } from './ui/enhanced-tooltip';
+import { INPUT_TOOLTIPS, METRIC_TOOLTIPS } from '@/utils/tooltipMetadata';
 import {
   Form,
   FormField,
@@ -265,7 +267,11 @@ const BasicAnalysisTab = ({ form, metrics }: BasicAnalysisTabProps) => {
                     name="purchasePrice"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{fieldMetadata.purchasePrice.label}</FormLabel>
+                        <FormLabel>
+                          <FormLabelWithTooltip metadata={INPUT_TOOLTIPS.purchasePrice}>
+                            {fieldMetadata.purchasePrice.label}
+                          </FormLabelWithTooltip>
+                        </FormLabel>
                         <FormControl>
                           <Input
                             type="number"
@@ -288,7 +294,11 @@ const BasicAnalysisTab = ({ form, metrics }: BasicAnalysisTabProps) => {
                     name="downPaymentPercent"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{fieldMetadata.downPaymentPercent.label}</FormLabel>
+                        <FormLabel>
+                          <FormLabelWithTooltip metadata={INPUT_TOOLTIPS.downPaymentPercent}>
+                            {fieldMetadata.downPaymentPercent.label}
+                          </FormLabelWithTooltip>
+                        </FormLabel>
                         <FormControl>
                           <Input
                             type="number"
@@ -313,7 +323,11 @@ const BasicAnalysisTab = ({ form, metrics }: BasicAnalysisTabProps) => {
                     name="interestRate"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{fieldMetadata.interestRate.label}</FormLabel>
+                        <FormLabel>
+                          <FormLabelWithTooltip metadata={INPUT_TOOLTIPS.interestRate}>
+                            {fieldMetadata.interestRate.label}
+                          </FormLabelWithTooltip>
+                        </FormLabel>
                         <FormControl>
                           <Input
                             type="number"
@@ -336,7 +350,11 @@ const BasicAnalysisTab = ({ form, metrics }: BasicAnalysisTabProps) => {
                     name="loanTerm"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{fieldMetadata.loanTerm.label}</FormLabel>
+                        <FormLabel>
+                          <FormLabelWithTooltip metadata={INPUT_TOOLTIPS.loanTerm}>
+                            {fieldMetadata.loanTerm.label}
+                          </FormLabelWithTooltip>
+                        </FormLabel>
                         <FormControl>
                           <Input
                             type="number"
@@ -473,7 +491,11 @@ const BasicAnalysisTab = ({ form, metrics }: BasicAnalysisTabProps) => {
                   name="monthlyRent"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{fieldMetadata.monthlyRent.label}</FormLabel>
+                      <FormLabel>
+                        <FormLabelWithTooltip metadata={INPUT_TOOLTIPS.monthlyRent}>
+                          {fieldMetadata.monthlyRent.label}
+                        </FormLabelWithTooltip>
+                      </FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -592,7 +614,11 @@ const BasicAnalysisTab = ({ form, metrics }: BasicAnalysisTabProps) => {
                     name="monthlyMaintenance"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{fieldMetadata.monthlyMaintenance.label}</FormLabel>
+                        <FormLabel>
+                          <FormLabelWithTooltip metadata={INPUT_TOOLTIPS.monthlyMaintenance}>
+                            {fieldMetadata.monthlyMaintenance.label}
+                          </FormLabelWithTooltip>
+                        </FormLabel>
                         <FormControl>
                           <Input
                             type="number"
