@@ -1,0 +1,1077 @@
+/**
+ * QuickCheck Styles
+ *
+ * Glassmorphism design system for QuickCheck calculator
+ * Mobile-first responsive design
+ */
+
+/* ============================================================================
+ * Base Container
+ * ========================================================================= */
+
+.quick-check-container {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+/* ============================================================================
+ * Header
+ * ========================================================================= */
+
+.quick-check-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.header-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(99, 102, 241, 0.1));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ============================================================================
+ * Input Form
+ * ========================================================================= */
+
+.quick-check-form {
+  background: rgba(30, 41, 59, 0.5);
+  /* backdrop-filter: blur(12px); DISABLED - causes flashing on mount */
+  will-change: backdrop-filter; /* Layer promotion to reduce paint cost */
+  transform: translateZ(0); /* Force GPU acceleration */
+  border: 1px solid rgba(100, 116, 139, 0.2);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.input-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+@media (min-width: 640px) {
+  .input-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #cbd5e1;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-prefix {
+  position: absolute;
+  left: 16px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.input-field {
+  width: 100%;
+  padding: 12px 16px 12px 32px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(100, 116, 139, 0.3);
+  border-radius: 8px;
+  color: #f1f5f9;
+  font-size: 16px;
+  font-weight: 500;
+  transition: border-color 0.2s, box-shadow 0.2s; /* Only transition specific props to prevent flashing */
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.input-hint {
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* ============================================================================
+ * Analyze Button
+ * ========================================================================= */
+
+.analyze-btn {
+  width: 100%;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform 0.3s, box-shadow 0.3s; /* Only transition specific props to prevent flashing */
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+}
+
+.analyze-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(139, 92, 246, 0.4);
+}
+
+.analyze-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.analyze-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================================================
+ * Trust Statement
+ * ========================================================================= */
+
+.trust-statement {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 8px;
+  margin-top: 16px;
+}
+
+/* ============================================================================
+ * Executive Summary Card
+ * ========================================================================= */
+
+.executive-summary-card {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(99, 102, 241, 0.08));
+  /* backdrop-filter: blur(12px); DISABLED - causes flashing on mount */
+  will-change: backdrop-filter;
+  transform: translateZ(0);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.15);
+}
+
+.glow-border {
+  position: relative;
+}
+
+.glow-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 16px;
+  padding: 1px;
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.summary-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.deal-score-badge {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.score-circle {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.5);
+  flex-shrink: 0;
+}
+
+.score-number {
+  font-size: 36px;
+  font-weight: 800;
+  color: white;
+  line-height: 1;
+}
+
+.score-max {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.score-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.score-emoji {
+  font-size: 24px;
+}
+
+.score-text {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+/* Deal Score Color Variants */
+.deal-score-emerald .score-circle {
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.5);
+}
+
+.deal-score-blue .score-circle {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.5);
+}
+
+.deal-score-yellow .score-circle {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.5);
+}
+
+.deal-score-orange .score-circle {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  box-shadow: 0 4px 20px rgba(249, 115, 22, 0.5);
+}
+
+.deal-score-red .score-circle {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.5);
+}
+
+.confidence-section {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* ============================================================================
+ * Key Metrics Grid
+ * ========================================================================= */
+
+.key-metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin: 20px 0;
+}
+
+@media (min-width: 640px) {
+  .key-metrics-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.metric-card {
+  background: rgba(15, 23, 42, 0.6);
+  /* backdrop-filter: blur(8px); DISABLED - causes flashing on mount */
+  will-change: transform;
+  transform: translateZ(0);
+  border: 1px solid rgba(100, 116, 139, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+  transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s; /* Only transition specific props to prevent flashing */
+}
+
+.glass-panel-subtle {
+  border: 1px solid rgba(100, 116, 139, 0.2);
+}
+
+.metric-card:hover {
+  border-color: rgba(139, 92, 246, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.2);
+}
+
+.metric-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.metric-icon {
+  color: #8b5cf6;
+}
+
+.metric-label-group {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.metric-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+.metric-info-btn {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.2s, background-color 0.2s; /* Only transition specific props to prevent flashing */
+}
+
+.metric-info-btn:hover {
+  color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.metric-value {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.metric-positive {
+  color: #10b981;
+}
+
+.metric-negative {
+  color: #ef4444;
+}
+
+.metric-status {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-positive {
+  color: #10b981;
+}
+
+.status-negative {
+  color: #f59e0b;
+}
+
+/* ============================================================================
+ * Recommended Action
+ * ========================================================================= */
+
+.recommended-action {
+  padding: 16px;
+  border-radius: 12px;
+  margin-top: 20px;
+}
+
+.action-emerald {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.action-blue {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.action-yellow {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.action-red {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.action-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: #cbd5e1;
+}
+
+.action-text {
+  color: #f1f5f9;
+  font-size: 14px;
+}
+
+/* ============================================================================
+ * Calculation Explanation
+ * ========================================================================= */
+
+.calculation-explanation {
+  margin: 16px 0;
+  border: 1px solid rgba(100, 116, 139, 0.2);
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(15, 23, 42, 0.3);
+}
+
+.calc-toggle-btn {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(30, 41, 59, 0.5);
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #94a3b8;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s; /* Only transition specific props to prevent flashing */
+}
+
+.calc-toggle-btn:hover {
+  background: rgba(30, 41, 59, 0.8);
+  color: #cbd5e1;
+}
+
+.calc-breakdown {
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.animate-slide-down {
+  /* DISABLED: Animation causes visual flashing (accessibility issue) */
+  /* animation: slideDown 0.3s ease-out; */
+}
+
+/* DISABLED: Keyframe starts from opacity 0, causing flash
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+*/
+
+.formula-card {
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.formula-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #cbd5e1;
+  margin-bottom: 8px;
+}
+
+.formula-code {
+  display: block;
+  font-family: 'SF Mono', Monaco, monospace;
+  font-size: 13px;
+  color: #a5b4fc;
+  background: rgba(15, 23, 42, 0.5);
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+.breakdown-section {
+  margin-bottom: 16px;
+}
+
+.breakdown-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #cbd5e1;
+  margin-bottom: 8px;
+}
+
+.breakdown-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.breakdown-table td {
+  padding: 8px 0;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(100, 116, 139, 0.1);
+}
+
+.breakdown-label {
+  color: #94a3b8;
+}
+
+.breakdown-value {
+  text-align: right;
+  font-weight: 500;
+}
+
+.value-green {
+  color: #10b981;
+}
+
+.value-red {
+  color: #ef4444;
+}
+
+.value-blue {
+  color: #3b82f6;
+}
+
+.total-row td {
+  border-top: 2px solid rgba(139, 92, 246, 0.3);
+  padding-top: 12px;
+  padding-bottom: 4px;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+.assumptions-card {
+  background: rgba(59, 130, 246, 0.05);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.assumptions-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #cbd5e1;
+  margin-bottom: 8px;
+}
+
+.assumptions-list-detailed {
+  margin: 0;
+  padding-left: 20px;
+  list-style: disc;
+}
+
+.assumptions-list-detailed li {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+
+.upgrade-cta-inline {
+  padding: 12px;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.upgrade-text {
+  font-size: 13px;
+  color: #a5b4fc;
+}
+
+/* ============================================================================
+ * Breakeven Timeline
+ * ========================================================================= */
+
+.breakeven-timeline-card {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(37, 99, 235, 0.06));
+  /* backdrop-filter: blur(12px); DISABLED - causes flashing on mount */
+  will-change: transform;
+  transform: translateZ(0);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.timeline-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.header-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(139, 92, 246, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.breakeven-hero {
+  text-align: center;
+  margin: 24px 0;
+}
+
+.breakeven-value {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.years-number,
+.months-number {
+  font-size: 48px;
+  font-weight: 800;
+  color: #3b82f6;
+  line-height: 1;
+}
+
+.years-label,
+.months-label {
+  font-size: 18px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.breakeven-date {
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.timeline-visual {
+  position: relative;
+  margin: 30px 0;
+  padding: 30px 0;
+}
+
+.timeline-milestones {
+  position: relative;
+  height: 60px;
+  margin-bottom: 12px;
+}
+
+.milestone-marker {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+}
+
+.marker-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #64748b;
+  border: 2px solid rgba(15, 23, 42, 0.8);
+  margin: 0 auto 8px;
+}
+
+.success-dot {
+  width: 24px;
+  height: 24px;
+  background: #10b981;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.marker-label-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 80px;
+}
+
+.marker-label {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 600;
+  text-align: center;
+}
+
+.success-label {
+  color: #10b981;
+}
+
+.marker-value {
+  font-size: 12px;
+  color: #cbd5e1;
+  font-weight: 600;
+}
+
+.timeline-progress-bar {
+  height: 8px;
+  background: rgba(100, 116, 139, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #8b5cf6, #3b82f6);
+  border-radius: 4px;
+  transition: width 0.2s ease-out; /* Reduced from 1s to 0.2s to prevent flashing */
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.6);
+}
+
+.projection-section {
+  margin-top: 24px;
+}
+
+.projection-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.projection-table-wrapper {
+  overflow-x: auto;
+}
+
+.projection-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.projection-table th {
+  padding: 12px 8px;
+  text-align: left;
+  font-weight: 600;
+  color: #94a3b8;
+  border-bottom: 2px solid rgba(100, 116, 139, 0.2);
+}
+
+.projection-table td {
+  padding: 12px 8px;
+  color: #cbd5e1;
+  border-bottom: 1px solid rgba(100, 116, 139, 0.1);
+}
+
+.breakeven-reached-row {
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.breakeven-reached-row td {
+  color: #f1f5f9;
+  font-weight: 500;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.success-badge {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+}
+
+.pending-badge {
+  background: rgba(100, 116, 139, 0.2);
+  color: #64748b;
+}
+
+.breakeven-insight {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 12px;
+  margin-top: 20px;
+}
+
+.equity-explanation {
+  margin-top: 16px;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(100, 116, 139, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.explanation-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #94a3b8;
+  font-weight: 500;
+  list-style: none;
+}
+
+.explanation-summary::-webkit-details-marker {
+  display: none;
+}
+
+.explanation-summary:hover {
+  color: #cbd5e1;
+  background: rgba(30, 41, 59, 0.5);
+}
+
+.explanation-content {
+  padding: 16px;
+  border-top: 1px solid rgba(100, 116, 139, 0.2);
+}
+
+.equity-sources-list {
+  margin: 8px 0;
+  padding-left: 24px;
+}
+
+.equity-sources-list li {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+
+.equity-sources-list strong {
+  color: #cbd5e1;
+}
+
+/* ============================================================================
+ * Warnings & Alerts
+ * ========================================================================= */
+
+.breakeven-warning {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.warning-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.warning-actions {
+  margin-top: 16px;
+}
+
+/* ============================================================================
+ * Assumptions Panel
+ * ========================================================================= */
+
+.assumptions-panel {
+  background: rgba(15, 23, 42, 0.6);
+  /* backdrop-filter: blur(8px); DISABLED - causes flashing on mount */
+  will-change: transform;
+  transform: translateZ(0);
+  border: 1px solid rgba(100, 116, 139, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.assumptions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.assumptions-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(100, 116, 139, 0.1);
+  font-size: 14px;
+}
+
+.assumptions-list li:last-child {
+  border-bottom: none;
+}
+
+.assumption-label {
+  color: #94a3b8;
+}
+
+.assumption-value {
+  color: #f1f5f9;
+  font-weight: 500;
+}
+
+.assumptions-note {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(100, 116, 139, 0.1);
+}
+
+/* ============================================================================
+ * Upgrade Card
+ * ========================================================================= */
+
+.upgrade-card {
+  background: rgba(139, 92, 246, 0.1);
+  /* backdrop-filter: blur(8px); DISABLED - causes flashing on mount */
+  will-change: transform;
+  transform: translateZ(0);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+  text-align: center;
+}
+
+.btn-secondary {
+  padding: 12px 24px;
+  background: rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  border-radius: 8px;
+  color: #a5b4fc;
+  font-size: 14px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s; /* Only transition specific props to prevent flashing */
+}
+
+.btn-secondary:hover {
+  background: rgba(139, 92, 246, 0.3);
+  border-color: rgba(139, 92, 246, 0.6);
+  color: #c4b5fd;
+}
+
+.w-full {
+  width: 100%;
+}
+
+/* ============================================================================
+ * Glass Panel Utility
+ * ========================================================================= */
+
+.glass-panel {
+  background: rgba(30, 41, 59, 0.5);
+  /* backdrop-filter: blur(12px); DISABLED - causes flashing on mount */
+  will-change: transform;
+  transform: translateZ(0);
+  border: 1px solid rgba(100, 116, 139, 0.2);
+  border-radius: 12px;
+}
+
+/* ============================================================================
+ * Empty State
+ * ========================================================================= */
+
+.empty-state {
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.empty-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: rgba(100, 116, 139, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================================================
+ * Responsive Design
+ * ========================================================================= */
+
+@media (max-width: 640px) {
+  .quick-check-form {
+    padding: 20px;
+  }
+
+  .executive-summary-card {
+    padding: 20px;
+  }
+
+  .summary-header {
+    flex-direction: column;
+  }
+
+  .score-circle {
+    width: 80px;
+    height: 80px;
+  }
+
+  .score-number {
+    font-size: 28px;
+  }
+
+  .years-number,
+  .months-number {
+    font-size: 36px;
+  }
+
+  .projection-table {
+    font-size: 11px;
+  }
+
+  .projection-table th,
+  .projection-table td {
+    padding: 8px 4px;
+  }
+}

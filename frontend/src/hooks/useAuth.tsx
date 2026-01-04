@@ -17,6 +17,24 @@ import React, { createContext, useContext, useState, useEffect, useCallback, Rea
 // HTTP endpoints use .convex.site (not .convex.cloud which is for WebSocket)
 const CONVEX_HTTP_URL = import.meta.env.VITE_CONVEX_URL?.replace('.convex.cloud', '.convex.site') || '';
 
+// HTTPS enforcement - Prevent security vulnerabilities
+if (import.meta.env.PROD && !CONVEX_HTTP_URL.startsWith('https://')) {
+  throw new Error(
+    'SECURITY ERROR: CONVEX_HTTP_URL must use HTTPS in production. ' +
+    `Got: ${CONVEX_HTTP_URL || '(empty)'}. ` +
+    'Credentials would be transmitted unencrypted over HTTP.'
+  );
+}
+
+// Warn in development if not HTTPS
+if (import.meta.env.DEV && CONVEX_HTTP_URL && !CONVEX_HTTP_URL.startsWith('https://')) {
+  console.warn(
+    '⚠️  WARNING: Using HTTP in development. ' +
+    'Credentials will be sent unencrypted. ' +
+    `URL: ${CONVEX_HTTP_URL}`
+  );
+}
+
 // localStorage key for session token
 const TOKEN_STORAGE_KEY = 'propiq_session_token';
 
@@ -511,14 +529,14 @@ function notifyExtension(
             analysesUsed: user.analysesUsed,
             analysesLimit: user.analysesLimit,
           },
-          expiresAt: expiresAt || Date.now() + 30 * 24 * 60 * 60 * 1000,
+          expiresAt: expiresAt || Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days
         },
-      }, '*');
+      }, window.location.origin);
       console.log('[AUTH] Extension notified of login');
     } else if (type === 'logout') {
       window.postMessage({
         type: 'PROPIQ_AUTH_LOGOUT',
-      }, '*');
+      }, window.location.origin);
       console.log('[AUTH] Extension notified of logout');
     }
   } catch (e) {

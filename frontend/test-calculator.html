@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PropIQ Calculator Test</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background: linear-gradient(to bottom right, #1e293b, #0f172a);
+            color: #f1f5f9;
+            min-height: 100vh;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        h1 {
+            background: linear-gradient(to right, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        .status {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        .test-section h2 {
+            color: #a78bfa;
+            margin-top: 0;
+        }
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 10px;
+            margin: 8px 0;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            border-left: 3px solid #6366f1;
+        }
+        .checklist li::before {
+            content: "☐ ";
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+        .link {
+            display: inline-block;
+            background: linear-gradient(to right, #8b5cf6, #7c3aed);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 10px 10px 10px 0;
+            transition: transform 0.2s;
+        }
+        .link:hover {
+            transform: translateY(-2px);
+        }
+        .warning {
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            color: #fbbf24;
+        }
+        .success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            color: #10b981;
+        }
+        code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧪 PropIQ Calculator Test Suite</h1>
+        <p style="color: #94a3b8;">Manual testing for DealCalculatorV3 & QuickCheck</p>
+    </div>
+
+    <div class="status">
+        <h2 style="margin-top: 0; color: #10b981;">✅ Environment Ready</h2>
+        <ul style="color: #cbd5e1; line-height: 1.8;">
+            <li>✅ Dev server running on <code>http://localhost:5173</code></li>
+            <li>✅ Caches cleared</li>
+            <li>✅ OnboardingChecklist disabled (won't block testing)</li>
+            <li>✅ Tooltips removed (no infinite loop issues)</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>📍 Step 1: Check Browser Console</h2>
+        <p style="color: #cbd5e1;">Before testing, open your browser DevTools:</p>
+        <ul class="checklist">
+            <li>Press <code>F12</code> or <code>Cmd+Option+I</code> (Mac)</li>
+            <li>Click the <strong>Console</strong> tab</li>
+            <li>Look for any RED errors (warnings in yellow/orange are OK)</li>
+            <li>Keep DevTools open during ALL tests below</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🧮 Step 2: Test QuickCheck Component</h2>
+        <p style="color: #cbd5e1;">QuickCheck is the 2-input fast calculator. Currently <strong>not integrated</strong> into main app.</p>
+
+        <div class="warning">
+            ⚠️ <strong>Note:</strong> QuickCheck exists as a component file but isn't yet added to any route.
+            You'll need to either:
+            <ul style="margin: 10px 0 0 20px;">
+                <li>Add it to ComponentTestPage, OR</li>
+                <li>Create a temporary test route, OR</li>
+                <li>Import it into Dashboard</li>
+            </ul>
+        </div>
+
+        <p style="color: #cbd5e1;"><strong>File location:</strong> <code>/src/components/QuickCheck.tsx</code></p>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 Step 3: Test DealCalculatorV3 (Advanced Mode)</h2>
+        <p style="color: #cbd5e1;">DealCalculatorV3 is the new form-based calculator with validation.</p>
+
+        <div class="warning">
+            ⚠️ <strong>Note:</strong> DealCalculatorV3 also exists but isn't yet integrated into routes.
+            The current production calculator is <code>DealCalculator.tsx</code> (the original).
+        </div>
+
+        <p style="color: #cbd5e1;"><strong>File location:</strong> <code>/src/components/DealCalculatorV3.tsx</code></p>
+
+        <a href="http://localhost:5173/" class="link">Go to PropIQ App →</a>
+    </div>
+
+    <div class="test-section">
+        <h2>🔍 Step 4: Current Situation Analysis</h2>
+        <p style="color: #cbd5e1;">Based on last night's session notes and file analysis:</p>
+
+        <div class="success">
+            ✅ <strong>What's Working:</strong>
+            <ul style="margin: 10px 0 0 20px; color: #cbd5e1;">
+                <li>QuickCheck component - fully coded (250 lines)</li>
+                <li>DealCalculatorV3 - tooltips removed, should compile</li>
+                <li>Supporting utilities (smartDefaults.ts, calculatorUtils.ts)</li>
+                <li>Dev server running without errors</li>
+            </ul>
+        </div>
+
+        <div class="warning">
+            ⚠️ <strong>What's Pending:</strong>
+            <ul style="margin: 10px 0 0 20px;">
+                <li><strong>Integration:</strong> Neither QuickCheck nor V3 are routed/accessible in the app</li>
+                <li><strong>Testing:</strong> 6-point smoke test hasn't been run</li>
+                <li><strong>Verification:</strong> No confirmation that V3 works without tooltips</li>
+                <li><strong>Deployment:</strong> Side-by-side feature flag not yet implemented</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🎯 Recommended Next Steps</h2>
+        <ol style="color: #cbd5e1; line-height: 2;">
+            <li><strong>Create a test route</strong> to access QuickCheck and DealCalculatorV3</li>
+            <li><strong>Import components</strong> into ComponentTestPage or Dashboard</li>
+            <li><strong>Run 6-point smoke test</strong> (see SESSION_END_2026-01-03.md)</li>
+            <li><strong>Verify calculations</strong> are accurate</li>
+            <li><strong>Deploy with feature flag</strong> (e.g., ?v3=true)</li>
+        </ol>
+
+        <div class="success">
+            💡 <strong>Quick Win Option:</strong> Add QuickCheck and V3 tabs to the existing ComponentTestPage
+            at <code>/src/pages/ComponentTestPage.tsx</code>. This already has routing set up!
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📝 Documentation References</h2>
+        <p style="color: #cbd5e1;">Key files to review:</p>
+        <ul style="color: #94a3b8; line-height: 1.8;">
+            <li><code>SESSION_END_2026-01-03.md</code> - Last night's testing plan</li>
+            <li><code>SESSION_WRAP_JAN_4_2026.md</code> - What went wrong with tooltips</li>
+            <li><code>BUG_LOG.md</code> - Tooltip infinite loop details</li>
+            <li><code>QUICKCHECK_IMPLEMENTATION_COMPLETE.md</code> - QuickCheck specs</li>
+        </ul>
+    </div>
+
+    <div class="status" style="margin-top: 40px; text-align: center;">
+        <p style="color: #94a3b8; font-size: 0.9em; margin: 0;">
+            Last Updated: January 4, 2026 | Dev Server: Running on port 5173
+        </p>
+    </div>
+</body>
+</html>

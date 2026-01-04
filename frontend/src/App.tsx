@@ -925,7 +925,8 @@ const App = () => {
       />
 
       {/* Onboarding Checklist (shows for first 7 days) */}
-      {userId && <OnboardingChecklist userId={userId as any} />}
+      {/* TODO: Re-enable after DealCalculatorV3 testing */}
+      {/* {userId && <OnboardingChecklist userId={userId as any} />} */}
 
       {/* Upgrade Prompt Banner (90% threshold) */}
       {showUpgradeBanner && (
@@ -1052,11 +1053,12 @@ const App = () => {
       <CookieConsent />
 
       {/* Onboarding Checklist - Shows for new users */}
-      {userId && (
+      {/* TODO: Re-enable after DealCalculatorV3 testing */}
+      {/* {userId && (
         <Suspense fallback={null}>
           <OnboardingChecklist userId={userId as any} />
         </Suspense>
-      )}
+      )} */}
 
       {/* Help Center Modal */}
       <Suspense fallback={null}>

@@ -8,7 +8,7 @@
   - Starter: `price_1SXQEsJogOchEFxvG8fT5B0b` ($49/mo)
   - Pro: `price_1SL51sJogOchEFxvVounuNcK` ($99/mo)
   - Elite: `price_1SXQF2JogOchEFxvRpZ0GGuf` ($199/mo)
-- Stripe Secret Key: `sk_live_51RdHuvJogOchEFxv...` (LIVE mode)
+- Stripe Secret Key: `sk_live_...[REDACTED]` (LIVE mode - rotated Dec 31, 2025)
 
 ---
 

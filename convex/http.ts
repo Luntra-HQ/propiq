@@ -14,6 +14,7 @@
 import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
 import { api } from "./_generated/api";
+import { internal } from "./_generated/api";
 
 // Type declaration for Node.js process environment variables
 declare const process: { env: Record<string, string | undefined> };
@@ -34,13 +35,90 @@ const IS_PRODUCTION =
 
 // CORS headers for cross-origin requests from frontend
 // No credentials needed since we use Bearer tokens (not cookies)
-// Allow both localhost (development) and production domain
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*", // Allow all origins for simplicity
-  "Access-Control-Allow-Credentials": "false",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
-};
+
+/**
+ * Allowed origins for CORS
+ * Chrome extensions (chrome-extension://*) are validated separately
+ */
+const ALLOWED_ORIGINS = [
+  "https://propiq.luntra.one",      // Production web app
+  "https://staging.propiq.luntra.one", // Staging (if exists)
+  "http://localhost:5173",          // Local development (Vite default)
+  "http://localhost:5174",          // Alternative dev port
+  "http://localhost:3000",          // Alternative dev port (CRA)
+];
+
+/**
+ * Get security headers to protect against common attacks
+ * These headers are added to all HTTP responses
+ */
+function getSecurityHeaders(): Record<string, string> {
+  return {
+    // Content Security Policy - Prevents XSS attacks
+    "Content-Security-Policy": "default-src 'self'; script-src 'self' https://mild-tern-361.convex.cloud; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://mild-tern-361.convex.cloud https://mild-tern-361.convex.site; frame-ancestors 'none'; base-uri 'self';",
+
+    // Prevent clickjacking attacks
+    "X-Frame-Options": "DENY",
+
+    // Prevent MIME type sniffing
+    "X-Content-Type-Options": "nosniff",
+
+    // Enable XSS protection in older browsers
+    "X-XSS-Protection": "1; mode=block",
+
+    // Force HTTPS in production
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+
+    // Control referrer information
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+
+    // Permissions policy (formerly Feature-Policy)
+    "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
+  };
+}
+
+/**
+ * Generate CORS headers based on request origin
+ * Validates origin and returns appropriate headers
+ */
+function getCorsHeaders(request: Request): Record<string, string> {
+  const origin = request.headers.get("Origin");
+
+  let allowedOrigin = "null"; // Default: deny
+
+  if (origin) {
+    // Allow Chrome extensions (they can't be whitelisted by specific ID easily)
+    if (origin.startsWith("chrome-extension://")) {
+      allowedOrigin = origin;
+    }
+    // Allow Mozilla extensions
+    else if (origin.startsWith("moz-extension://")) {
+      allowedOrigin = origin;
+    }
+    // Check against whitelist
+    else if (ALLOWED_ORIGINS.includes(origin)) {
+      allowedOrigin = origin;
+    }
+  }
+
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Credentials": "false",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  };
+}
+
+/**
+ * Get all response headers (CORS + Security)
+ * Use this for all HTTP responses to ensure security headers are included
+ */
+function getAllResponseHeaders(request: Request): Record<string, string> {
+  return {
+    ...getCorsHeaders(request),
+    ...getSecurityHeaders(),
+  };
+}
 
 /**
  * Extract Bearer token from Authorization header
@@ -53,6 +131,26 @@ function getBearerToken(request: Request): string | null {
   return null;
 }
 
+/**
+ * Extract IP address from request headers
+ * Checks X-Forwarded-For, X-Real-IP, and falls back to "unknown"
+ */
+function getClientIp(request: Request): string {
+  // Check X-Forwarded-For header (may contain multiple IPs, take first one)
+  const forwardedFor = request.headers.get("X-Forwarded-For");
+  if (forwardedFor) {
+    const ips = forwardedFor.split(",").map(ip => ip.trim());
+    if (ips[0]) return ips[0];
+  }
+
+  // Check X-Real-IP header
+  const realIp = request.headers.get("X-Real-IP");
+  if (realIp) return realIp;
+
+  // Fallback to unknown (should not happen in production with proper proxy)
+  return "unknown";
+}
+
 // ============================================
 // AUTH ENDPOINTS
 // ============================================
@@ -61,75 +159,133 @@ function getBearerToken(request: Request): string | null {
 http.route({
   path: "/auth/me",
   method: "OPTIONS",
-  handler: httpAction(async () => {
-    return new Response(null, { status: 204, headers: corsHeaders });
+  handler: httpAction(async (_, request) => {
+    return new Response(null, { status: 204, headers: getAllResponseHeaders(request) });
   }),
 });
 
 http.route({
   path: "/auth/login",
   method: "OPTIONS",
-  handler: httpAction(async () => {
-    return new Response(null, { status: 204, headers: corsHeaders });
+  handler: httpAction(async (_, request) => {
+    return new Response(null, { status: 204, headers: getAllResponseHeaders(request) });
   }),
 });
 
 http.route({
   path: "/auth/logout",
   method: "OPTIONS",
-  handler: httpAction(async () => {
-    return new Response(null, { status: 204, headers: corsHeaders });
+  handler: httpAction(async (_, request) => {
+    return new Response(null, { status: 204, headers: getAllResponseHeaders(request) });
   }),
 });
 
 http.route({
   path: "/auth/refresh",
   method: "OPTIONS",
-  handler: httpAction(async () => {
-    return new Response(null, { status: 204, headers: corsHeaders });
+  handler: httpAction(async (_, request) => {
+    return new Response(null, { status: 204, headers: getAllResponseHeaders(request) });
   }),
 });
 
 http.route({
   path: "/auth/signup",
   method: "OPTIONS",
-  handler: httpAction(async () => {
-    return new Response(null, { status: 204, headers: corsHeaders });
+  handler: httpAction(async (_, request) => {
+    return new Response(null, { status: 204, headers: getAllResponseHeaders(request) });
   }),
 });
 
 http.route({
   path: "/auth/request-password-reset",
   method: "OPTIONS",
-  handler: httpAction(async () => {
-    return new Response(null, { status: 204, headers: corsHeaders });
+  handler: httpAction(async (_, request) => {
+    return new Response(null, { status: 204, headers: getAllResponseHeaders(request) });
   }),
 });
 
 http.route({
   path: "/auth/reset-password",
   method: "OPTIONS",
-  handler: httpAction(async () => {
-    return new Response(null, { status: 204, headers: corsHeaders });
+  handler: httpAction(async (_, request) => {
+    return new Response(null, { status: 204, headers: getAllResponseHeaders(request) });
   }),
 });
 
 /**
  * POST /auth/login
  * Authenticate user and set session cookie
+ * Rate limited: 5 attempts per 15 minutes per IP
  */
 http.route({
   path: "/auth/login",
   method: "POST",
   handler: httpAction(async (ctx, request) => {
+    const clientIp = getClientIp(request);
+    let email = "";
+
     try {
       const body = await request.json();
-      const { email, password } = body;
+      email = body.email;
+      const password = body.password;
 
       if (!email || !password) {
         return new Response(
           JSON.stringify({ success: false, error: "Email and password required" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 400, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
+        );
+      }
+
+      // Check IP-based rate limit
+      const ipRateLimit = await ctx.runQuery(api.rateLimit.checkRateLimit, {
+        identifier: `ip:${clientIp}`,
+        action: "login",
+      });
+
+      if (!ipRateLimit.allowed) {
+        const retryAfter = Math.ceil((ipRateLimit.resetAt - Date.now()) / 1000);
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "Too many login attempts. Please try again later.",
+            retryAfter: ipRateLimit.resetAt,
+          }),
+          {
+            status: 429,
+            headers: {
+              ...getAllResponseHeaders(request),
+              "Content-Type": "application/json",
+              "Retry-After": String(retryAfter),
+              "X-RateLimit-Limit": "5",
+              "X-RateLimit-Remaining": String(ipRateLimit.remainingAttempts),
+              "X-RateLimit-Reset": String(ipRateLimit.resetAt),
+            }
+          }
+        );
+      }
+
+      // Check email-based rate limit (prevents targeted attacks)
+      const emailRateLimit = await ctx.runQuery(api.rateLimit.checkRateLimit, {
+        identifier: `email:${email.toLowerCase()}`,
+        action: "login",
+      });
+
+      if (!emailRateLimit.allowed) {
+        const retryAfter = Math.ceil((emailRateLimit.resetAt - Date.now()) / 1000);
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "Too many login attempts for this account. Please try again later.",
+            retryAfter: emailRateLimit.resetAt,
+          }),
+          {
+            status: 429,
+            headers: {
+              ...getAllResponseHeaders(request),
+              "Content-Type": "application/json",
+              "Retry-After": String(retryAfter),
+            }
+          }
         );
       }
 
@@ -140,10 +296,24 @@ http.route({
         userAgent: request.headers.get("User-Agent") || undefined,
       });
 
+      // Record rate limit attempts (both IP and email)
+      await ctx.runMutation(api.rateLimit.recordAttempt, {
+        identifier: `ip:${clientIp}`,
+        action: "login",
+        success: result.success,
+      });
+
+      await ctx.runMutation(api.rateLimit.recordAttempt, {
+        identifier: `email:${email.toLowerCase()}`,
+        action: "login",
+        success: result.success,
+      });
+
       if (!result.success) {
+        console.log(`[RATE LIMIT] Failed login attempt from IP ${clientIp} for email ${email}`);
         return new Response(
           JSON.stringify({ success: false, error: result.error }),
-          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 401, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
         );
       }
 
@@ -154,18 +324,32 @@ http.route({
           success: true,
           user: result.user,
           sessionToken: result.sessionToken,
-          expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+          expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days
         }),
         {
           status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" },
         }
       );
     } catch (error) {
       console.error("[AUTH] Login error:", error);
+
+      // Record failed attempt even on error
+      if (clientIp && email) {
+        try {
+          await ctx.runMutation(api.rateLimit.recordAttempt, {
+            identifier: `ip:${clientIp}`,
+            action: "login",
+            success: false,
+          });
+        } catch (e) {
+          console.error("[RATE LIMIT] Failed to record attempt:", e);
+        }
+      }
+
       return new Response(
         JSON.stringify({ success: false, error: "Login failed" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 500, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
       );
     }
   }),
@@ -174,11 +358,14 @@ http.route({
 /**
  * POST /auth/signup
  * Create user and return session token
+ * Rate limited: 3 signups per hour per IP
  */
 http.route({
   path: "/auth/signup",
   method: "POST",
   handler: httpAction(async (ctx, request) => {
+    const clientIp = getClientIp(request);
+
     try {
       const body = await request.json();
       const { email, password, firstName, lastName, company, referralCode } = body;
@@ -186,7 +373,35 @@ http.route({
       if (!email || !password) {
         return new Response(
           JSON.stringify({ success: false, error: "Email and password required" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 400, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
+        );
+      }
+
+      // Check IP-based rate limit (prevent signup spam)
+      const ipRateLimit = await ctx.runQuery(api.rateLimit.checkRateLimit, {
+        identifier: `ip:${clientIp}`,
+        action: "signup",
+      });
+
+      if (!ipRateLimit.allowed) {
+        const retryAfter = Math.ceil((ipRateLimit.resetAt - Date.now()) / 1000);
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "Too many signup attempts. Please try again later.",
+            retryAfter: ipRateLimit.resetAt,
+          }),
+          {
+            status: 429,
+            headers: {
+              ...getAllResponseHeaders(request),
+              "Content-Type": "application/json",
+              "Retry-After": String(retryAfter),
+              "X-RateLimit-Limit": "3",
+              "X-RateLimit-Remaining": String(ipRateLimit.remainingAttempts),
+              "X-RateLimit-Reset": String(ipRateLimit.resetAt),
+            }
+          }
         );
       }
 
@@ -201,10 +416,18 @@ http.route({
         userAgent: request.headers.get("User-Agent") || undefined,
       });
 
+      // Record attempt
+      await ctx.runMutation(api.rateLimit.recordAttempt, {
+        identifier: `ip:${clientIp}`,
+        action: "signup",
+        success: result.success,
+      });
+
       if (!result.success) {
+        console.log(`[RATE LIMIT] Failed signup attempt from IP ${clientIp}`);
         return new Response(
           JSON.stringify({ success: false, error: result.error }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 400, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
         );
       }
 
@@ -215,18 +438,32 @@ http.route({
           success: true,
           user: result.user,
           sessionToken: result.sessionToken,
-          expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+          expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days
         }),
         {
           status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" },
         }
       );
     } catch (error) {
       console.error("[AUTH] Signup error:", error);
+
+      // Record failed attempt
+      if (clientIp) {
+        try {
+          await ctx.runMutation(api.rateLimit.recordAttempt, {
+            identifier: `ip:${clientIp}`,
+            action: "signup",
+            success: false,
+          });
+        } catch (e) {
+          console.error("[RATE LIMIT] Failed to record attempt:", e);
+        }
+      }
+
       return new Response(
         JSON.stringify({ success: false, error: "Signup failed" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 500, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
       );
     }
   }),
@@ -247,7 +484,7 @@ http.route({
       if (!token) {
         return new Response(
           JSON.stringify({ authenticated: false, user: null }),
-          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 401, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
         );
       }
 
@@ -257,7 +494,7 @@ http.route({
       if (!result) {
         return new Response(
           JSON.stringify({ authenticated: false, user: null }),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 200, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
         );
       }
 
@@ -271,13 +508,13 @@ http.route({
           authenticated: true,
           user: result.user,
         }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
       );
     } catch (error) {
       console.error("[AUTH] /me error:", error);
       return new Response(
         JSON.stringify({ authenticated: false, user: null }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
       );
     }
   }),
@@ -301,13 +538,13 @@ http.route({
 
       return new Response(
         JSON.stringify({ success: true }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
       );
     } catch (error) {
       console.error("[AUTH] Logout error:", error);
       return new Response(
         JSON.stringify({ success: true }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
       );
     }
   }),
@@ -327,7 +564,7 @@ http.route({
       if (!token) {
         return new Response(
           JSON.stringify({ success: false, error: "No session" }),
-          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 401, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
         );
       }
 
@@ -336,19 +573,19 @@ http.route({
       if (!result.success) {
         return new Response(
           JSON.stringify({ success: false, error: result.error }),
-          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 401, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
         );
       }
 
       return new Response(
         JSON.stringify({ success: true, expiresAt: result.expiresAt }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
       );
     } catch (error) {
       console.error("[AUTH] Refresh error:", error);
       return new Response(
         JSON.stringify({ success: false, error: "Refresh failed" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 500, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
       );
     }
   }),
@@ -358,11 +595,14 @@ http.route({
  * POST /auth/request-password-reset
  * Request a password reset email
  * Sends email with reset link using Resend
+ * Rate limited: 3 requests per hour per email
  */
 http.route({
   path: "/auth/request-password-reset",
   method: "POST",
   handler: httpAction(async (ctx, request) => {
+    const clientIp = getClientIp(request);
+
     try {
       const body = await request.json();
       const { email } = body;
@@ -370,17 +610,53 @@ http.route({
       if (!email) {
         return new Response(
           JSON.stringify({ success: false, error: "Email is required" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 400, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
+        );
+      }
+
+      // Check email-based rate limit (prevent DoS via password reset spam)
+      const emailRateLimit = await ctx.runQuery(api.rateLimit.checkRateLimit, {
+        identifier: `email:${email.toLowerCase()}`,
+        action: "passwordReset",
+      });
+
+      if (!emailRateLimit.allowed) {
+        const retryAfter = Math.ceil((emailRateLimit.resetAt - Date.now()) / 1000);
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "Too many password reset requests. Please try again later.",
+            retryAfter: emailRateLimit.resetAt,
+          }),
+          {
+            status: 429,
+            headers: {
+              ...getAllResponseHeaders(request),
+              "Content-Type": "application/json",
+              "Retry-After": String(retryAfter),
+              "X-RateLimit-Limit": "3",
+              "X-RateLimit-Remaining": String(emailRateLimit.remainingAttempts),
+              "X-RateLimit-Reset": String(emailRateLimit.resetAt),
+            }
+          }
         );
       }
 
       // Create reset token
       const result = await ctx.runMutation(api.auth.requestPasswordReset, { email });
 
+      // Record attempt
+      await ctx.runMutation(api.rateLimit.recordAttempt, {
+        identifier: `email:${email.toLowerCase()}`,
+        action: "passwordReset",
+        success: result.success,
+      });
+
       if (!result.success) {
+        console.log(`[RATE LIMIT] Failed password reset request for email ${email} from IP ${clientIp}`);
         return new Response(
           JSON.stringify({ success: false, error: result.message }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 400, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
         );
       }
 
@@ -470,7 +746,7 @@ http.route({
           success: true,
           message: result.message,
         }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
       );
     } catch (error) {
       console.error("[AUTH] Request password reset error:", error);
@@ -479,7 +755,7 @@ http.route({
           success: true,
           message: "If an account exists with that email, a password reset link has been sent.",
         }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
       );
     }
   }),
@@ -500,7 +776,7 @@ http.route({
       if (!token || !newPassword) {
         return new Response(
           JSON.stringify({ success: false, error: "Token and new password are required" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 400, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
         );
       }
 
@@ -513,7 +789,7 @@ http.route({
       if (!result.success) {
         return new Response(
           JSON.stringify({ success: false, error: result.error }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 400, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
         );
       }
 
@@ -522,13 +798,13 @@ http.route({
           success: true,
           message: result.message,
         }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
       );
     } catch (error) {
       console.error("[AUTH] Reset password error:", error);
       return new Response(
         JSON.stringify({ success: false, error: "Password reset failed" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 500, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
       );
     }
   }),
@@ -538,8 +814,8 @@ http.route({
 http.route({
   path: "/auth/logout-everywhere",
   method: "OPTIONS",
-  handler: httpAction(async () => {
-    return new Response(null, { status: 204, headers: corsHeaders });
+  handler: httpAction(async (_, request) => {
+    return new Response(null, { status: 204, headers: getAllResponseHeaders(request) });
   }),
 });
 
@@ -558,7 +834,7 @@ http.route({
       if (!token) {
         return new Response(
           JSON.stringify({ success: false, error: "No session" }),
-          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 401, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
         );
       }
 
@@ -568,7 +844,7 @@ http.route({
       if (!sessionData) {
         return new Response(
           JSON.stringify({ success: false, error: "Invalid session" }),
-          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 401, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
         );
       }
 
@@ -585,13 +861,13 @@ http.route({
           message: `Logged out from ${result.deletedCount} device(s)`,
           deletedCount: result.deletedCount,
         }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
       );
     } catch (error) {
       console.error("[AUTH] Logout everywhere error:", error);
       return new Response(
         JSON.stringify({ success: false, error: "Failed to logout from all devices" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 500, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
       );
     }
   }),
@@ -697,10 +973,47 @@ http.route({
           const session = event.data.object;
           const userId = session.metadata?.userId;
           const tier = session.metadata?.tier;
+          const isAnonymous = session.metadata?.anonymous === "true";
 
-          console.log(`[STRIPE WEBHOOK] Checkout session completed for user: ${userId}, tier: ${tier}`);
+          console.log(`[STRIPE WEBHOOK] Checkout session completed. userId: ${userId}, tier: ${tier}, anonymous: ${isAnonymous}`);
 
-          if (userId && tier) {
+          if (isAnonymous && tier) {
+            // Anonymous checkout - create account for new customer
+            try {
+              const customerEmail = session.customer_details?.email || session.customer_email;
+
+              if (!customerEmail) {
+                console.error(`[STRIPE WEBHOOK] ❌ No customer email found in anonymous checkout`);
+                throw new Error("Customer email required for anonymous checkout");
+              }
+
+              console.log(`[STRIPE WEBHOOK] Creating account for anonymous customer: ${customerEmail}`);
+
+              // Create or link account via new mutation
+              const result = await ctx.runMutation(api.payments.handleAnonymousCheckout, {
+                email: customerEmail,
+                tier,
+                stripeCustomerId: session.customer,
+                stripeSubscriptionId: session.subscription,
+              });
+
+              console.log(`[STRIPE WEBHOOK] ✅ Anonymous checkout processed for ${customerEmail}. New user: ${result.isNewUser}`);
+
+              // Update event log
+              await ctx.runMutation(api.payments.logStripeEvent, {
+                eventId: event.id,
+                eventType: event.type,
+                customerId: session.customer,
+                subscriptionId: session.subscription,
+                status: "completed",
+                rawData: body,
+              });
+            } catch (error) {
+              console.error(`[STRIPE WEBHOOK] ❌ Failed to handle anonymous checkout:`, error);
+              throw error;
+            }
+          } else if (userId && tier) {
+            // Existing user upgrading
             try {
               await ctx.runMutation(api.payments.handleSubscriptionSuccess, {
                 userId,
@@ -725,7 +1038,7 @@ http.route({
               throw error;
             }
           } else {
-            console.error(`[STRIPE WEBHOOK] ❌ Missing userId or tier in metadata. userId: ${userId}, tier: ${tier}`);
+            console.error(`[STRIPE WEBHOOK] ❌ Missing required data. userId: ${userId}, tier: ${tier}, anonymous: ${isAnonymous}`);
           }
           break;
         }
@@ -977,11 +1290,26 @@ http.route({
         );
       }
 
+      // DEBUG: Log what we're sending to the mutation
+      console.log("[HTTP] Extension login attempt:", {
+        email,
+        passwordLength: password?.length,
+        passwordFirstChar: password?.charAt(0),
+        passwordLastChar: password?.charAt(password.length - 1),
+        passwordHasHash: password?.includes('#'),
+        passwordHasExclamation: password?.includes('!'),
+        passwordChars: password?.split('').map((c, i) => `${i}:${c.charCodeAt(0)}`).join(','),
+        userAgent: request.headers.get("User-Agent") || "Chrome Extension",
+      });
+
       const result = await ctx.runMutation(api.auth.loginWithSession, {
         email,
         password,
         userAgent: request.headers.get("User-Agent") || "Chrome Extension",
       });
+
+      // DEBUG: Log the result
+      console.log("[HTTP] Login result:", { success: result.success, error: result.error });
 
       if (!result.success) {
         return new Response(
@@ -996,7 +1324,7 @@ http.route({
           success: true,
           sessionToken: result.sessionToken,
           user: result.user,
-          expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+          expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days
         }),
         {
           status: 200,
@@ -1052,7 +1380,7 @@ http.route({
           success: true,
           sessionToken: result.sessionToken,
           user: result.user,
-          expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+          expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days
         }),
         {
           status: 200,
@@ -1200,7 +1528,7 @@ http.route({
         console.error("[FORMSPREE] Missing email in webhook payload");
         return new Response(
           JSON.stringify({ success: false, error: "Email required" }),
-          { status: 400, headers: { "Content-Type": "application/json" } }
+          { status: 400, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
         );
       }
 
@@ -1228,13 +1556,13 @@ http.route({
 
       return new Response(
         JSON.stringify({ success: true, leadId: result.leadId }),
-        { status: 200, headers: { "Content-Type": "application/json" } }
+        { status: 200, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
       );
     } catch (error) {
       console.error("[FORMSPREE] Webhook error:", error);
       return new Response(
         JSON.stringify({ success: false, error: String(error) }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
+        { status: 500, headers: { ...getAllResponseHeaders(request), "Content-Type": "application/json" } }
       );
     }
   }),
@@ -1244,8 +1572,8 @@ http.route({
 http.route({
   path: "/webhook/formspree",
   method: "OPTIONS",
-  handler: httpAction(async () => {
-    return new Response(null, { status: 204, headers: corsHeaders });
+  handler: httpAction(async (_, request) => {
+    return new Response(null, { status: 204, headers: getAllResponseHeaders(request) });
   }),
 });
 

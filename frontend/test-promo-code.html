@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promo Code Integration Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        h1 {
+            color: #a78bfa;
+            border-bottom: 2px solid #7c3aed;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            background: #1e293b;
+            border: 2px solid #334155;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .test-section h2 {
+            color: #60a5fa;
+            margin-top: 0;
+        }
+        .pass {
+            color: #10b981;
+            font-weight: bold;
+        }
+        .fail {
+            color: #ef4444;
+            font-weight: bold;
+        }
+        .info {
+            color: #fbbf24;
+        }
+        button {
+            background: #7c3aed;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: all 0.2s;
+        }
+        button:hover {
+            background: #6d28d9;
+            transform: scale(1.05);
+        }
+        .result {
+            background: #0f172a;
+            border-left: 4px solid #7c3aed;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: 'Monaco', monospace;
+            font-size: 14px;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            background: #0f172a;
+            border: 2px solid #7c3aed;
+            border-radius: 6px;
+            color: white;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        input:focus {
+            outline: none;
+            border-color: #a78bfa;
+        }
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 8px;
+            margin: 5px 0;
+            background: #0f172a;
+            border-radius: 4px;
+        }
+        .checklist li:before {
+            content: "☐ ";
+            color: #7c3aed;
+            font-size: 20px;
+            margin-right: 10px;
+        }
+        a {
+            color: #60a5fa;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 PropIQ Promo Code Test Suite</h1>
+
+    <div class="test-section">
+        <h2>📝 Manual Test Links</h2>
+        <p>Click these links to test different promo code scenarios:</p>
+
+        <button onclick="window.open('http://localhost:5173/pricing', '_blank')">
+            Test 1: Pricing Page (No Promo)
+        </button>
+
+        <button onclick="window.open('http://localhost:5173/pricing?promo=PRODUCTHUNT', '_blank')">
+            Test 2: With PRODUCTHUNT Code
+        </button>
+
+        <button onclick="window.open('http://localhost:5173/pricing?promo=producthunt', '_blank')">
+            Test 3: Lowercase Code (Should Auto-Convert)
+        </button>
+
+        <button onclick="window.open('http://localhost:5173/pricing?promo=INVALID', '_blank')">
+            Test 4: Invalid Code (Should Still Show)
+        </button>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 URL Parameter Test</h2>
+        <p>Enter a promo code to generate a test URL:</p>
+        <input type="text" id="customPromo" placeholder="Enter promo code (e.g., PRODUCTHUNT)">
+        <button onclick="testCustomPromo()">Generate Test URL</button>
+        <div id="urlResult" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>✅ Visual Checklist</h2>
+        <p>After opening the pricing page, verify these elements:</p>
+        <ul class="checklist">
+            <li>Purple gradient promo code box appears</li>
+            <li>Tag icon visible next to "Have a promo code?"</li>
+            <li>Input field with placeholder text</li>
+            <li>Typing converts to uppercase automatically</li>
+            <li>Confirmation message appears when code entered</li>
+            <li>Code persists when clicking upgrade button</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🔍 Browser Console Tests</h2>
+        <p>Open DevTools Console (F12) and look for these logs when upgrading:</p>
+        <div class="result">
+[PRICING] Promo code detected from URL: PRODUCTHUNT
+[PRICING] Creating Stripe checkout session...
+[PRICING] Applying promo code: PRODUCTHUNT
+[PRICING] Redirecting to Stripe checkout: cs_test_...
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🎯 Product Hunt Launch URLs</h2>
+        <p>Copy these URLs for your Product Hunt launch:</p>
+
+        <div class="result">
+<strong>Main Link:</strong>
+<a href="http://localhost:5173/pricing?promo=PRODUCTHUNT" target="_blank">
+http://localhost:5173/pricing?promo=PRODUCTHUNT
+</a>
+
+<strong>Production Link (Replace with your domain):</strong>
+https://propiq.com/pricing?promo=PRODUCTHUNT
+
+<strong>Share Text:</strong>
+🎉 We're on Product Hunt! Get 50% off PropIQ for 3 months with code PRODUCTHUNT
+→ [Your Link Here]
+        </div>
+
+        <button onclick="copyProductHuntLink()">Copy Production Link</button>
+    </div>
+
+    <div class="test-section">
+        <h2>🔐 Secure Key Handoff Options</h2>
+        <p>If you need to share your Stripe secret key securely:</p>
+
+        <div class="result">
+<strong>Option 1: Environment Variable</strong>
+$ export STRIPE_SECRET_KEY="sk_live_your_key"
+
+<strong>Option 2: Temporary Secure File</strong>
+$ echo "sk_live_your_key" > /tmp/stripe_key.txt
+$ chmod 600 /tmp/stripe_key.txt
+# Share the file path, I'll read it and delete after
+
+<strong>Option 3: .env.local (Already Set)</strong>
+Your key is already in /Users/briandusape/Projects/propiq/.env.local
+I can read it from there when needed for testing.
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 Test Results</h2>
+        <p>After completing tests, record your results:</p>
+        <div id="testResults" class="result">
+Click the test buttons above and manually verify each scenario.
+Check browser console for logs.
+Verify Stripe checkout shows the discount.
+        </div>
+    </div>
+
+    <script>
+        function testCustomPromo() {
+            const promo = document.getElementById('customPromo').value.toUpperCase();
+            if (!promo) {
+                alert('Please enter a promo code');
+                return;
+            }
+
+            const url = `http://localhost:5173/pricing?promo=${promo}`;
+            const resultDiv = document.getElementById('urlResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `
+<strong>Generated URL:</strong>
+<a href="${url}" target="_blank">${url}</a>
+
+<strong>Action:</strong> Click the link above to test
+<strong>Expected:</strong> Promo code "${promo}" should be pre-filled
+            `;
+
+            // Auto-open the URL
+            window.open(url, '_blank');
+        }
+
+        function copyProductHuntLink() {
+            const link = 'https://propiq.com/pricing?promo=PRODUCTHUNT';
+            navigator.clipboard.writeText(link).then(() => {
+                alert('✅ Production link copied to clipboard!');
+            }).catch(() => {
+                alert('Please copy manually: ' + link);
+            });
+        }
+
+        // Show startup success message
+        window.onload = function() {
+            console.log('🎯 Promo Code Test Suite Loaded');
+            console.log('📝 Dev server should be running at http://localhost:5173');
+            console.log('✅ Click the test buttons to verify integration');
+        };
+    </script>
+</body>
+</html>

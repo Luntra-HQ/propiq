@@ -1,0 +1,23 @@
+# Documentation files with example/masked secrets (not real secrets)
+SECURITY_AUDIT_REPORT.md
+COMPREHENSIVE_SECURITY_AUDIT_REPORT.md
+SECURITY_QUICKSTART.md
+EMERGENCY_SECURITY_FIX.md
+MODERATE_KEY_ROTATION_SUMMARY.md
+QUICK_ROTATION_GUIDE.md
+DATABASE_ARCHITECTURE_ANALYSIS.md
+CONVEX_ONLY_MIGRATION.md
+
+# Setup/helper scripts that contain patterns (not actual secrets)
+scripts/setup-git-secrets.sh
+scripts/update-keys-secure.sh
+
+# Backup files (already backed up, examples only)
+.env.local.backup-20251230-182221
+backend/.env.backup-20251230-182221
+backend/.env.template
+backups/
+
+# Template files (example values only)
+backend/.env.example
+backend/.env.template

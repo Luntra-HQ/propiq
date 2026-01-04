@@ -59,20 +59,20 @@ export const ConfidenceMeter: React.FC<ConfidenceMeterProps> = ({ score, message
       {/* Progress bar */}
       <div className="meter-bar h-4 bg-surface-300 rounded-full overflow-hidden mb-4 shadow-inner">
         <div
-          className="meter-fill h-full transition-all duration-500 ease-out relative"
+          className="meter-fill h-full relative"
           style={{
             width: `${score}%`,
             backgroundColor: color,
             boxShadow: `0 0 10px ${color}40`
           }}
         >
-          {/* Animated shine effect */}
-          <div
+          {/* Animated shine effect - DISABLED to prevent flashing */}
+          {/* <div
             className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-20"
             style={{
               animation: 'shine 2s infinite',
             }}
-          />
+          /> */}
         </div>
       </div>
 
@@ -83,18 +83,6 @@ export const ConfidenceMeter: React.FC<ConfidenceMeterProps> = ({ score, message
       >
         {message}
       </div>
-
-      {/* CSS for animation */}
-      <style>{`
-        @keyframes shine {
-          0% {
-            transform: translateX(-100%);
-          }
-          100% {
-            transform: translateX(100%);
-          }
-        }
-      `}</style>
     </div>
   );
 };

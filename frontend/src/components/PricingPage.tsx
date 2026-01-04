@@ -1,14 +1,22 @@
 import React from 'react';
-import { Check, Zap, Target, Shield, Users, X } from 'lucide-react';
+import { Check, Zap, Target, Shield, Users, X, Tag } from 'lucide-react';
 import { PRICING_TIERS, formatCurrency, type PricingTier } from '../config/pricing';
 
 interface PricingPageProps {
   currentTier: string;
   onSelectTier: (tierId: string) => void;
   onClose: () => void;
+  promoCode?: string;
+  onPromoCodeChange?: (code: string) => void;
 }
 
-const PricingPage: React.FC<PricingPageProps> = ({ currentTier, onSelectTier, onClose }) => {
+const PricingPage: React.FC<PricingPageProps> = ({
+  currentTier,
+  onSelectTier,
+  onClose,
+  promoCode = '',
+  onPromoCodeChange
+}) => {
   const tiers = Object.values(PRICING_TIERS).filter(t => t.id !== 'free');
 
   return (
@@ -63,6 +71,32 @@ const PricingPage: React.FC<PricingPageProps> = ({ currentTier, onSelectTier, on
               </div>
             </div>
           </div>
+
+          {/* Promo Code Input */}
+          {onPromoCodeChange && (
+            <div className="max-w-md mx-auto mb-8">
+              <div className="bg-gradient-to-r from-violet-800 to-purple-800 rounded-lg p-6 shadow-xl">
+                <div className="flex items-center gap-2 mb-3">
+                  <Tag className="h-5 w-5 text-violet-200" />
+                  <h3 className="text-lg font-bold text-white">Have a promo code?</h3>
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={promoCode}
+                    onChange={(e) => onPromoCodeChange(e.target.value.toUpperCase())}
+                    placeholder="Enter promo code"
+                    className="flex-1 px-4 py-2 bg-slate-900 text-white placeholder-gray-400 rounded-lg border-2 border-violet-600 focus:border-violet-400 focus:outline-none transition-colors"
+                  />
+                </div>
+                {promoCode && (
+                  <p className="mt-2 text-sm text-violet-200">
+                    ✓ Code <span className="font-bold">{promoCode}</span> will be applied at checkout
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Pricing Cards */}
@@ -178,13 +212,10 @@ const PricingCard: React.FC<{
       <div className="mb-6 p-4 bg-slate-900 rounded-lg">
         <div className="text-center">
           <div className="text-3xl font-bold text-violet-300 mb-1">
-            {tier.propIqLimit}
+            {tier.propIqLimit === 999999 ? 'Unlimited' : tier.propIqLimit}
           </div>
           <div className="text-sm text-gray-300">
             Deal IQ analyses/month
-          </div>
-          <div className="text-xs text-gray-400 mt-2">
-            {formatCurrency(tier.cogs)} COGS · {tier.grossMargin}% margin
           </div>
         </div>
       </div>
@@ -277,7 +308,7 @@ const FAQItem: React.FC<{ question: string; answer: string }> = ({ question, ans
 function getFeatureValue(feature: string, tier: PricingTier): React.ReactNode {
   switch (feature) {
     case 'Deal IQ Analyses':
-      return <span className="text-white font-semibold">{tier.propIqLimit}/mo</span>;
+      return <span className="text-white font-semibold">{tier.propIqLimit === 999999 ? 'Unlimited' : `${tier.propIqLimit}/mo`}</span>;
     case 'Deal Calculator':
       return <Check className="h-5 w-5 text-emerald-400 mx-auto" />;
     case 'Mobile Access':

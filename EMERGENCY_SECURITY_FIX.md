@@ -327,7 +327,7 @@ MONGODB_URI=mongodb+srv://*** (see .env.local)
 
 #### Stripe
 1. Dashboard → Developers → API Keys
-2. Find old key (starts with `sk_live_51RdHuv...`)
+2. Find old key (created before Dec 31, 2025) - `sk_live_...[REDACTED]`
 3. Click **Delete**
 4. Confirm deletion
 

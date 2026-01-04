@@ -20,8 +20,9 @@ import {
 } from 'lucide-react';
 import { GlassCard, GlassCardHeader } from './ui/GlassCard';
 import { BentoBackground } from './ui/BentoGrid';
-import { DealCalculator } from './DealCalculatorV3';
+import { DealCalculatorV3 as DealCalculator } from './DealCalculatorV3';
 import { SimpleModeWizard } from './SimpleModeWizard';
+import { QuickCheck } from './QuickCheck';
 import { ReferralCard } from './ReferralCard';
 import { ErrorBoundary } from './ErrorBoundary';
 import {
@@ -213,7 +214,15 @@ interface CalculatorCardProps {
 }
 
 export const CalculatorCard: React.FC<CalculatorCardProps> = ({ expanded = false }) => {
-  const [mode, setMode] = React.useState<'simple' | 'advanced'>('simple');
+  const [mode, setMode] = React.useState<'quick' | 'simple' | 'advanced'>('quick');
+  const [prefilledData, setPrefilledData] = React.useState<any>(null);
+  const [showInfoBanner, setShowInfoBanner] = React.useState(false);
+
+  const handleSwitchToAdvanced = (data: any) => {
+    setPrefilledData(data);
+    setMode('advanced');
+    setShowInfoBanner(true);
+  };
 
   return (
     <GlassCard variant="default" size="lg" className="h-full">
@@ -228,8 +237,36 @@ export const CalculatorCard: React.FC<CalculatorCardProps> = ({ expanded = false
         }
       />
 
+      {/* Info Banner (when data is pre-filled from QuickCheck) */}
+      {showInfoBanner && mode === 'advanced' && (
+        <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg flex items-start gap-3">
+          <div className="flex-1">
+            <p className="text-sm text-blue-300 font-medium">
+              ℹ️ We pre-filled these values from your Quick Check. Edit as needed for precision!
+            </p>
+          </div>
+          <button
+            onClick={() => setShowInfoBanner(false)}
+            className="text-blue-300 hover:text-blue-200 transition-colors"
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       {/* Mode Toggle */}
       <div className="mt-4 mb-6 flex gap-2">
+        <button
+          onClick={() => setMode('quick')}
+          className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            mode === 'quick'
+              ? 'bg-primary text-white'
+              : 'bg-surface-200 text-gray-400 border border-glass-border hover:bg-surface-300 hover:text-gray-200'
+          }`}
+        >
+          ⚡ Quick Check
+        </button>
         <button
           onClick={() => setMode('simple')}
           className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
@@ -248,12 +285,14 @@ export const CalculatorCard: React.FC<CalculatorCardProps> = ({ expanded = false
               : 'bg-surface-200 text-gray-400 border border-glass-border hover:bg-surface-300 hover:text-gray-200'
           }`}
         >
-          📊 Advanced Mode
+          📊 Advanced
         </button>
       </div>
 
       <div className="mt-4">
-        {mode === 'simple' ? <SimpleModeWizard /> : <DealCalculator />}
+        {mode === 'quick' && <QuickCheck onSwitchToAdvanced={handleSwitchToAdvanced} />}
+        {mode === 'simple' && <SimpleModeWizard />}
+        {mode === 'advanced' && <DealCalculator />}
       </div>
     </GlassCard>
   );

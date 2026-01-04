@@ -1,0 +1,16 @@
+# PropIQ API Key Rotation Status
+# Last updated: Tue Dec 31 14:30:00 EST 2025
+
+stripe=pending_manual_rotation
+stripe_pub=pending_manual_rotation
+stripe_webhook=pending_manual_rotation
+supabase=deprecated_20251230
+azure=not_rotated
+mongo=deprecated_20251230
+sendgrid=deprecated_not_in_use
+convex=rotated_20251230
+jwt=rotated_20251230
+intercom=deprecated_not_in_use
+slack=rotated_20251230
+wandb=not_rotated
+sentry=deprecated_not_in_use

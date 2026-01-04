@@ -113,6 +113,14 @@ All endpoints use the `/api/v1` prefix for versioning. Future API versions will 
         {
             "name": "Health",
             "description": "Service health check endpoints."
+        },
+        {
+            "name": "extension",
+            "description": "Chrome extension error logging and telemetry."
+        },
+        {
+            "name": "digest",
+            "description": "Daily and weekly digest email reports combining Sentry errors and GA4 analytics."
         }
     ],
     openapi_url="/api/v1/openapi.json",
@@ -289,6 +297,22 @@ try:
     logger.info("Onboarding campaign router registered (4-day email sequence)")
 except ImportError as e:
     logger.warning(f"Onboarding router not available: {e}")
+
+# Import and include Extension error logging router (Chrome extension telemetry)
+try:
+    from routers.extension_errors import router as extension_errors_router
+    app.include_router(extension_errors_router)
+    logger.info("Extension error logging router registered")
+except ImportError as e:
+    logger.warning(f"Extension errors router not available: {e}")
+
+# Import and include Daily Digest router (Sentry + GA4 combined email reports)
+try:
+    from routers.daily_digest import router as daily_digest_router
+    app.include_router(daily_digest_router)
+    logger.info("Daily digest router registered (Sentry + GA4 email reports)")
+except ImportError as e:
+    logger.warning(f"Daily digest router not available: {e}")
 
 # Pydantic models
 class EmailRequest(BaseModel):

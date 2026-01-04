@@ -99,3 +99,28 @@ export {
   EmptyStateCard,
   FirstTimeUser,
 } from './EmptyState';
+
+// Glass Form Components (ShadCN Form with PropIQ styling)
+export {
+  GlassFormContainer,
+  GlassFormSection,
+  GlassFormGrid,
+  GlassFormActions,
+  GlassFormDivider,
+  FormInputWrapper,
+  FormHint,
+  FormSuccessMessage,
+  FormErrorMessage,
+} from './GlassForm';
+
+// ShadCN Form Components (re-export for convenience)
+export {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormDescription,
+  FormMessage,
+  useFormField,
+} from './form';

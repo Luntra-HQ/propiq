@@ -300,18 +300,39 @@ export default defineSchema({
     .index("by_score", ["score"])
     .index("by_date", ["createdAt"]),
 
-  // Audit logs - Track sensitive admin operations for security/compliance
+  // Security audit logs - Track all security events for compliance and incident response
+  // Events: login success/failure, password changes, subscription changes, admin actions
+  // Retention: 90 days minimum for compliance (GDPR, SOC 2, PCI-DSS)
   audit_logs: defineTable({
-    action: v.string(), // "admin_password_reset" | "admin_user_delete" | etc.
-    userId: v.optional(v.id("users")), // User being acted upon
+    // Event classification (optional for backward compatibility)
+    event: v.optional(v.string()), // "LOGIN_SUCCESS" | "LOGIN_FAILED" | "PASSWORD_CHANGED" | etc.
+    severity: v.optional(v.string()), // "info" | "warning" | "critical"
+
+    // User identification
+    userId: v.optional(v.id("users")), // User performing or affected by action
+    email: v.optional(v.string()), // Email for easier tracking (especially for failed logins)
+
+    // Admin actions
     adminId: v.optional(v.string()), // Admin performing action (from CLI auth)
-    email: v.optional(v.string()), // Email for easier tracking
+    action: v.optional(v.string()), // Legacy field for admin actions
+
+    // Request metadata (for security analysis)
+    ipAddress: v.optional(v.string()), // X-Forwarded-For header
+    userAgent: v.optional(v.string()), // User-Agent header
+
+    // Additional context
+    metadata: v.optional(v.any()), // Event-specific details (old/new values, reasons, etc.)
+
+    // Timestamp
     timestamp: v.number(),
-    metadata: v.optional(v.any()), // Additional context (old values, etc.)
   })
     .index("by_timestamp", ["timestamp"])
-    .index("by_action", ["action"])
-    .index("by_user", ["userId"]),
+    .index("by_event", ["event"])
+    .index("by_severity", ["severity"])
+    .index("by_user", ["userId"])
+    .index("by_email", ["email"])
+    .index("by_ip", ["ipAddress"])
+    .index("by_event_and_timestamp", ["event", "timestamp"]),
 
   // Email logs - Track onboarding and marketing emails
   emailLogs: defineTable({
@@ -434,4 +455,17 @@ export default defineSchema({
     .index("by_category", ["category"])
     .index("by_published_date", ["isPublished", "publishedAt"])
     .index("by_is_published", ["isPublished"]),
+
+  // Rate limits - Track API rate limiting per IP/identifier
+  rateLimits: defineTable({
+    identifier: v.string(), // IP address or user ID
+    action: v.string(), // "login" | "signup" | "passwordReset" | "api"
+    attempts: v.number(), // Number of attempts in current window
+    windowExpiresAt: v.number(), // When the current rate limit window expires
+    blockedUntil: v.union(v.number(), v.null()), // When the block expires (null if not blocked)
+    lastAttemptAt: v.number(), // Last attempt timestamp
+    createdAt: v.number(),
+  })
+    .index("by_identifier_action", ["identifier", "action"])
+    .index("by_blocked", ["blockedUntil"]),
 });

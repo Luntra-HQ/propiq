@@ -6,6 +6,21 @@
     <link rel="apple-touch-icon" href="/propiq-icon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+    <!-- Content Security Policy - XSS Protection -->
+    <!-- NOTE: upgrade-insecure-requests commented out for local development -->
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' https://mild-tern-361.convex.cloud https://www.googletagmanager.com https://www.clarity.ms https://scripts.clarity.ms https://js.stripe.com;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      img-src 'self' data: https:;
+      font-src 'self' https://fonts.gstatic.com;
+      connect-src 'self' https://mild-tern-361.convex.cloud https://mild-tern-361.convex.site https://api.stripe.com https://www.google-analytics.com https://www.clarity.ms https://checkout.stripe.com;
+      frame-src https://js.stripe.com https://checkout.stripe.com;
+      frame-ancestors 'none';
+      base-uri 'self';
+      form-action 'self' https://checkout.stripe.com;
+    ">
+
     <!-- Primary Meta Tags -->
     <title>PropIQ - AI Real Estate Investment Analysis | Analyze Properties in 30 Seconds</title>
     <meta name="title" content="PropIQ - AI Real Estate Investment Analysis Tool" />

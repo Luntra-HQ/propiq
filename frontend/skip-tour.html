@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Skip ProductTour - Testing Mode</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      color: white;
+    }
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      padding: 40px;
+      text-align: center;
+      max-width: 500px;
+    }
+    button {
+      background: #10b981;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      margin: 10px;
+      transition: all 0.3s ease;
+    }
+    button:hover {
+      background: #059669;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    .success {
+      background: #10b981;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+      display: none;
+    }
+    .info {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 15px;
+      border-radius: 10px;
+      margin: 20px 0;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 PropIQ Testing Mode</h1>
+    <p>Click the button below to skip the ProductTour and enable calculator testing.</p>
+
+    <div class="info">
+      <strong>What this does:</strong><br>
+      Sets localStorage flag to mark tour as completed<br>
+      Redirects to calculator with v3 feature flag
+    </div>
+
+    <button onclick="skipTour()">Skip Tour & Go to Calculator</button>
+    <button onclick="skipTourOnly()">Just Skip Tour</button>
+
+    <div id="success" class="success">
+      ✅ Tour skipped! Redirecting in 2 seconds...
+    </div>
+  </div>
+
+  <script>
+    function skipTour() {
+      // Mark tour as completed
+      localStorage.setItem('propiq_tour_completed', 'true');
+      localStorage.setItem('propiq_tour_completed_at', new Date().toISOString());
+
+      // Show success message
+      document.getElementById('success').style.display = 'block';
+
+      // Redirect to calculator v3 after 2 seconds
+      setTimeout(() => {
+        window.location.href = 'http://localhost:5173/calculator?v3=true';
+      }, 2000);
+    }
+
+    function skipTourOnly() {
+      // Mark tour as completed
+      localStorage.setItem('propiq_tour_completed', 'true');
+      localStorage.setItem('propiq_tour_completed_at', new Date().toISOString());
+
+      // Show success message
+      document.getElementById('success').style.display = 'block';
+      document.getElementById('success').innerHTML = '✅ Tour skipped! You can now close this tab and refresh PropIQ.';
+    }
+  </script>
+</body>
+</html>

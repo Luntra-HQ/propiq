@@ -1,0 +1,186 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//PropIQ//Service Subscription Reminders//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:PropIQ Service Subscriptions
+X-WR-TIMEZONE:America/New_York
+X-WR-CALDESC:Service subscription renewals and cancellation reminders for PropIQ
+
+BEGIN:VEVENT
+DTSTART:20260315T140000Z
+DTEND:20260315T150000Z
+DTSTAMP:20251230T000000Z
+UID:propiq-q1-service-review@propiq.luntra.one
+SUMMARY:💰 PropIQ Q1 Service Review
+DESCRIPTION:Quarterly review of all service subscriptions\n\n**Tasks:**\n• Review usage across all services\n• Check if approaching free tier limits\n• Identify unused services\n• Update SERVICE_SUBSCRIPTIONS_TRACKER.md\n\n**Services to Check:**\n• Supabase (database size)\n• SendGrid (email volume)\n• Convex (function calls)\n• Azure OpenAI (monthly spend)\n• MongoDB (plan to deprecate)\n\n**Location:** /Users/briandusape/Projects/propiq/SERVICE_SUBSCRIPTIONS_TRACKER.md
+LOCATION:/Users/briandusape/Projects/propiq
+STATUS:CONFIRMED
+SEQUENCE:0
+BEGIN:VALARM
+TRIGGER:-P1D
+DESCRIPTION:Q1 service review tomorrow
+ACTION:DISPLAY
+END:VALARM
+END:VEVENT
+
+BEGIN:VEVENT
+DTSTART:20260615T140000Z
+DTEND:20260615T150000Z
+DTSTAMP:20251230T000000Z
+UID:propiq-q2-service-review@propiq.luntra.one
+SUMMARY:💰 PropIQ Q2 Service Review
+DESCRIPTION:Quarterly review of all service subscriptions\n\n**Tasks:**\n• Review usage and costs\n• Cancel unused services\n• Check for upcoming renewals\n• Optimize spending\n\n**Review:** SERVICE_SUBSCRIPTIONS_TRACKER.md
+LOCATION:/Users/briandusape/Projects/propiq
+STATUS:CONFIRMED
+SEQUENCE:0
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+END:VALARM
+END:VEVENT
+
+BEGIN:VEVENT
+DTSTART:20260915T140000Z
+DTEND:20260915T150000Z
+DTSTAMP:20251230T000000Z
+UID:propiq-q3-service-review@propiq.luntra.one
+SUMMARY:💰 PropIQ Q3 Service Review
+DESCRIPTION:Quarterly review of all service subscriptions\n\n**Tasks:**\n• Review all services\n• Prepare for Q4 (includes Intercom end date)\n• Update cost projections\n\n**Critical:** Intercom ends in 6 weeks (Oct 28)\n\n**Review:** SERVICE_SUBSCRIPTIONS_TRACKER.md
+LOCATION:/Users/briandusape/Projects/propiq
+STATUS:CONFIRMED
+SEQUENCE:0
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+END:VALARM
+END:VEVENT
+
+BEGIN:VEVENT
+DTSTART:20261001T130000Z
+DTEND:20261001T140000Z
+DTSTAMP:20251230T000000Z
+UID:propiq-intercom-precancel-check@propiq.luntra.one
+SUMMARY:🔍 Intercom Pre-Cancellation Check
+DESCRIPTION:CRITICAL: Verify custom support chat is ready before canceling Intercom\n\n**Intercom ends:** October 28\, 2026 (27 days from now)\n\n**Checklist:**\n• Test custom AI support chat thoroughly\n• Verify chat works for logged-in users\n• Check chat response quality\n• Test chat on mobile and desktop\n• Ensure chat analytics working\n• Review recent support conversations\n\n**If chat has issues:**\n• Fix immediately (you have 3 weeks)\n• Consider delaying Intercom cancellation\n\n**If chat works perfectly:**\n• Proceed with cancellation plan\n• Export Intercom data on Oct 15\n\n**Next step:** Export Intercom data (Oct 15)
+LOCATION:/Users/briandusape/Projects/propiq
+STATUS:CONFIRMED
+SEQUENCE:0
+BEGIN:VALARM
+TRIGGER:-P3D
+DESCRIPTION:Intercom pre-cancel check in 3 days
+ACTION:DISPLAY
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-P1D
+DESCRIPTION:Intercom pre-cancel check tomorrow
+ACTION:DISPLAY
+END:VALARM
+END:VEVENT
+
+BEGIN:VEVENT
+DTSTART:20261015T130000Z
+DTEND:20261015T150000Z
+DTSTAMP:20251230T000000Z
+UID:propiq-export-intercom-data@propiq.luntra.one
+SUMMARY:📥 Export All Intercom Data
+DESCRIPTION:CRITICAL: Export all data before canceling Intercom\n\n**Intercom ends:** October 28\, 2026 (13 days from now)\n\n**Data to Export:**\n• All customer conversations\n• User profiles and segments\n• Email templates\n• Automation workflows\n• Analytics reports\n• Settings and configurations\n\n**Export Process:**\n1. Login to Intercom dashboard\n2. Settings → Data & Privacy → Export Data\n3. Request full data export\n4. Download when ready (usually 24-48 hours)\n5. Save to: /Users/briandusape/Projects/propiq/backups/intercom-export-2026-10-15/\n6. Verify all data exported correctly\n\n**Dashboard:** https://app.intercom.com/a/apps/_/settings/data-privacy\n\n**Next step:** Cancel Intercom (Oct 21)
+LOCATION:/Users/briandusape/Projects/propiq
+STATUS:CONFIRMED
+SEQUENCE:0
+BEGIN:VALARM
+TRIGGER:-P3D
+DESCRIPTION:Export Intercom data in 3 days
+ACTION:DISPLAY
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-P1D
+DESCRIPTION:Export Intercom data tomorrow!
+ACTION:DISPLAY
+END:VALARM
+END:VEVENT
+
+BEGIN:VEVENT
+DTSTART:20261021T130000Z
+DTEND:20261021T143000Z
+DTSTAMP:20251230T000000Z
+UID:propiq-cancel-intercom@propiq.luntra.one
+SUMMARY:🚨 CANCEL INTERCOM SUBSCRIPTION
+DESCRIPTION:CRITICAL ACTION REQUIRED: Cancel Intercom to avoid $888/year charge\n\n**Renewal Date:** October 28\, 2026 (7 days from now)\n**Cost if not canceled:** $74/month = $888/year\n**Savings:** $888/year by canceling\n\n**Why Cancel:**\n✅ You have custom AI support chat built\n✅ No need for Intercom anymore\n✅ Save $888/year\n\n**Cancellation Steps:**\n1. Login to Intercom: https://app.intercom.com\n2. Go to Settings → Subscription\n3. Click "Cancel subscription"\n4. Select reason: "No longer need this service"\n5. Confirm cancellation\n6. Screenshot confirmation page\n7. Verify end date is Oct 28\, 2026\n8. Save confirmation email\n\n**Post-Cancellation:**\n• Remove INTERCOM_ACCESS_TOKEN from backend/.env\n• Remove INTERCOM_API_KEY from backend/.env\n• Update backend/routers/intercom.py (mark as deprecated)\n• Document cancellation in SERVICE_SUBSCRIPTIONS_TRACKER.md\n\n**Verify on Oct 28:** Check bank/credit card - no charge from Intercom\n\n**Next step:** Remove Intercom code from codebase (Nov 1)
+LOCATION:https://app.intercom.com/a/apps/_/settings/subscription
+STATUS:CONFIRMED
+SEQUENCE:0
+BEGIN:VALARM
+TRIGGER:-P3D
+DESCRIPTION:Cancel Intercom in 3 days! (Renewal: Oct 28)
+ACTION:DISPLAY
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-P1D
+DESCRIPTION:URGENT: Cancel Intercom tomorrow! (Renewal: Oct 28)
+ACTION:DISPLAY
+END:VALARM
+BEGIN:VALARM
+TRIGGER:PT0M
+DESCRIPTION:CANCEL INTERCOM NOW! (Renewal in 7 days)
+ACTION:DISPLAY
+END:VALARM
+END:VEVENT
+
+BEGIN:VEVENT
+DTSTART:20261028T040000Z
+DTEND:20261028T041500Z
+DTSTAMP:20251230T000000Z
+UID:propiq-intercom-renewal-date@propiq.luntra.one
+SUMMARY:📅 Intercom Original Renewal Date
+DESCRIPTION:Original Intercom renewal date - should be CANCELED\n\n**Status Check:**\n\n✅ If you canceled on Oct 21:\n• Intercom should NOT charge you today\n• Check credit card/bank statement\n• Verify no charge from Intercom\n• Access to Intercom dashboard may end today\n\n❌ If you see a charge:\n• Contact Intercom support immediately\n• Request refund (canceled 7 days ago)\n• Escalate if needed\n\n**Verification:**\n• Check bank account: No $74 charge\n• Check Intercom email: Cancellation confirmed\n• Check dashboard: "Subscription canceled"\n\n**Next step:** Remove Intercom code (Nov 1)
+LOCATION:/Users/briandusape/Projects/propiq
+STATUS:CONFIRMED
+SEQUENCE:0
+BEGIN:VALARM
+TRIGGER:PT0M
+DESCRIPTION:Verify Intercom cancellation processed
+ACTION:DISPLAY
+END:VALARM
+END:VEVENT
+
+BEGIN:VEVENT
+DTSTART:20261101T140000Z
+DTEND:20261101T160000Z
+DTSTAMP:20251230T000000Z
+UID:propiq-remove-intercom-code@propiq.luntra.one
+SUMMARY:🧹 Remove Intercom Code from Codebase
+DESCRIPTION:Clean up Intercom integration after cancellation\n\n**Intercom Status:** Canceled (renewed would have been Oct 28)\n\n**Code Cleanup Tasks:**\n\n**Backend:**\n• Remove backend/routers/intercom.py\n• Remove INTERCOM_ACCESS_TOKEN from backend/.env\n• Remove INTERCOM_API_KEY from backend/.env\n• Update backend/api.py (remove intercom router import)\n• Remove Intercom documentation files:\n  - backend/INTERCOM_BACKEND_API_SETUP.md\n  - backend/INTERCOM_MESSENGER_INTEGRATION.md\n  - backend/INTERCOM_QUICK_START.md\n  - backend/INTERCOM_WEBHOOK_SETUP_GUIDE.md\n\n**Frontend:**\n• Search for Intercom code: grep -r "intercom" frontend/\n• Remove any Intercom widgets or scripts\n• Update documentation if needed\n\n**Security:**\n• Delete Intercom API keys from dashboards\n• Revoke access tokens\n• Remove webhooks\n\n**Git Commit:**\ngit add .\ngit commit -m "chore: remove Intercom integration after cancellation\n\n- Removed Intercom router and API integration\n- Deleted Intercom API keys from environment\n- Cleaned up Intercom documentation\n- Using custom AI support chat instead\n\nSavings: $888/year"\n\n**Verification:**\n• No Intercom imports in code\n• No Intercom API keys in .env\n• Custom support chat working perfectly\n\n**Update:** SERVICE_SUBSCRIPTIONS_TRACKER.md (mark Intercom as removed)
+LOCATION:/Users/briandusape/Projects/propiq
+STATUS:CONFIRMED
+SEQUENCE:0
+BEGIN:VALARM
+TRIGGER:-P1D
+DESCRIPTION:Remove Intercom code tomorrow
+ACTION:DISPLAY
+END:VALARM
+END:VEVENT
+
+BEGIN:VEVENT
+DTSTART:20261215T140000Z
+DTEND:20261215T150000Z
+DTSTAMP:20251230T000000Z
+UID:propiq-annual-service-review@propiq.luntra.one
+SUMMARY:📊 PropIQ Annual Service Review (2026)
+DESCRIPTION:Comprehensive annual review of all services and costs\n\n**2026 Year in Review:**\n\n**Completed:**\n✅ Canceled Intercom (saved $888/year)\n✅ 4 quarterly service reviews\n✅ Optimized free tier usage\n\n**Current Services:**\n• Stripe - Payment processing\n• Supabase - Database\n• Azure OpenAI - AI service\n• MongoDB - (Should be deprecated by now)\n• SendGrid - Email\n• Convex - Backend\n• Supporting services\n\n**Review Tasks:**\n• Calculate total 2026 costs\n• Identify cost savings achieved\n• Project 2027 budget\n• Decide on service changes for 2027\n• Apply for startup programs if eligible\n• Update SERVICE_SUBSCRIPTIONS_TRACKER.md\n\n**2027 Planning:**\n• List services to add\n• List services to remove\n• Set cost targets\n• Apply for startup credits\n\n**Success Metrics:**\n• Total cost saved in 2026\n• Services optimized\n• Free tier compliance\n• Revenue vs. service costs ratio
+LOCATION:/Users/briandusape/Projects/propiq
+STATUS:CONFIRMED
+SEQUENCE:0
+BEGIN:VALARM
+TRIGGER:-P7D
+DESCRIPTION:Annual service review in 1 week
+ACTION:DISPLAY
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-P1D
+DESCRIPTION:Annual service review tomorrow
+ACTION:DISPLAY
+END:VALARM
+END:VEVENT
+
+END:VCALENDAR

@@ -1,240 +1,343 @@
-# 🚨 SECURITY FIX - QUICK START
+# PropIQ Security Quickstart Guide
 
-**CRITICAL SECURITY INCIDENT - ACT NOW**
+**Last Updated:** 2025-12-31
+**Security Audit Status:** ✅ All HIGH and MEDIUM priority issues resolved
+
+This guide provides a quick reference for PropIQ's security features and best practices for developers.
 
 ---
 
-## What Happened?
+## Table of Contents
 
-Multiple production API keys and secrets were exposed in `.env` files that are tracked in git.
+1. [Quick Setup](#quick-setup)
+2. [Secret Scanning](#secret-scanning)
+3. [Authentication Security](#authentication-security)
+4. [Rate Limiting](#rate-limiting)
+5. [Security Headers](#security-headers)
+6. [Audit Logging](#audit-logging)
+7. [Security Monitoring](#security-monitoring)
+8. [Best Practices](#best-practices)
+9. [Incident Response](#incident-response)
 
-## Immediate Impact
+---
 
-- ✅ Stripe payment keys compromised
-- ✅ Database credentials exposed
-- ✅ Azure OpenAI keys leaked
-- ✅ All other service API keys vulnerable
+## Quick Setup
 
-## What You Need to Do RIGHT NOW
+### 1. Install Git-Secrets
 
-### **Phase 1: Emergency Response** (60 minutes - START HERE)
+Automatically detect and prevent committing API keys and secrets:
 
 ```bash
-# 1. Open the detailed guide
-open EMERGENCY_SECURITY_FIX.md
-
-# Or view in terminal:
-cat EMERGENCY_SECURITY_FIX.md
+# Run the automated setup script
+chmod +x scripts/setup-git-secrets.sh
+./scripts/setup-git-secrets.sh
 ```
 
-**Follow Phase 1 step-by-step to:**
-1. ✅ Audit for suspicious activity
-2. ✅ Rotate ALL API keys
-3. ✅ Update environment variables
+**What it does:**
+- Installs git-secrets (via Homebrew on macOS, manual on Linux)
+- Configures patterns for Stripe, SendGrid, MongoDB, Convex, JWT tokens
+- Sets up pre-commit hooks to block secrets
+- Scans repository for existing secrets
 
-### **Phase 2: Secure Repository** (90 minutes)
+### 2. Install Pre-commit Hooks
+
+Additional automated checks before each commit:
 
 ```bash
-# 1. Make repository private (if public)
-# Go to: https://github.com/Luntra-HQ/propiq/settings
+# Install pre-commit framework
+pip install pre-commit
 
-# 2. Clean git history
-# CAREFUL: This rewrites history
-pip3 install git-filter-repo
-git filter-repo --path .env --invert-paths --force
-git filter-repo --path .env.local --invert-paths --force
-git filter-repo --path backend/.env --invert-paths --force
+# Install the hooks
+pre-commit install
 
-# 3. Force push (requires admin)
-git push origin --force --all
-
-# 4. Clean up exposed secrets in docs
-./scripts/cleanup-exposed-secrets.sh
-
-# 5. Review and commit
-git diff
-git add .
-git commit -m "security: redact exposed secrets from documentation"
-git push
+# Test on all files
+pre-commit run --all-files
 ```
 
-### **Phase 3: Implement Security** (2 hours)
+**What it checks:**
+- ✅ Secret detection (git-secrets)
+- ✅ Private key detection
+- ✅ Large file prevention (>500KB)
+- ✅ Python formatting (black)
+- ✅ Python linting (flake8, bandit)
+- ✅ TypeScript formatting (prettier)
+- ✅ TypeScript linting (eslint)
+- ✅ JSON/YAML validation
+- ✅ Trailing whitespace removal
+
+### 3. Verify HTTPS Configuration
+
+Ensure all production endpoints use HTTPS:
 
 ```bash
-# 1. Install pre-commit hooks
-./scripts/setup-pre-commit-hooks.sh
-
-# 2. Verify gitignore
-./scripts/verify-gitignore.sh
-
-# 3. Follow implementation guide
-open SECURITY_IMPLEMENTATION_GUIDE.md
-
-# Key steps:
-# - Add rate limiting
-# - Harden CORS
-# - Add security headers
+# Frontend .env.local
+VITE_CONVEX_URL=https://mild-tern-361.convex.cloud
 ```
 
----
-
-## Files Created for You
-
-### 📋 Guides
-- `EMERGENCY_SECURITY_FIX.md` - Step-by-step emergency response
-- `SECURITY_IMPLEMENTATION_GUIDE.md` - Technical implementation details
-- `SECURITY_AUDIT_REPORT.md` - Full security assessment
-
-### 🛠️ Scripts
-- `scripts/verify-gitignore.sh` - Check gitignore configuration
-- `scripts/setup-pre-commit-hooks.sh` - Install secret scanning
-- `scripts/cleanup-exposed-secrets.sh` - Remove secrets from docs
-
-### 📄 Templates
-- `.env.secure.template` - Root environment template
-- `backend/.env.secure.template` - Backend environment template
-
-### 💻 Code
-- `convex/rateLimit.ts` - Rate limiting implementation
-- `convex/http_secure.ts` - Secure HTTP endpoints reference
-- `convex/schema_additions.ts` - Database schema for rate limiting
+**Security validation:**
+- Frontend: `frontend/src/config/security.ts` validates HTTPS on startup
+- Backend: All integrations require HTTPS by default
+- Development: Warnings for HTTP (non-blocking)
+- Production: Errors for HTTP (blocking)
 
 ---
 
-## Priority Order
+## Secret Scanning
 
-1. **TODAY (4-6 hours)**
-   - [ ] Complete Phase 1: Rotate all API keys
-   - [ ] Make repository private
-   - [ ] Clean git history
+### Git-Secrets Patterns
 
-2. **THIS WEEK (2-4 hours)**
-   - [ ] Complete Phase 2: Clean documentation
-   - [ ] Implement Phase 3: Security hardening
-   - [ ] Test all changes
+PropIQ detects these secret types:
 
-3. **THIS MONTH**
-   - [ ] Set up monitoring alerts
-   - [ ] Document incident response
-   - [ ] Schedule quarterly key rotation
+| Service | Pattern | Example |
+|---------|---------|---------|
+| **Stripe** | `sk_live_*`, `sk_test_*`, `whsec_*` | `sk_live_abc123...` |
+| **SendGrid** | `SG.*` | `SG.abc123...` |
+| **MongoDB** | `mongodb+srv://...` | `mongodb+srv://user:pass@cluster...` |
+| **JWT** | `eyJ*` (base64 tokens) | `eyJhbGciOiJIUzI1NiIs...` |
+| **Azure** | `AZURE_OPENAI_KEY=*` | `AZURE_OPENAI_KEY=abc123...` |
+| **Convex** | `CONVEX_DEPLOY_KEY=*` | `CONVEX_DEPLOY_KEY=abc123...` |
 
----
+### Manual Scanning
 
-## Need Help?
-
-### During Remediation
-- Review guides in order: EMERGENCY → IMPLEMENTATION
-- Each script has built-in help: `./script.sh --help`
-- Test in development first
-
-### After Remediation
-- Set up monitoring (Sentry, UptimeRobot)
-- Create SECURITY.md for your repo
-- Schedule key rotation (90 days)
-
----
-
-## Quick Commands Reference
-
+Scan specific files:
 ```bash
-# Verify current security status
-./scripts/verify-gitignore.sh
+git secrets --scan path/to/file.ts
+```
 
-# Check for remaining exposed secrets
-grep -r "sk_live_" . --exclude-dir=node_modules --exclude-dir=.git
+Scan repository history:
+```bash
+git secrets --scan-history
+```
 
-# Test pre-commit hook
-echo "STRIPE_SECRET_KEY=sk_live_test" > test.txt
-git add test.txt
-git commit -m "test"  # Should be BLOCKED
-
-# Deploy security changes to Convex
-npx convex deploy --yes
-
-# Test rate limiting
-curl -X POST https://mild-tern-361.convex.cloud/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test","password":"wrong"}' \
-  -w "\nStatus: %{http_code}\n"
+Scan all files recursively:
+```bash
+git secrets --scan -r .
 ```
 
 ---
 
-## ✅ Completion Checklist
+## Authentication Security
+
+### Session Token Lifetime
+
+**Configuration:** `convex/sessions.ts:16-22`
+
+```typescript
+// Session duration: 7 days
+const SESSION_IDLE_TIMEOUT_MS = 7 * 24 * 60 * 60 * 1000;
+```
+
+**Benefits:**
+- Reduced from 30 days to 7 days (76% reduction)
+- Limits exposure if token stolen
+- Auto-refresh prevents frequent re-authentication
+
+### Password Strength Requirements
+
+**Requirements:**
+- ✅ Minimum 12 characters
+- ✅ At least 1 uppercase letter (A-Z)
+- ✅ At least 1 lowercase letter (a-z)
+- ✅ At least 1 number (0-9)
+- ✅ At least 1 special character (!@#$%^&*)
+
+**UX Features:**
+- Real-time validation with strength meter (0-100 score)
+- All errors shown at once
+- Color-coded feedback (red → yellow → green)
+
+---
+
+## Rate Limiting
+
+### Endpoints Protected
+
+| Endpoint | Limit | Window | Status Code |
+|----------|-------|--------|-------------|
+| **Login** | 5 attempts | 15 minutes | 429 |
+| **Signup** | 3 attempts | 1 hour | 429 |
+| **Password Reset** | 3 attempts | 1 hour | 429 |
+
+### Testing Rate Limiting
 
 ```bash
-# Track your progress
+for i in {1..6}; do
+  echo "Attempt $i:"
+  curl -X POST https://mild-tern-361.convex.site/auth/login \
+    -H "Content-Type: application/json" \
+    -d '{"email":"test@example.com","password":"wrong"}'
+done
+```
 
-Phase 1: Emergency Response
-- [ ] Audited access logs (no suspicious activity found)
-- [ ] Rotated Stripe keys
-- [ ] Rotated Azure OpenAI key
-- [ ] Rotated SendGrid key
-- [ ] Changed MongoDB password
-- [ ] Rotated Supabase service key
-- [ ] Generated new JWT secret
-- [ ] Rotated W&B API key
-- [ ] Regenerated Slack webhook
-- [ ] Rotated Intercom token
-- [ ] Rotated Convex deploy key
-- [ ] Revoked all old keys
+**Expected:** Attempts 1-5: HTTP 401, Attempt 6+: HTTP 429
 
-Phase 2: Secure Repository
-- [ ] Repository made private
-- [ ] Git history cleaned
-- [ ] Secrets removed from docs
-- [ ] Changes pushed to GitHub
+---
 
-Phase 3: Implement Security
-- [ ] Pre-commit hooks installed
-- [ ] Gitignore verified
-- [ ] Rate limiting deployed
-- [ ] CORS hardened
-- [ ] Security headers added
-- [ ] All tests passing
+## Security Headers
 
-Final Steps
-- [ ] Application still works
-- [ ] Team notified
-- [ ] Incident documented
-- [ ] Monitoring configured
+### Content Security Policy (CSP)
+
+**Location:** `frontend/index.html:9-22`, `convex/http.ts:55-78`
+
+**Protection:**
+- ✅ XSS (Cross-Site Scripting) attacks
+- ✅ Code injection attacks
+- ✅ Clickjacking (frame-ancestors 'none')
+- ✅ Mixed content (upgrade-insecure-requests)
+
+### Testing Headers
+
+```bash
+curl -I https://mild-tern-361.convex.site/auth/login | grep -E "Content-Security|X-Frame"
 ```
 
 ---
 
-## 🆘 Emergency Contacts
+## Audit Logging
 
-**If you find evidence of breach:**
-1. Document everything
-2. Contact service providers immediately:
-   - Stripe: https://support.stripe.com
-   - Azure: https://portal.azure.com → Support
-   - MongoDB: https://www.mongodb.com/contact
+### Security Events Tracked
 
-**If you need help with remediation:**
-- Review all markdown files in project root
-- Each guide has detailed step-by-step instructions
-- Scripts include error handling and rollback options
+**25+ event types tracked:**
+- 🔐 Authentication: LOGIN_SUCCESS, LOGIN_FAILED, LOGOUT
+- 🔑 Passwords: PASSWORD_CHANGED, PASSWORD_RESET_REQUESTED
+- 👤 Accounts: ACCOUNT_CREATED, ACCOUNT_DELETED
+- 💳 Subscriptions: SUBSCRIPTION_UPGRADED, SUBSCRIPTION_CANCELED
+- 🛡️ Security: BRUTE_FORCE_DETECTED, SUSPICIOUS_ACTIVITY, RATE_LIMIT_EXCEEDED
 
----
+### Retention
 
-## After You're Done
+**90 days minimum** (GDPR, SOC 2, PCI-DSS compliance)
 
-**Set Calendar Reminders:**
-- [ ] 90 days: Rotate all API keys
-- [ ] Quarterly: Security audit
-- [ ] Annually: Penetration testing
-
-**Update Team:**
-- Share incident report
-- Review secret handling procedures
-- Train on pre-commit hooks
-
-**Document Learnings:**
-- What went wrong?
-- How to prevent next time?
-- Update onboarding docs
+Auto-cleanup via daily cron job at 3 AM EST
 
 ---
 
-**START NOW → Open `EMERGENCY_SECURITY_FIX.md`**
+## Security Monitoring
+
+### Automated Threat Detection
+
+**Brute Force Detection:**
+- Threshold: 10+ failed logins in 60 minutes
+- Tracked by: IP address and email
+- Severity: Critical
+
+**Account Enumeration Detection:**
+- Threshold: 20+ non-existent account attempts in 30 minutes
+- Tracked by: IP address
+- Severity: Critical
+
+### Cron Job Schedule
+
+```typescript
+// Every 15 minutes
+crons.interval("security-monitoring", { minutes: 15 }, internal.securityMonitoring.runSecurityChecks);
+```
+
+---
+
+## Best Practices
+
+### Environment Variables
+
+**Never commit:**
+- ❌ API keys or secrets
+- ❌ `.env` files
+- ❌ Database credentials
+
+**Always:**
+- ✅ Use `.env.local` for local development
+- ✅ Use Convex environment variables for backend secrets
+- ✅ Add `.env*` to `.gitignore`
+
+### Secure Coding
+
+**Input Validation:**
+```typescript
+export const login = mutation({
+  args: {
+    email: v.string(),
+    password: v.string(),
+  },
+  // Convex automatically validates args
+});
+```
+
+**Error Handling:**
+```typescript
+// ❌ Bad - Reveals details
+throw new Error(`Database error: ${error.message}`);
+
+// ✅ Good - Generic message
+console.error("Database error:", error);
+throw new Error("An unexpected error occurred.");
+```
+
+---
+
+## Incident Response
+
+### If a Secret is Leaked
+
+1. **Rotate immediately**
+   - Stripe: Dashboard → Developers → API keys → Roll key
+   - MongoDB: Atlas → Database Access → Reset password
+   - Convex: Dashboard → Settings → Regenerate deploy key
+
+2. **Remove from git history**
+   ```bash
+   brew install bfg
+   bfg --replace-text secrets.txt
+   git reflog expire --expire=now --all
+   git gc --prune=now --aggressive
+   ```
+
+3. **Monitor for abuse**
+   - Check service dashboards
+   - Review audit logs
+
+4. **Document the incident**
+
+---
+
+## Security Checklist
+
+### Pre-Development
+- [ ] Run `./scripts/setup-git-secrets.sh`
+- [ ] Install pre-commit hooks
+- [ ] Verify `.env.local` uses HTTPS
+
+### Pre-Commit
+- [ ] No secrets in code (auto-checked)
+- [ ] Error messages don't reveal internal details
+- [ ] All user inputs validated
+
+### Pre-Deployment
+- [ ] Run `npm audit` (frontend)
+- [ ] Environment variables set in production
+- [ ] HTTPS configured
+- [ ] Rate limiting tested
+
+### Post-Deployment
+- [ ] Test authentication flow
+- [ ] Verify security headers
+- [ ] Monitor audit logs
+
+---
+
+## Resources
+
+### Internal Documentation
+- `SECURITY_AUDIT_REPORT.md` - Comprehensive security audit findings
+- `convex/auditLog.ts` - Audit logging implementation
+- `convex/securityMonitoring.ts` - Threat detection
+- `scripts/setup-git-secrets.sh` - Secret scanning setup
+
+### External Resources
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/)
+- [Git-Secrets](https://github.com/awslabs/git-secrets)
+- [Convex Security](https://docs.convex.dev/security)
+
+---
+
+**Last Updated:** 2025-12-31
+**Next Security Review:** 2026-03-31 (quarterly)

@@ -1,0 +1,68 @@
+╔══════════════════════════════════════════════════════════════════════════╗
+║                                                                          ║
+║                 📍 START HERE - Next Session Resume                      ║
+║                                                                          ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+Status: 85% Complete - Just 15 minutes of testing left! 🚀
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ STEP 1: Read This First (2 minutes)                                     │
+└──────────────────────────────────────────────────────────────────────────┘
+
+Read these files in order:
+1. /Users/briandusape/Projects/propiq/RESUME_HERE.md
+2. /Users/briandusape/Projects/propiq/frontend/QUICK_RESUME.md
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ STEP 2: Start Dev Server (30 seconds)                                   │
+└──────────────────────────────────────────────────────────────────────────┘
+
+cd /Users/briandusape/Projects/propiq/frontend
+npm run dev
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ STEP 3: Open Calculator (10 seconds)                                    │
+└──────────────────────────────────────────────────────────────────────────┘
+
+Browser URL: http://localhost:5173/calculator?v3=true
+DevTools: Press F12 (or Cmd+Option+I on Mac)
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ STEP 4: Run 6-Point Test (15 minutes)                                   │
+└──────────────────────────────────────────────────────────────────────────┘
+
+Checklist in: QUICK_RESUME.md
+
+Test #1: Page loads ✅/❌
+Test #2: Input validation works ✅/❌
+Test #3: Calculations update ✅/❌
+Test #4: All tabs work ✅/❌
+Test #5: Multiple validations ✅/❌
+Test #6: Visual check ✅/❌
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ STEP 5: Deploy (10 minutes)                                             │
+└──────────────────────────────────────────────────────────────────────────┘
+
+If all tests pass → Tell Claude "All tests pass!"
+Then deploy side-by-side with feature flag.
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ For Claude Code: Copy/Paste This Prompt                                 │
+└──────────────────────────────────────────────────────────────────────────┘
+
+"I'm resuming DealCalculatorV3 testing from last session. I've read the 
+resume docs. The dev server is running. Let's complete the 6-point smoke 
+test. URL: http://localhost:5173/calculator?v3=true"
+
+╔══════════════════════════════════════════════════════════════════════════╗
+║                                                                          ║
+║  Full details: frontend/SESSION_END_2026-01-03.md                       ║
+║  Quick summary: frontend/TONIGHT_SUMMARY.txt                            ║
+║  Checklist: frontend/CHECKLIST.md                                       ║
+║                                                                          ║
+║  Time to complete: ~30 minutes                                          ║
+║  Progress: 85% done!                                                    ║
+║                                                                          ║
+╚══════════════════════════════════════════════════════════════════════════╝

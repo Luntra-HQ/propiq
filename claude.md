@@ -88,10 +88,19 @@ propiq/backend/
 └── deploy-azure.sh                  # Azure deployment script
 ```
 
-### Database Collections (MongoDB Atlas)
+### Database (Convex)
+PropIQ uses **Convex** as its primary and only database.
+
+**Convex Collections:**
 - `users` - User accounts, authentication, subscription info
-- `property_analyses` - Analysis history with W&B tracking
-- `support_chats` - Support conversation history
+- `propertyAnalyses` - Analysis history with W&B tracking
+- `supportChats` - Support conversation history
+- `leads` - Lead magnet captures
+- `blogPosts` - Blog content
+- `sessions` - User sessions
+- `payments` - Stripe payment records
+
+**Note:** MongoDB and Supabase were deprecated on Dec 30, 2025. All data now in Convex.
 
 ---
 

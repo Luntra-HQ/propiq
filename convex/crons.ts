@@ -48,4 +48,28 @@ crons.daily(
   internal.emailScheduler.checkLeadsForDay7Nurture
 );
 
+/**
+ * Security Monitoring - Every 15 minutes
+ * Detects brute force attacks, account enumeration, and suspicious activity
+ * Logs critical events to audit_logs for investigation
+ */
+crons.interval(
+  "security-monitoring",
+  { minutes: 15 },
+  internal.securityMonitoring.runSecurityChecks
+);
+
+/**
+ * Cleanup Old Audit Logs - Daily at 3 AM EST (8 AM UTC)
+ * Deletes audit logs older than 90 days (compliance retention period)
+ */
+crons.daily(
+  "cleanup-audit-logs",
+  {
+    hourUTC: 8, // 8 AM UTC = 3 AM EST
+    minuteUTC: 0,
+  },
+  internal.auditLog.cleanupOldLogs
+);
+
 export default crons;

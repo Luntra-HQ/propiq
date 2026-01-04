@@ -16,7 +16,7 @@
  * ```
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useDeferredValue } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -44,8 +44,6 @@ import {
   InputQuality,
 } from '../utils/calculatorUtils';
 import { ConfidenceMeter } from './ui/confidence-meter';
-import { FormLabelWithTooltip } from './ui/enhanced-tooltip';
-import { INPUT_TOOLTIPS, METRIC_TOOLTIPS } from '@/utils/tooltipMetadata';
 import {
   Form,
   FormField,
@@ -60,7 +58,6 @@ import {
 } from '@/components/ui';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PrintIconButton } from './PrintButton';
 import './DealCalculator.css';
@@ -69,52 +66,57 @@ import './DealCalculator.css';
 // Main Component
 // ============================================================================
 
-export const DealCalculator = () => {
+export const DealCalculatorV3 = () => {
   // Form setup with React Hook Form + Zod
   const form = useForm<DealCalculatorInputs>({
     resolver: zodResolver(dealCalculatorSchema),
     defaultValues: defaultDealCalculatorValues,
-    mode: 'onChange', // Validate on every change
+    mode: 'onTouched', // Validate after first blur, then on change
+    reValidateMode: 'onBlur', // Re-validate only on blur (reduce flashing)
   });
 
   const projectionForm = useForm<ProjectionInputs>({
     resolver: zodResolver(projectionInputsSchema),
     defaultValues: defaultProjectionValues,
-    mode: 'onChange',
+    mode: 'onBlur', // Validate when leaving field
   });
 
   // Watch form values for real-time calculations
   const inputs = form.watch();
   const projectionInputs = projectionForm.watch();
 
-  // Calculated metrics state
-  const [metrics, setMetrics] = useState<CalculatedMetrics | null>(null);
-  const [scenarios, setScenarios] = useState<ScenarioAnalysis | null>(null);
-  const [projections, setProjections] = useState<YearlyProjection[]>([]);
+  // Debounce inputs to prevent flashing (accessibility - seizure trigger prevention)
+  const deferredInputs = useDeferredValue(inputs);
+  const deferredProjectionInputs = useDeferredValue(projectionInputs);
+
   const [inputQuality, setInputQuality] = useState<InputQuality>('estimated');
 
-  // Recalculate whenever inputs change
-  useEffect(() => {
-    // Only calculate if form is valid (all required fields have values)
-    const hasRequiredFields = inputs.purchasePrice > 0 && inputs.monthlyRent > 0;
+  // Use useMemo for calculations to avoid infinite loop
+  // useMemo only recalculates when the actual input values change, not the object reference
+  const metrics = useMemo(() => {
+    const hasRequiredFields = deferredInputs.purchasePrice > 0 && deferredInputs.monthlyRent > 0;
+    if (!hasRequiredFields) return null;
+    return calculateAllMetrics(deferredInputs as any);
+  }, [deferredInputs.purchasePrice, deferredInputs.monthlyRent, deferredInputs.downPaymentPercent, deferredInputs.interestRate,
+      deferredInputs.loanTerm, deferredInputs.closingCosts, deferredInputs.rehabCosts, deferredInputs.annualPropertyTax,
+      deferredInputs.annualInsurance, deferredInputs.monthlyHOA, deferredInputs.monthlyUtilities, deferredInputs.monthlyMaintenance,
+      deferredInputs.monthlyVacancy, deferredInputs.monthlyPropertyManagement]);
 
-    if (hasRequiredFields) {
-      const calculatedMetrics = calculateAllMetrics(inputs as any); // Cast for compatibility
-      setMetrics(calculatedMetrics);
+  const scenarios = useMemo(() => {
+    if (!metrics) return null;
+    return generateScenarioAnalysis(deferredInputs as any);
+  }, [metrics, deferredInputs.purchasePrice, deferredInputs.monthlyRent, deferredInputs.downPaymentPercent, deferredInputs.interestRate]);
 
-      const scenarioAnalysis = generateScenarioAnalysis(inputs as any);
-      setScenarios(scenarioAnalysis);
-
-      const yearlyProjections = generate5YearProjections(
-        inputs as any,
-        calculatedMetrics,
-        projectionInputs.annualRentGrowth,
-        projectionInputs.annualExpenseGrowth,
-        projectionInputs.annualAppreciation
-      );
-      setProjections(yearlyProjections);
-    }
-  }, [inputs, projectionInputs]);
+  const projections = useMemo(() => {
+    if (!metrics) return [];
+    return generate5YearProjections(
+      deferredInputs as any,
+      metrics,
+      deferredProjectionInputs.annualRentGrowth,
+      deferredProjectionInputs.annualExpenseGrowth,
+      deferredProjectionInputs.annualAppreciation
+    );
+  }, [metrics, deferredInputs.purchasePrice, deferredInputs.monthlyRent, deferredProjectionInputs.annualRentGrowth, deferredProjectionInputs.annualExpenseGrowth, deferredProjectionInputs.annualAppreciation]);
 
   if (!metrics) {
     return (
@@ -136,21 +138,21 @@ export const DealCalculator = () => {
 
   return (
     <div className="deal-calculator" id="deal-calculator-printable">
-      <div className="calculator-header">
-        <div>
-          <h2>Deal Calculator</h2>
-          <p>Comprehensive real estate investment analysis</p>
+        <div className="calculator-header">
+          <div>
+            <h2>Deal Calculator</h2>
+            <p>Comprehensive real estate investment analysis</p>
+          </div>
+          <PrintIconButton
+            elementId="deal-calculator-printable"
+            printOptions={{
+              title: 'Deal Calculator Analysis',
+              includeDate: true,
+              orientation: 'portrait',
+            }}
+            tooltipText="Print Calculator Results"
+          />
         </div>
-        <PrintIconButton
-          elementId="deal-calculator-printable"
-          printOptions={{
-            title: 'Deal Calculator Analysis',
-            includeDate: true,
-            orientation: 'portrait',
-          }}
-          tooltipText="Print Calculator Results"
-        />
-      </div>
 
       {/* Input Quality Toggle */}
       <div className="px-6 py-3 bg-surface-200/50 backdrop-blur-sm border-b border-glass-border">
@@ -269,9 +271,7 @@ const BasicAnalysisTab = ({ form, metrics, inputQuality }: BasicAnalysisTabProps
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          <FormLabelWithTooltip metadata={INPUT_TOOLTIPS.purchasePrice}>
-                            {fieldMetadata.purchasePrice.label}
-                          </FormLabelWithTooltip>
+                                                      {fieldMetadata.purchasePrice.label}
                         </FormLabel>
                         <FormControl>
                           <Input
@@ -296,9 +296,7 @@ const BasicAnalysisTab = ({ form, metrics, inputQuality }: BasicAnalysisTabProps
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          <FormLabelWithTooltip metadata={INPUT_TOOLTIPS.downPaymentPercent}>
-                            {fieldMetadata.downPaymentPercent.label}
-                          </FormLabelWithTooltip>
+                                                      {fieldMetadata.downPaymentPercent.label}
                         </FormLabel>
                         <FormControl>
                           <Input
@@ -325,9 +323,7 @@ const BasicAnalysisTab = ({ form, metrics, inputQuality }: BasicAnalysisTabProps
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          <FormLabelWithTooltip metadata={INPUT_TOOLTIPS.interestRate}>
-                            {fieldMetadata.interestRate.label}
-                          </FormLabelWithTooltip>
+                                                      {fieldMetadata.interestRate.label}
                         </FormLabel>
                         <FormControl>
                           <Input
@@ -352,9 +348,7 @@ const BasicAnalysisTab = ({ form, metrics, inputQuality }: BasicAnalysisTabProps
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          <FormLabelWithTooltip metadata={INPUT_TOOLTIPS.loanTerm}>
-                            {fieldMetadata.loanTerm.label}
-                          </FormLabelWithTooltip>
+                                                      {fieldMetadata.loanTerm.label}
                         </FormLabel>
                         <FormControl>
                           <Input
@@ -418,7 +412,7 @@ const BasicAnalysisTab = ({ form, metrics, inputQuality }: BasicAnalysisTabProps
                   />
                 </GlassFormGrid>
 
-                {/* Investment Strategy - Fixed: Using RadioGroup with correct pattern */}
+                {/* Investment Strategy - Using native select to avoid Radix UI infinite loop */}
                 <FormField
                   control={form.control}
                   name="strategy"
@@ -426,22 +420,16 @@ const BasicAnalysisTab = ({ form, metrics, inputQuality }: BasicAnalysisTabProps
                     <FormItem>
                       <FormLabel className="text-gray-200">{fieldMetadata.strategy.label}</FormLabel>
                       <FormControl>
-                        <RadioGroup
-                          value={field.value}
-                          onValueChange={field.onChange}
-                          className="flex flex-col space-y-2"
+                        <select
+                          {...field}
+                          className="w-full px-4 py-2 bg-surface-200 border border-glass-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-gray-100 outline-none transition-all"
                         >
                           {fieldMetadata.strategy.options.map((option) => (
-                            <FormItem key={option.value} className="flex items-center space-x-3 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem value={option.value} />
-                              </FormControl>
-                              <FormLabel className="font-normal text-gray-200 cursor-pointer">
-                                {option.label}
-                              </FormLabel>
-                            </FormItem>
+                            <option key={option.value} value={option.value} className="bg-slate-800 text-gray-100">
+                              {option.label}
+                            </option>
                           ))}
-                        </RadioGroup>
+                        </select>
                       </FormControl>
                       <FormDescription className="text-xs text-gray-400">
                         {fieldMetadata.strategy.description}
@@ -451,7 +439,7 @@ const BasicAnalysisTab = ({ form, metrics, inputQuality }: BasicAnalysisTabProps
                   )}
                 />
 
-                {/* Market Tier Classification - Fixed: Using RadioGroup with correct pattern */}
+                {/* Market Tier Classification - Using native select to avoid Radix UI infinite loop */}
                 <FormField
                   control={form.control}
                   name="marketTier"
@@ -459,22 +447,16 @@ const BasicAnalysisTab = ({ form, metrics, inputQuality }: BasicAnalysisTabProps
                     <FormItem>
                       <FormLabel className="text-gray-200">{fieldMetadata.marketTier.label}</FormLabel>
                       <FormControl>
-                        <RadioGroup
-                          value={field.value}
-                          onValueChange={field.onChange}
-                          className="flex flex-col space-y-2"
+                        <select
+                          {...field}
+                          className="w-full px-4 py-2 bg-surface-200 border border-glass-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-gray-100 outline-none transition-all"
                         >
                           {fieldMetadata.marketTier.options.map((option) => (
-                            <FormItem key={option.value} className="flex items-center space-x-3 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem value={option.value} />
-                              </FormControl>
-                              <FormLabel className="font-normal text-gray-200 cursor-pointer">
-                                {option.label}
-                              </FormLabel>
-                            </FormItem>
+                            <option key={option.value} value={option.value} className="bg-slate-800 text-gray-100">
+                              {option.label}
+                            </option>
                           ))}
-                        </RadioGroup>
+                        </select>
                       </FormControl>
                       <FormDescription className="text-xs text-gray-400">
                         {fieldMetadata.marketTier.description}
@@ -493,9 +475,7 @@ const BasicAnalysisTab = ({ form, metrics, inputQuality }: BasicAnalysisTabProps
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        <FormLabelWithTooltip metadata={INPUT_TOOLTIPS.monthlyRent}>
-                          {fieldMetadata.monthlyRent.label}
-                        </FormLabelWithTooltip>
+                                                  {fieldMetadata.monthlyRent.label}
                       </FormLabel>
                       <FormControl>
                         <Input
@@ -616,9 +596,7 @@ const BasicAnalysisTab = ({ form, metrics, inputQuality }: BasicAnalysisTabProps
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          <FormLabelWithTooltip metadata={INPUT_TOOLTIPS.monthlyMaintenance}>
-                            {fieldMetadata.monthlyMaintenance.label}
-                          </FormLabelWithTooltip>
+                                                      {fieldMetadata.monthlyMaintenance.label}
                         </FormLabel>
                         <FormControl>
                           <Input
@@ -820,9 +798,7 @@ const ResultsDisplay = ({ metrics, inputQuality }: ResultsDisplayProps) => {
 
         <div className="metric-card">
           <div className="metric-label">
-            <FormLabelWithTooltip metadata={METRIC_TOOLTIPS.irr}>
-              IRR (5-Year)
-            </FormLabelWithTooltip>
+                          IRR (5-Year)
           </div>
           <div className="metric-value">
             {isNaN(metrics.irr) ? 'N/A' : formatPercent(metrics.irr)}
@@ -831,9 +807,7 @@ const ResultsDisplay = ({ metrics, inputQuality }: ResultsDisplayProps) => {
 
         <div className="metric-card">
           <div className="metric-label">
-            <FormLabelWithTooltip metadata={METRIC_TOOLTIPS.equityMultiple}>
-              Equity Multiple (5-Year)
-            </FormLabelWithTooltip>
+                          Equity Multiple (5-Year)
           </div>
           <div className="metric-value">
             {metrics.equityMultiple.toFixed(2)}x
@@ -1142,4 +1116,4 @@ const ScenariosTab = ({ scenarios, projections, projectionForm }: ScenariosTabPr
   );
 };
 
-export default DealCalculator;
+export default DealCalculatorV3;

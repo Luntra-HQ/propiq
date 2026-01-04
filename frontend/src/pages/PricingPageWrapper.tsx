@@ -17,10 +17,21 @@ const PricingPageWrapper: React.FC = () => {
 
   const [currentTier, setCurrentTier] = useState<string>('free');
   const [userId, setUserId] = useState<string | null>(null);
+  const [promoCode, setPromoCode] = useState<string>('');
 
   // Use string reference instead of api.payments.createCheckoutSession
   // This bypasses anyApi proxy issues in production builds
   const createCheckout = useAction("payments:createCheckoutSession" as any);
+
+  // Check for promo code in URL (e.g., /pricing?promo=PRODUCTHUNT)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlPromo = urlParams.get('promo');
+    if (urlPromo) {
+      setPromoCode(urlPromo.toUpperCase());
+      console.log(`[PRICING] Promo code detected from URL: ${urlPromo}`);
+    }
+  }, []);
 
   // Sync user data
   useEffect(() => {
@@ -33,31 +44,36 @@ const PricingPageWrapper: React.FC = () => {
   const handleSelectTier = useCallback(async (tierId: string) => {
     console.log(`[PRICING] Upgrading to tier: ${tierId}`);
 
-    // Redirect to login if not authenticated
-    if (!user || !userId) {
-      console.log('[PRICING] User not authenticated, redirecting to login');
-      sessionStorage.setItem('selectedTier', tierId);
-      sessionStorage.setItem('checkoutIntent', 'true');
-      alert(
-        "Please sign up or log in to complete your purchase. You'll be automatically redirected to checkout after signing in."
-      );
-      navigate(`/login?redirect=/pricing&tier=${tierId}`);
-      return;
-    }
-
     try {
       console.log('[PRICING] Creating Stripe checkout session...');
-      const result = await createCheckout({
-        userId: userId as Id<'users'>,
+
+      const checkoutParams: any = {
         tier: tierId,
-        successUrl: `${window.location.origin}/app?upgrade=success`,
+        successUrl: `${window.location.origin}/welcome?payment=success`,
         cancelUrl: `${window.location.origin}/pricing`,
-      });
+      };
+
+      // Add userId if logged in (for existing users upgrading)
+      if (userId) {
+        checkoutParams.userId = userId as Id<'users'>;
+        checkoutParams.successUrl = `${window.location.origin}/app?upgrade=success`;
+      }
+
+      // Add promo code if present
+      if (promoCode) {
+        checkoutParams.promotionCode = promoCode;
+        console.log(`[PRICING] Applying promo code: ${promoCode}`);
+      }
+
+      console.log('[PRICING] Calling createCheckout with params:', checkoutParams);
+      const result = await createCheckout(checkoutParams);
+      console.log('[PRICING] Received result:', result);
 
       if (result?.success && result.url) {
         console.log('[PRICING] Redirecting to Stripe checkout:', result.sessionId);
         window.location.href = result.url;
       } else {
+        console.error('[PRICING] Invalid result from createCheckout:', result);
         throw new Error('Failed to create checkout session');
       }
     } catch (error: any) {
@@ -105,6 +121,8 @@ const PricingPageWrapper: React.FC = () => {
       currentTier={currentTier}
       onSelectTier={handleSelectTier}
       onClose={handleClose}
+      promoCode={promoCode}
+      onPromoCodeChange={setPromoCode}
     />
   );
 };

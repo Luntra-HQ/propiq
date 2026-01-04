@@ -9,6 +9,8 @@
 
 import { useState } from 'react'
 import { DealCalculatorV2 } from '@/components/DealCalculatorV2'
+import { DealCalculatorV3 } from '@/components/DealCalculatorV3'
+import { QuickCheck } from '@/components/QuickCheck'
 import { AuthModalV2 } from '@/components/AuthModalV2'
 import { FormInput, NumericInput } from '@/components/ui/FormInput'
 import { Button } from '@/components/ui/Button'
@@ -22,7 +24,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Play, CheckCircle } from 'lucide-react'
+import { Play, CheckCircle, Zap } from 'lucide-react'
 
 export const ComponentTestPage = () => {
   const [authModalOpen, setAuthModalOpen] = useState(false)
@@ -40,10 +42,11 @@ export const ComponentTestPage = () => {
 
         {/* Test Tabs */}
         <Tabs defaultValue="forms" className="w-full">
-          <TabsList className="bg-surface-200 border-glass-border grid grid-cols-4">
+          <TabsList className="bg-surface-200 border-glass-border grid grid-cols-5">
             <TabsTrigger value="forms">Forms</TabsTrigger>
             <TabsTrigger value="modals">Modals</TabsTrigger>
-            <TabsTrigger value="calculator">Calculator</TabsTrigger>
+            <TabsTrigger value="calculator">Calculator V2</TabsTrigger>
+            <TabsTrigger value="calculatorv3">🆕 V3 & QuickCheck</TabsTrigger>
             <TabsTrigger value="interactive">Interactive</TabsTrigger>
           </TabsList>
 
@@ -203,6 +206,80 @@ export const ComponentTestPage = () => {
             </GlassCard>
 
             <DealCalculatorV2 />
+          </TabsContent>
+
+          {/* Calculator V3 & QuickCheck Test */}
+          <TabsContent value="calculatorv3" className="space-y-8 mt-6">
+            {/* QuickCheck Section */}
+            <GlassCard variant="hero" glow>
+              <div className="flex items-center gap-3 mb-4">
+                <Zap className="h-6 w-6 text-violet-400" />
+                <h2 className="text-2xl font-semibold text-gray-50">QuickCheck - 2-Input Analyzer</h2>
+              </div>
+              <p className="text-gray-400 mb-4">
+                Instant deal analysis with just purchase price and monthly rent.
+                All other values estimated using conservative national averages.
+              </p>
+
+              <div className="space-y-4 text-sm text-gray-400 mb-6">
+                <p className="font-semibold text-violet-400">6-Point Smoke Test:</p>
+                <ul className="list-disc list-inside space-y-1 ml-2">
+                  <li>✅ Component renders without errors</li>
+                  <li>✅ 2 input fields visible (Purchase Price, Monthly Rent)</li>
+                  <li>✅ "Analyze Deal" button works</li>
+                  <li>✅ Results display (Deal Score, Cash Flow, Metrics)</li>
+                  <li>✅ "Switch to Advanced" button works</li>
+                  <li>✅ Glass styling applied correctly</li>
+                </ul>
+              </div>
+
+              <QuickCheck
+                onSwitchToAdvanced={(data) => {
+                  console.log('Switching to advanced with data:', data);
+                  alert('Advanced mode integration coming soon! Check console for prefilled data.');
+                }}
+              />
+            </GlassCard>
+
+            {/* DealCalculatorV3 Section */}
+            <GlassCard variant="default">
+              <h2 className="text-2xl font-semibold text-gray-50 mb-4">
+                DealCalculatorV3 - Advanced Form-Based Calculator
+              </h2>
+              <p className="text-gray-400 mb-4">
+                New calculator with React Hook Form, Zod validation, and enhanced UX.
+                <strong className="text-yellow-400"> Note: Tooltips removed to fix infinite loop bug.</strong>
+              </p>
+
+              <div className="space-y-4 text-sm text-gray-400 mb-6">
+                <p className="font-semibold text-violet-400">Tests to perform:</p>
+                <ul className="list-disc list-inside space-y-1 ml-2">
+                  <li>✅ All 3 tabs work (Basic Analysis, Advanced Metrics, Scenarios)</li>
+                  <li>✅ Form validation works (try invalid values)</li>
+                  <li>✅ Real-time calculations update</li>
+                  <li>✅ Deal Score displays (0-100)</li>
+                  <li>✅ Monthly Cash Flow calculates correctly</li>
+                  <li>✅ No console errors (check F12)</li>
+                  <li>⚠️ No infinite re-render loops</li>
+                </ul>
+              </div>
+
+              <DealCalculatorV3 />
+            </GlassCard>
+
+            {/* Status Banner */}
+            <GlassCard variant="primary">
+              <div className="text-center space-y-2">
+                <h3 className="text-lg font-semibold text-violet-300">🧪 Testing Status</h3>
+                <p className="text-gray-300">
+                  These components are <strong>NOT YET DEPLOYED</strong> to production.
+                  This is a safe testing environment.
+                </p>
+                <p className="text-sm text-gray-400">
+                  Check your browser console (F12) for any errors during testing.
+                </p>
+              </div>
+            </GlassCard>
           </TabsContent>
 
           {/* Interactive Tests */}

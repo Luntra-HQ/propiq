@@ -13,11 +13,13 @@ import { v } from "convex/values";
 import { mutation, query, internalMutation } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 
-// Session duration: 30 days sliding window in milliseconds
-const SESSION_IDLE_TIMEOUT_MS = 30 * 24 * 60 * 60 * 1000;
+// Session duration: 7 days sliding window (reduced from 30 for better security)
+// Balances security (shorter exposure if token stolen) with UX (not too frequent re-auth)
+const SESSION_IDLE_TIMEOUT_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
-// Session refresh threshold: 7 days (auto-extend if less than this remaining)
-const SESSION_REFRESH_THRESHOLD_MS = 7 * 24 * 60 * 60 * 1000;
+// Session refresh threshold: 2 days (auto-extend if less than this remaining)
+// Proportionally adjusted to 7-day window (was 7 days for 30-day window)
+const SESSION_REFRESH_THRESHOLD_MS = 2 * 24 * 60 * 60 * 1000; // 2 days
 
 /**
  * Generate a cryptographically secure session token

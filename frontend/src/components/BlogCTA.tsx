@@ -30,7 +30,7 @@ const CTAContent = {
   calculator: {
     icon: Calculator,
     title: 'See how this works on a real property',
-    description: 'Put these concepts into practice. Analyze your next deal with PropIQ's comprehensive calculator and AI recommendations.',
+    description: 'Put these concepts into practice. Analyze your next deal with PropIQ\'s comprehensive calculator and AI recommendations.',
     buttonText: 'Analyze Now',
     buttonIcon: ArrowRight,
   },

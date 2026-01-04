@@ -127,7 +127,7 @@ export default defineConfig({
   },
   // Performance hints
   server: {
-    host: 'localhost',
+    host: '0.0.0.0', // Bind to all interfaces (IPv4 and IPv6)
     port: 5173,
     open: false,
     hmr: {

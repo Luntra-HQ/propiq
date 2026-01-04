@@ -22,16 +22,30 @@ const ACCESS_GRACE_PERIOD_MS = 15 * 60 * 1000;
 // Create Stripe checkout session
 export const createCheckoutSession = action({
   args: {
-    userId: v.id("users"),
+    userId: v.optional(v.id("users")), // Optional - for anonymous checkout
     tier: v.string(), // "starter" | "pro" | "elite"
     successUrl: v.string(),
     cancelUrl: v.string(),
+    promotionCode: v.optional(v.string()), // Optional promo code (e.g., "PRODUCTHUNT")
   },
   handler: async (ctx, args) => {
-    const user = await ctx.runQuery(api.auth.getUser, { userId: args.userId });
+    console.log('[STRIPE] createCheckoutSession called with:', {
+      userId: args.userId,
+      tier: args.tier,
+      hasPromoCode: !!args.promotionCode,
+    });
 
-    if (!user) {
-      throw new Error("User not found");
+    // Get user if userId provided (existing user upgrading)
+    let user = null;
+    if (args.userId) {
+      console.log('[STRIPE] Looking up user:', args.userId);
+      user = await ctx.runQuery(api.auth.getUser, { userId: args.userId });
+      if (!user) {
+        throw new Error("User not found");
+      }
+      console.log('[STRIPE] User found:', user.email);
+    } else {
+      console.log('[STRIPE] Anonymous checkout (no userId)');
     }
 
     const tierConfig = SUBSCRIPTION_TIERS[args.tier as keyof typeof SUBSCRIPTION_TIERS];
@@ -43,31 +57,51 @@ export const createCheckoutSession = action({
     const apiKey = process.env.STRIPE_SECRET_KEY;
 
     if (!apiKey) {
+      console.error('[STRIPE] STRIPE_SECRET_KEY not configured!');
       throw new Error("Stripe not configured");
     }
 
+    console.log('[STRIPE] API key configured, creating checkout session...');
+
     try {
       // Create Stripe checkout session
+      const params: Record<string, string> = {
+        "mode": "subscription",
+        "line_items[0][price]": tierConfig.priceId,
+        "line_items[0][quantity]": "1",
+        "success_url": args.successUrl,
+        "cancel_url": args.cancelUrl,
+        "metadata[tier]": args.tier,
+        "subscription_data[metadata][tier]": args.tier,
+        // Always allow promo codes to be entered at checkout
+        "allow_promotion_codes": "true",
+      };
+
+      // If user exists, pre-fill their email
+      if (user) {
+        params["customer_email"] = user.email;
+        params["metadata[userId]"] = args.userId!;
+        params["subscription_data[metadata][userId]"] = args.userId!;
+      } else {
+        // Anonymous checkout - Stripe will collect email
+        // Mark this as anonymous so webhook knows to create account
+        params["metadata[anonymous]"] = "true";
+        params["subscription_data[metadata][anonymous]"] = "true";
+      }
+
+      // Pre-apply promotion code if provided (e.g., "PRODUCTHUNT")
+      if (args.promotionCode) {
+        params["discounts[0][promotion_code]"] = args.promotionCode;
+        console.log(`[STRIPE] Applying promotion code: ${args.promotionCode}`);
+      }
+
       const response = await fetch("https://api.stripe.com/v1/checkout/sessions", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
           Authorization: `Bearer ${apiKey}`,
         },
-        body: new URLSearchParams({
-          "mode": "subscription",
-          "customer_email": user.email,
-          "line_items[0][price]": tierConfig.priceId,
-          "line_items[0][quantity]": "1",
-          "success_url": args.successUrl,
-          "cancel_url": args.cancelUrl,
-          "metadata[userId]": args.userId,
-          "metadata[tier]": args.tier,
-          // Also attach metadata to the subscription so out-of-order events (invoice.paid)
-          // can still map back to the user/tier even if checkout events arrive late.
-          "subscription_data[metadata][userId]": args.userId,
-          "subscription_data[metadata][tier]": args.tier,
-        }).toString(),
+        body: new URLSearchParams(params).toString(),
       });
 
       if (!response.ok) {
@@ -85,6 +119,90 @@ export const createCheckoutSession = action({
     } catch (error) {
       console.error("Stripe checkout error:", error);
       throw new Error(`Failed to create checkout session: ${error}`);
+    }
+  },
+});
+
+/**
+ * Handle anonymous checkout - create or link account after payment
+ * Called by webhook when anonymous checkout completes
+ */
+export const handleAnonymousCheckout = mutation({
+  args: {
+    email: v.string(),
+    tier: v.string(),
+    stripeCustomerId: v.string(),
+    stripeSubscriptionId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+
+    // Check if user already exists
+    const existingUser = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .first();
+
+    if (existingUser) {
+      // User exists - upgrade their account
+      console.log(`[PAYMENTS] Linking subscription to existing user: ${existingUser._id}`);
+
+      const tierConfig = SUBSCRIPTION_TIERS[args.tier as keyof typeof SUBSCRIPTION_TIERS];
+
+      await ctx.db.patch(existingUser._id, {
+        subscriptionTier: args.tier,
+        subscriptionStatus: "active",
+        lastVerifiedFromStripeAt: now,
+        analysesLimit: tierConfig.analyses,
+        analysesUsed: 0,
+        stripeCustomerId: args.stripeCustomerId,
+        stripeSubscriptionId: args.stripeSubscriptionId,
+        updatedAt: now,
+      });
+
+      // Check if user was referred and convert referral
+      try {
+        const { convertReferral } = await import("./referrals");
+        const result = await convertReferral(ctx, { userId: existingUser._id });
+        if (result.wasReferred) {
+          console.log(`[PAYMENTS] User ${existingUser._id} was referred, marked referral as converted`);
+        }
+      } catch (e) {
+        console.error(`[PAYMENTS] Failed to convert referral:`, e);
+      }
+
+      return { success: true, isNewUser: false, userId: existingUser._id };
+    } else {
+      // Create new user account
+      console.log(`[PAYMENTS] Creating new user account for: ${args.email}`);
+
+      const tierConfig = SUBSCRIPTION_TIERS[args.tier as keyof typeof SUBSCRIPTION_TIERS];
+
+      // Generate random password (user will reset via email)
+      const randomPassword = Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12);
+
+      const userId = await ctx.db.insert("users", {
+        email: args.email,
+        passwordHash: randomPassword, // Temporary - user will reset
+        fullName: "", // User will complete profile later
+        subscriptionTier: args.tier,
+        subscriptionStatus: "active",
+        lastVerifiedFromStripeAt: now,
+        analysesLimit: tierConfig.analyses,
+        analysesUsed: 0,
+        stripeCustomerId: args.stripeCustomerId,
+        stripeSubscriptionId: args.stripeSubscriptionId,
+        createdAt: now,
+        updatedAt: now,
+        emailVerified: false,
+      });
+
+      console.log(`[PAYMENTS] ✅ Created new user: ${userId} for ${args.email}`);
+
+      // TODO: Send welcome email with password reset link
+      // This would integrate with Resend or your email service
+
+      return { success: true, isNewUser: true, userId };
     }
   },
 });

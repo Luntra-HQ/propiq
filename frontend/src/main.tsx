@@ -19,6 +19,7 @@ const PricingPageWrapper = lazy(() => import('./pages/PricingPageWrapper'))
 const ReferralLandingPage = lazy(() => import('./pages/ReferralLandingPage'))
 const Blog = lazy(() => import('./pages/Blog'))
 const BlogPost = lazy(() => import('./pages/BlogPost'))
+const ComponentTestPage = lazy(() => import('./pages/ComponentTestPage'))
 const App = lazy(() => import('./App'))
 
 import './index.css'
@@ -33,6 +34,10 @@ const PageLoader = () => (
 // Initialize Sentry error tracking before rendering
 import { initSentry } from './config/sentry'
 initSentry()
+
+// Validate security configuration before app startup
+import { validateSecurityConfig } from './config/security'
+validateSecurityConfig()
 
 // Tag test user sessions in Clarity (exclude your own testing from analytics)
 const isTestUser = window.location.hostname === 'localhost' ||
@@ -76,6 +81,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                 <Route path="/pricing/*" element={<PricingPageWrapper />} />
                 <Route path="/faq" element={<FAQPage />} />
                 <Route path="/welcome" element={<WelcomePage />} />
+                <Route path="/test" element={<ComponentTestPage />} />
 
                 {/* Blog routes - PUBLIC for SEO */}
                 <Route path="/blog" element={<Blog />} />

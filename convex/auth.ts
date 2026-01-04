@@ -6,7 +6,9 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { api } from "./_generated/api";
 import bcrypt from "bcryptjs";
+import { SecurityEvents } from "./auditLog";
 
 // ============================================
 // PASSWORD VALIDATION
@@ -21,10 +23,24 @@ const COMMON_PASSWORDS = [
 ];
 
 /**
- * Validate password strength (backend validation)
- * Throws error if password doesn't meet requirements
+ * Calculate password strength score (0-100)
+ * Based on number of requirements met
  */
-function validatePasswordStrength(password: string): void {
+function calculatePasswordStrength(checks: Record<string, boolean>): number {
+  const passedChecks = Object.values(checks).filter(Boolean).length;
+  const totalChecks = Object.keys(checks).length;
+  return Math.round((passedChecks / totalChecks) * 100);
+}
+
+/**
+ * Validate password strength (backend validation)
+ * Returns all validation errors at once for better UX
+ */
+function validatePasswordStrength(password: string): {
+  valid: boolean;
+  errors: string[];
+  strength: number;
+} {
   const checks = {
     length: password.length >= 12,
     uppercase: /[A-Z]/.test(password),
@@ -34,24 +50,35 @@ function validatePasswordStrength(password: string): void {
     notCommon: !COMMON_PASSWORDS.includes(password.toLowerCase()),
   };
 
+  const errors: string[] = [];
+
+  // Collect ALL errors (not just the first one)
   if (!checks.length) {
-    throw new Error("Password must be at least 12 characters long");
+    errors.push("Password must be at least 12 characters long");
   }
   if (!checks.uppercase) {
-    throw new Error("Password must contain at least one uppercase letter");
+    errors.push("Password must contain at least one uppercase letter (A-Z)");
   }
   if (!checks.lowercase) {
-    throw new Error("Password must contain at least one lowercase letter");
+    errors.push("Password must contain at least one lowercase letter (a-z)");
   }
   if (!checks.number) {
-    throw new Error("Password must contain at least one number");
+    errors.push("Password must contain at least one number (0-9)");
   }
   if (!checks.special) {
-    throw new Error("Password must contain at least one special character (!@#$%^&*...)");
+    errors.push("Password must contain at least one special character (!@#$%^&*...)");
   }
   if (!checks.notCommon) {
-    throw new Error("This password is too common. Please choose a stronger password");
+    errors.push("This password is too common - please choose a more unique password");
   }
+
+  const strength = calculatePasswordStrength(checks);
+
+  return {
+    valid: errors.length === 0,
+    errors,
+    strength,
+  };
 }
 
 // Signup mutation - Create new user account
@@ -67,8 +94,17 @@ export const signup = mutation({
     // Normalize email to lowercase
     const email = args.email.toLowerCase().trim();
 
-    // Validate password strength
-    validatePasswordStrength(args.password);
+    // Validate password strength (returns all errors at once)
+    const passwordValidation = validatePasswordStrength(args.password);
+    if (!passwordValidation.valid) {
+      throw new Error(
+        JSON.stringify({
+          code: "WEAK_PASSWORD",
+          errors: passwordValidation.errors,
+          strength: passwordValidation.strength,
+        })
+      );
+    }
 
     // Check if user already exists
     const existingUser = await ctx.db
@@ -77,7 +113,9 @@ export const signup = mutation({
       .first();
 
     if (existingUser) {
-      throw new Error("User with this email already exists");
+      // Generic message prevents email enumeration
+      // Attacker can't tell if email exists or if there's another issue
+      throw new Error("Unable to create account with this email. Please try logging in or use a different email.");
     }
 
     // Hash password using PBKDF2-SHA256
@@ -765,7 +803,9 @@ export const verifyResetToken = query({
 // ============================================
 
 // Session duration: 30 days in milliseconds
-const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
+// Session duration: 7 days (reduced from 30 for better security)
+// Balances security (shorter exposure window) with UX (not too frequent re-auth)
+const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 /**
  * Generate a cryptographically secure session token
@@ -797,6 +837,14 @@ export const loginWithSession = mutation({
       .first();
 
     if (!user) {
+      // Log failed login attempt (user not found)
+      await ctx.runMutation(api.auditLog.logSecurityEvent, {
+        event: SecurityEvents.LOGIN_FAILED,
+        severity: "warning",
+        email,
+        userAgent: args.userAgent,
+        metadata: { reason: "user_not_found" },
+      });
       return { success: false, error: "Invalid email or password" };
     }
 
@@ -804,6 +852,15 @@ export const loginWithSession = mutation({
     const isValidPassword = await verifyPassword(args.password, user.passwordHash);
 
     if (!isValidPassword) {
+      // Log failed login attempt (invalid password)
+      await ctx.runMutation(api.auditLog.logSecurityEvent, {
+        event: SecurityEvents.LOGIN_FAILED,
+        severity: "warning",
+        userId: user._id,
+        email,
+        userAgent: args.userAgent,
+        metadata: { reason: "invalid_password" },
+      });
       return { success: false, error: "Invalid email or password" };
     }
 
@@ -841,6 +898,16 @@ export const loginWithSession = mutation({
     await ctx.db.patch(user._id, {
       lastLogin: now,
       updatedAt: now,
+    });
+
+    // Log successful login
+    await ctx.runMutation(api.auditLog.logSecurityEvent, {
+      event: SecurityEvents.LOGIN_SUCCESS,
+      severity: "info",
+      userId: user._id,
+      email: user.email,
+      userAgent: args.userAgent,
+      metadata: { sessionId: sessionToken },
     });
 
     console.log("[AUTH] Login with session for user:", user.email, "token:", sessionToken);
@@ -1010,6 +1077,20 @@ export const signupWithSession = mutation({
       email,
       firstName: args.firstName,
       analysesRemaining: 3, // Free tier starts with 3
+    });
+
+    // Log account creation
+    await ctx.runMutation(api.auditLog.logSecurityEvent, {
+      event: SecurityEvents.ACCOUNT_CREATED,
+      severity: "info",
+      userId,
+      email,
+      userAgent: args.userAgent,
+      metadata: {
+        subscriptionTier: "free",
+        referralCode: args.referralCode,
+        hasReferral: !!args.referralCode,
+      },
     });
 
     console.log("[AUTH] Signup with session for user:", email, "token:", sessionToken);

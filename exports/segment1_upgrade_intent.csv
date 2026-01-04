@@ -1,0 +1,11 @@
+analysesLimit,analysesUsed,analysisCount,company,email,firstName,intentReasons,intentScore,lastAnalysisDate,lastLoginDate,lastName,loginCount,signupDate,stripeCustomerId,subscriptionTier
+3,3,3,,test@example.com,Brian,"Started checkout but didn't complete, Used all free analyses, Multiple sessions, engaged but didn't upgrade, Actively used product",100,2025-12-07T16:53:58.203Z,2025-12-21T07:19:47.560Z,D,40,2025-11-19T05:31:00.218Z,cus_TYvR49UwRRn70x,free
+3,3,3,,test-dec4@test.com,sd,"Used all free analyses, Multiple sessions, engaged but didn't upgrade, Actively used product",60,2025-12-07T15:50:32.242Z,2025-12-25T23:13:16.916Z,df,8,2025-12-03T13:05:21.789Z,,free
+3,1,1,,keanulamarre@gmail.com,key,Started checkout but didn't complete,40,2025-12-21T22:43:11.037Z,2025-12-02T16:23:41.428Z,lam,1,2025-12-02T16:23:41.428Z,cus_TZHEMnIWIAizyy,free
+3,0,0,,test+1765233212993@example.com,,Started checkout but didn't complete,40,,2025-12-08T22:33:40.612Z,,1,2025-12-08T22:33:40.612Z,cus_TZLhDbCDRW0pVn,free
+3,0,0,,test+1765235558660@example.com,,Started checkout but didn't complete,40,,2025-12-08T23:12:51.204Z,,1,2025-12-08T23:12:51.204Z,cus_TZMKpI9u5kktLQ,free
+3,0,0,,test+1765235905436@example.com,,Started checkout but didn't complete,40,,2025-12-08T23:18:34.593Z,,1,2025-12-08T23:18:34.593Z,cus_TZMQJ51q7yIect,free
+3,0,0,,test+1765236158932@example.com,,Started checkout but didn't complete,40,,2025-12-08T23:22:45.702Z,,1,2025-12-08T23:22:45.702Z,cus_TZMUkIviEwIz43,free
+3,2,2,,infodiamonddusape@gmail.com,,"Multiple sessions, engaged but didn't upgrade, Actively used product",30,2025-12-19T17:09:00.668Z,2025-12-19T20:51:19.550Z,,3,2025-12-19T16:38:36.743Z,,free
+3,2,2,,bdusape@gmail.com,Warren,Actively used product,10,2025-12-27T04:18:04.456Z,2025-12-27T05:52:00.913Z,G,2,2025-11-23T03:03:36.300Z,,free
+3,2,2,,bdusape@luntra.one,Brian,Actively used product,10,2025-12-09T19:25:40.228Z,2025-12-09T19:05:47.362Z,D,1,2025-12-09T19:05:47.362Z,,free
