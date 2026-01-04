@@ -18,8 +18,8 @@ import {
   Clock,
   HelpCircle,
 } from 'lucide-react';
-import { GlassCard, GlassCardHeader } from './ui/GlassCard';
-import { BentoBackground } from './ui/BentoGrid';
+import { GlassCard, GlassCardHeader } from './ui/glass-card';
+import { BentoBackground } from './ui/bento-grid';
 import { DealCalculatorV3 as DealCalculator } from './DealCalculatorV3';
 import { SimpleModeWizard } from './SimpleModeWizard';
 import { QuickCheck } from './QuickCheck';
