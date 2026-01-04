@@ -219,6 +219,14 @@ export const METRIC_TOOLTIPS: Record<string, TooltipMetadata> = {
     interpretation: "Higher scores = better data + stronger fundamentals. Low scores suggest more research needed.",
     goodRange: "80%+ = High confidence",
     concernRange: "Below 40% = Low confidence, verify data"
+  },
+
+  irr: {
+    title: "IRR (Internal Rate of Return)",
+    help: "Annualized rate of return accounting for time value of money over a 5-year hold period with property sale.",
+    interpretation: "IRR accounts for cash flows over time AND sale proceeds. More accurate than simple ROI or CoC return for buy-and-hold investors.",
+    goodRange: "15%+ = Strong, 20%+ = Excellent",
+    concernRange: "Below 10% = Weak returns"
   }
 };
 

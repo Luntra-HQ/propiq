@@ -810,6 +810,17 @@ const ResultsDisplay = ({ metrics, inputQuality }: ResultsDisplayProps) => {
         </div>
 
         <div className="metric-card">
+          <div className="metric-label">
+            <FormLabelWithTooltip metadata={METRIC_TOOLTIPS.irr}>
+              IRR (5-Year)
+            </FormLabelWithTooltip>
+          </div>
+          <div className="metric-value">
+            {isNaN(metrics.irr) ? 'N/A' : formatPercent(metrics.irr)}
+          </div>
+        </div>
+
+        <div className="metric-card">
           <div className="metric-label">1% Rule</div>
           <div className="metric-value">
             {formatPercent(metrics.onePercentRule)}

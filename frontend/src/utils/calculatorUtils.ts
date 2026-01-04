@@ -84,6 +84,9 @@ export interface CalculatedMetrics {
   dealScore: number;
   dealRating: 'Excellent' | 'Good' | 'Fair' | 'Poor' | 'Avoid';
   recommendation: string;
+
+  // Advanced metrics
+  irr: number; // Internal Rate of Return (5-year hold)
 }
 
 export interface ScenarioAnalysis {
@@ -301,6 +304,44 @@ export const calculateAllMetrics = (inputs: PropertyInputs): CalculatedMetrics =
     inputs.marketTier || 'B' // Default to B-class market
   );
 
+  // Calculate IRR (Internal Rate of Return) for 5-year hold
+  // First, we need to create a temporary metrics object for projections
+  const tempMetrics = {
+    monthlyPI,
+    monthlyPITI,
+    monthlyTotalExpenses,
+    monthlyCashFlow,
+    annualGrossIncome,
+    annualOperatingExpenses,
+    annualNOI,
+    annualCashFlow,
+    annualDebtService,
+    totalCashInvested,
+    loanAmount,
+    capRate,
+    cashOnCashReturn,
+    onePercentRule,
+    grm,
+    debtCoverageRatio,
+    operatingExpenseRatio,
+    breakEvenOccupancy,
+    dealScore: score,
+    dealRating: rating,
+    recommendation,
+    irr: 0 // Placeholder, will be calculated
+  };
+
+  const projections = generate5YearProjections(
+    inputs,
+    tempMetrics,
+    3, // 3% annual rent growth (conservative)
+    3, // 3% annual expense growth
+    4  // 4% annual appreciation (average)
+  );
+
+  const cashFlows = getPropertyCashFlows(inputs, tempMetrics, projections);
+  const irr = calculateIRR(cashFlows);
+
   return {
     monthlyPI,
     monthlyPITI,
@@ -322,7 +363,8 @@ export const calculateAllMetrics = (inputs: PropertyInputs): CalculatedMetrics =
     breakEvenOccupancy,
     dealScore: score,
     dealRating: rating,
-    recommendation
+    recommendation,
+    irr
   };
 };
 
@@ -540,6 +582,107 @@ export const generate5YearProjections = (
   }
 
   return projections;
+};
+
+/**
+ * Calculate Internal Rate of Return using Newton-Raphson method
+ *
+ * IRR is the discount rate where NPV = 0. It accounts for the time value of money
+ * and provides a more accurate picture of investment performance than simple ROI.
+ *
+ * @param cashFlows - Array of cash flows (Year 0 is initial investment, typically negative)
+ * @param guess - Initial guess for IRR (default: 10%)
+ * @param maxIterations - Maximum iterations for convergence (default: 100)
+ * @param tolerance - Convergence tolerance (default: 0.0001)
+ * @returns IRR as a percentage, or NaN if did not converge
+ *
+ * @example
+ * const cashFlows = [-100000, 15000, 15000, 15000, 15000, 115000];
+ * const irr = calculateIRR(cashFlows); // ~15.2%
+ */
+export const calculateIRR = (
+  cashFlows: number[],
+  guess: number = 0.1,
+  maxIterations: number = 100,
+  tolerance: number = 0.0001
+): number => {
+  let irr = guess;
+
+  for (let i = 0; i < maxIterations; i++) {
+    // Calculate NPV at current IRR
+    const npv = cashFlows.reduce((sum, cf, t) => {
+      return sum + cf / Math.pow(1 + irr, t);
+    }, 0);
+
+    // Calculate derivative of NPV
+    const npvDerivative = cashFlows.reduce((sum, cf, t) => {
+      return sum - (t * cf) / Math.pow(1 + irr, t + 1);
+    }, 0);
+
+    // Newton-Raphson iteration
+    const newIrr = irr - npv / npvDerivative;
+
+    // Check for convergence
+    if (Math.abs(newIrr - irr) < tolerance) {
+      return newIrr * 100; // Return as percentage
+    }
+
+    irr = newIrr;
+  }
+
+  return NaN; // Did not converge
+};
+
+/**
+ * Get property cash flows for IRR calculation
+ *
+ * Generates cash flows array assuming property is held for a specified period
+ * and then sold. Includes:
+ * - Year 0: Initial investment (negative)
+ * - Years 1-4: Annual cash flow
+ * - Year 5: Annual cash flow + sale proceeds
+ *
+ * @param inputs - Property input data
+ * @param metrics - Calculated metrics
+ * @param projections - 5-year projections (from generate5YearProjections)
+ * @param holdPeriod - Years to hold before selling (default: 5)
+ * @param sellingCostsPercent - Selling costs as % of sale price (default: 6%)
+ * @returns Array of cash flows for IRR calculation
+ *
+ * @example
+ * const cashFlows = getPropertyCashFlows(inputs, metrics, projections);
+ * // [-100000, 15000, 15500, 16000, 16500, 117000]
+ */
+export const getPropertyCashFlows = (
+  inputs: any,
+  metrics: CalculatedMetrics,
+  projections: YearlyProjection[],
+  holdPeriod: number = 5,
+  sellingCostsPercent: number = 6
+): number[] => {
+  const cashFlows: number[] = [];
+
+  // Year 0: Initial investment (negative)
+  cashFlows.push(-metrics.totalCashInvested);
+
+  // Years 1-5: Annual cash flow + equity at sale in final year
+  projections.forEach((projection, index) => {
+    if (index < holdPeriod - 1) {
+      // Years 1-4: Just annual cash flow
+      cashFlows.push(projection.annualCashFlow);
+    } else {
+      // Year 5: Cash flow + sale proceeds
+      // Sale proceeds = equity gained - selling costs
+      const salePrice = projection.propertyValue;
+      const sellingCosts = salePrice * (sellingCostsPercent / 100);
+      const remainingLoanBalance = projection.loanBalance;
+      const saleProceeds = salePrice - remainingLoanBalance - sellingCosts;
+
+      cashFlows.push(projection.annualCashFlow + saleProceeds);
+    }
+  });
+
+  return cashFlows;
 };
 
 /**
