@@ -219,7 +219,7 @@ export const DealCalculator = () => {
         <div className="calculator-content">
           {/* Basic Analysis Tab */}
           <TabsContent value="basic">
-            <BasicAnalysisTab form={form} metrics={metrics} />
+            <BasicAnalysisTab form={form} metrics={metrics} inputQuality={inputQuality} />
           </TabsContent>
 
           {/* Advanced Metrics Tab */}
@@ -248,9 +248,10 @@ export const DealCalculator = () => {
 interface BasicAnalysisTabProps {
   form: ReturnType<typeof useForm<DealCalculatorInputs>>;
   metrics: CalculatedMetrics;
+  inputQuality: InputQuality;
 }
 
-const BasicAnalysisTab = ({ form, metrics }: BasicAnalysisTabProps) => {
+const BasicAnalysisTab = ({ form, metrics, inputQuality }: BasicAnalysisTabProps) => {
   return (
     <div className="tab-content">
       <div className="calculator-grid">
