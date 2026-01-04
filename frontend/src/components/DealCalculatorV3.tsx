@@ -688,7 +688,15 @@ const BasicAnalysisTab = ({ form, metrics }: BasicAnalysisTabProps) => {
 
         {/* Right Column: Results */}
         <div className="results-section">
-          <ResultsDisplay metrics={metrics} inputQuality={inputQuality} />
+          {metrics ? (
+            <ResultsDisplay metrics={metrics} inputQuality={inputQuality} />
+          ) : (
+            <div className="empty-results glass-panel">
+              <p className="text-gray-400 text-center">
+                Enter property details to see your analysis
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
