@@ -103,6 +103,7 @@ export interface YearlyProjection {
   annualExpenses: number;
   annualCashFlow: number;
   propertyValue: number;
+  loanBalance: number;
   equity: number;
   cumulativeCashFlow: number;
   totalReturn: number;
@@ -329,7 +330,8 @@ export const calculateAllMetrics = (inputs: PropertyInputs): CalculatedMetrics =
     dealScore: score,
     dealRating: rating,
     recommendation,
-    irr: 0 // Placeholder, will be calculated
+    irr: 0, // Placeholder, will be calculated
+    equityMultiple: 0 // Placeholder, will be calculated
   };
 
   const projections = generate5YearProjections(
@@ -580,7 +582,8 @@ export const generate5YearProjections = (
     // Simplified: assumes equal principal payments
     const yearsElapsed = year;
     const principalPaidDown = (baseMetrics.loanAmount / inputs.loanTerm) * yearsElapsed;
-    const equity = currentPropertyValue - (baseMetrics.loanAmount - principalPaidDown);
+    const loanBalance = baseMetrics.loanAmount - principalPaidDown;
+    const equity = currentPropertyValue - loanBalance;
 
     // Total return = cumulative cash flow + equity
     const totalReturn = cumulativeCashFlow + equity - baseMetrics.totalCashInvested;
@@ -592,6 +595,7 @@ export const generate5YearProjections = (
       annualExpenses,
       annualCashFlow,
       propertyValue: currentPropertyValue,
+      loanBalance,
       equity,
       cumulativeCashFlow,
       totalReturn
