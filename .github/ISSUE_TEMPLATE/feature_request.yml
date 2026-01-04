@@ -1,0 +1,86 @@
+name: Feature Request
+description: Suggest a new feature or enhancement for PropIQ
+title: "[FEATURE] "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature! This will be tracked locally and on GitHub.
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature?
+      options:
+        - P0 - Critical (needed for launch)
+        - P1 - High (needed this week)
+        - P2 - Medium (needed this month)
+        - P3 - Low (nice to have)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of PropIQ does this affect?
+      options:
+        - Calculator
+        - Authentication
+        - Payments/Stripe
+        - UI/Frontend
+        - Backend/API
+        - Analytics
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem does this feature solve?
+      placeholder: "Example: New users don't understand what 'Cap Rate' means and abandon the calculator."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: How should we solve this?
+      placeholder: "Example: Add tooltip explanations for all financial terms with beginner-friendly definitions."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: What other solutions did you consider?
+      placeholder: "Example: Could link to external glossary, but inline tooltips are more user-friendly."
+    validations:
+      required: false
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Expected Impact
+      description: How will this improve PropIQ?
+      placeholder: |
+        - User benefit: Reduces confusion, increases conversion
+        - Business benefit: Higher trial-to-paid conversion rate
+        - Estimated effort: 2-4 hours
+    validations:
+      required: true
+
+  - type: input
+    id: roi
+    attributes:
+      label: ROI Score (Impact × Frequency / Effort)
+      description: Leave blank - calculated automatically
+      placeholder: "Auto-calculated"
+    validations:
+      required: false

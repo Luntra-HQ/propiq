@@ -1,0 +1,127 @@
+name: Bug Report
+description: Report a bug or issue in PropIQ
+title: "[BUG] "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug! This will be automatically synced to our local tracking system.
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How critical is this bug?
+      options:
+        - Critical (blocks users, no workaround)
+        - High (breaks feature, workaround exists)
+        - Medium (annoying but manageable)
+        - Low (minor UI issue)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of PropIQ is affected?
+      options:
+        - Calculator
+        - Authentication
+        - Payments/Stripe
+        - UI/Frontend
+        - Backend/API
+        - Database
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: source
+    attributes:
+      label: How was this discovered?
+      options:
+        - Sentry (automated error tracking)
+        - User report
+        - Clarity (session recording)
+        - Testing (automated or manual)
+        - Internal discovery
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What's broken? Be specific.
+      placeholder: "Example: When users click 'Sign Up' with a valid password, the form freezes and no account is created."
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact
+      description: Who is affected and how severely?
+      placeholder: |
+        - Users affected: All new signups / Some users / Few users
+        - Revenue impact: Yes / No
+        - Workaround available: Yes / No
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this bug?
+      placeholder: |
+        1. Go to signup page
+        2. Enter email and password
+        3. Click "Sign Up"
+        4. Form freezes
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Links to error logs, screenshots, recordings
+      placeholder: |
+        - Sentry link: https://sentry.io/...
+        - Clarity session: https://clarity.microsoft.com/...
+        - Screenshot: [attach or link]
+    validations:
+      required: false
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Where did this occur?
+      placeholder: |
+        - Browser: Chrome 120 / Safari 17 / Firefox 121
+        - Device: Desktop / Mobile / Tablet
+        - OS: macOS / Windows / iOS / Android
+    validations:
+      required: false
+
+  - type: textarea
+    id: root_cause
+    attributes:
+      label: Root Cause (After Investigation)
+      description: Leave blank initially - fill in after investigation
+      placeholder: "Example: Frontend validates ≥8 char password, backend requires ≥12 chars"
+    validations:
+      required: false
+
+  - type: input
+    id: fix_commit
+    attributes:
+      label: Fix Commit Hash
+      description: Leave blank until fixed
+      placeholder: "Example: a1b2c3d4"
+    validations:
+      required: false
