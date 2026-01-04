@@ -15,10 +15,11 @@
 ### BUG-001: Maximum Update Depth Exceeded (Tooltip Infinite Loop)
 
 **Date Discovered:** 2026-01-04
-**Date Resolved:** 2026-01-04
+**Date Resolved:** 2026-01-04 (both occurrences)
+**Occurrences:** 2 (DealCalculatorV3, then DealCalculatorV2)
 **Severity:** Critical
 **Status:** ✅ RESOLVED
-**Component:** DealCalculatorV3 / EnhancedTooltip
+**Component:** DealCalculatorV3 / EnhancedTooltip (first), DealCalculatorV2 (second)
 
 **Description:**
 React throws "Maximum update depth exceeded" error when loading Advanced Mode tab with tooltips.
@@ -131,6 +132,14 @@ The `<button type="button">` element with `onClick={e => e.preventDefault()}` in
 - Single `TooltipProvider` at high level, never nested
 - `skipDelayDuration` prevents jarring delays when moving between tooltips
 - Grok AI is excellent at debugging React component re-render loops
+
+**Second Occurrence (Same Day):**
+- **Component:** DealCalculatorV2
+- **Fix Commit:** 61aeea3
+- **Same Root Cause:** `InputTooltip` component had `<TooltipProvider>` wrapper around each tooltip
+- **Solution:** Removed TooltipProvider from InputTooltip, added single provider at DealCalculatorV2 root (line 97)
+- **Impact:** Site was crashing in production until fix deployed
+- **Tracked in:** PROPIQ_BUG_TRACKER.csv
 
 ---
 
