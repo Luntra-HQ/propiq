@@ -16,7 +16,7 @@
 import { useState } from 'react';
 import { Mail, Lock, User, Building, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { FormInput } from '@/components/ui/FormInput';
 import { validatePassword } from '../utils/passwordValidation';
 import { PasswordStrengthIndicator } from './PasswordStrengthIndicator';

@@ -8,7 +8,7 @@
  */
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import { GlassCard } from '@/components/ui/GlassCard'
 import {
   Dialog,

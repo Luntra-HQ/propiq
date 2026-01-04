@@ -13,7 +13,7 @@ import { DealCalculatorV3 } from '@/components/DealCalculatorV3'
 import { QuickCheck } from '@/components/QuickCheck'
 import { AuthModalV2 } from '@/components/AuthModalV2'
 import { FormInput, NumericInput } from '@/components/ui/FormInput'
-import { Button } from '@/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import { GlassCard } from '@/components/ui/GlassCard'
 import {
   Dialog,
