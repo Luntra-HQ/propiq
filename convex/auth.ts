@@ -5,6 +5,7 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { api } from "./_generated/api";
 
 // ============================================
 // PASSWORD VALIDATION
@@ -96,6 +97,26 @@ export const signup = mutation({
       createdAt: Date.now(),
     });
 
+    console.log(`[AUTH] Created new user account: ${email} (ID: ${userId})`);
+
+    // Create email verification token
+    // Note: Token creation is non-blocking - if it fails, user can still login
+    // and request verification later
+    let verificationToken = null;
+    try {
+      const tokenResult = await ctx.runMutation(api.auth.createEmailVerificationToken, {
+        userId,
+      });
+
+      if (tokenResult.success) {
+        verificationToken = tokenResult.token;
+        console.log(`[AUTH] Email verification token created for ${email}`);
+      }
+    } catch (error) {
+      console.error(`[AUTH] Failed to create verification token for ${email}:`, error);
+      // Non-blocking: Continue with signup even if token creation fails
+    }
+
     return {
       success: true,
       userId: userId.toString(),
@@ -103,6 +124,8 @@ export const signup = mutation({
       subscriptionTier: "free",
       analysesLimit: 3,
       message: "Account created successfully",
+      verificationToken, // Return token so HTTP endpoint can send email
+      needsVerification: true,
     };
   },
 });
@@ -824,9 +847,26 @@ export const signupWithSession = mutation({
 
     console.log("[AUTH] Signup with session for user:", email, "token:", sessionToken);
 
+    // Create email verification token (non-blocking)
+    let verificationToken = null;
+    try {
+      const tokenResult = await ctx.runMutation(api.auth.createEmailVerificationToken, {
+        userId,
+      });
+
+      if (tokenResult.success) {
+        verificationToken = tokenResult.token;
+        console.log(`[AUTH] Email verification token created for ${email}`);
+      }
+    } catch (error) {
+      console.error(`[AUTH] Failed to create verification token for ${email}:`, error);
+      // Non-blocking: Continue with signup even if token creation fails
+    }
+
     return {
       success: true,
       sessionToken,
+      verificationToken, // Return so HTTP endpoint can send email
       user: {
         _id: userId,
         email,
@@ -927,9 +967,323 @@ export const resetMonthlyUsage = mutation({
     await ctx.db.patch(args.userId, {
       analysesUsed: 0,
     });
-    
+
     console.log(`[AUTH] Reset usage for user ${args.userId}`);
-    
+
     return { success: true };
+  },
+});
+
+/**
+ * Query: Get user by Stripe customer ID
+ * Used by webhook handler to find user when subscription is cancelled
+ */
+export const getUserByStripeCustomer = query({
+  args: {
+    stripeCustomerId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_stripe_customer", (q) =>
+        q.eq("stripeCustomerId", args.stripeCustomerId)
+      )
+      .first();
+
+    if (!user) {
+      console.log(`[AUTH] No user found for Stripe customer: ${args.stripeCustomerId}`);
+      return null;
+    }
+
+    console.log(`[AUTH] Found user ${user.email} for Stripe customer ${args.stripeCustomerId}`);
+    return user;
+  },
+});
+
+/**
+ * Mutation: Downgrade user to free tier
+ * Called when subscription is cancelled or payment fails
+ */
+export const downgradeToFreeTier = mutation({
+  args: {
+    userId: v.id("users"),
+    reason: v.optional(v.string()), // "cancelled", "payment_failed", etc.
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Store previous tier for logging
+    const previousTier = user.subscriptionTier;
+
+    // Downgrade to free tier
+    await ctx.db.patch(args.userId, {
+      subscriptionTier: "free",
+      analysesLimit: 3, // Free tier: 3 analyses
+      subscriptionStatus: "cancelled", // Mark as cancelled
+      // Keep stripeCustomerId and stripeSubscriptionId for history
+    });
+
+    const reason = args.reason || "unknown";
+    console.log(
+      `[AUTH] Downgraded user ${user.email} from ${previousTier} to free (reason: ${reason})`
+    );
+
+    return {
+      success: true,
+      previousTier,
+      newTier: "free",
+      message: `User downgraded from ${previousTier} to free tier`,
+    };
+  },
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EMAIL VERIFICATION SYSTEM
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Create email verification token
+ * Generates a secure token and stores it in the database
+ * Token expires after 24 hours
+ */
+export const createEmailVerificationToken = mutation({
+  args: {
+    userId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Check if user is already verified
+    if (user.emailVerified) {
+      console.log(`[AUTH] User ${user.email} already verified, skipping token creation`);
+      return {
+        success: false,
+        message: "Email already verified",
+      };
+    }
+
+    // Check for existing unverified token (within 24 hours)
+    const existingToken = await ctx.db
+      .query("emailVerifications")
+      .withIndex("by_user_unverified", (q) =>
+        q.eq("userId", args.userId).eq("verified", false)
+      )
+      .first();
+
+    // If token exists and not expired, return existing token
+    if (existingToken && existingToken.expiresAt > Date.now()) {
+      console.log(`[AUTH] Reusing existing verification token for ${user.email}`);
+      return {
+        success: true,
+        token: existingToken.token,
+        expiresAt: existingToken.expiresAt,
+        isNew: false,
+      };
+    }
+
+    // Generate new cryptographically secure token
+    const token = crypto.randomUUID();
+    const expiresAt = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+
+    // Create verification token
+    await ctx.db.insert("emailVerifications", {
+      userId: args.userId,
+      email: user.email,
+      token,
+      expiresAt,
+      verified: false,
+      resendCount: 0,
+      createdAt: Date.now(),
+    });
+
+    console.log(`[AUTH] Created email verification token for ${user.email}, expires in 24h`);
+
+    return {
+      success: true,
+      token,
+      expiresAt,
+      isNew: true,
+    };
+  },
+});
+
+/**
+ * Verify email using token
+ * Marks user as verified and updates the token status
+ */
+export const verifyEmail = mutation({
+  args: {
+    token: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Find verification token
+    const verification = await ctx.db
+      .query("emailVerifications")
+      .withIndex("by_token", (q) => q.eq("token", args.token))
+      .first();
+
+    if (!verification) {
+      console.error("[AUTH] Email verification failed: Token not found");
+      throw new Error("Invalid verification token");
+    }
+
+    // Check if already verified
+    if (verification.verified) {
+      console.log(`[AUTH] Email already verified for token ${args.token}`);
+      return {
+        success: true,
+        message: "Email already verified",
+        alreadyVerified: true,
+      };
+    }
+
+    // Check if expired
+    if (verification.expiresAt < Date.now()) {
+      console.error(
+        `[AUTH] Email verification failed: Token expired (age: ${Math.floor((Date.now() - verification.createdAt) / 1000 / 60)} minutes)`
+      );
+      throw new Error(
+        "Verification token has expired. Please request a new verification email."
+      );
+    }
+
+    // Get user
+    const user = await ctx.db.get(verification.userId);
+
+    if (!user) {
+      console.error("[AUTH] Email verification failed: User not found");
+      throw new Error("User not found");
+    }
+
+    // Mark user as verified
+    await ctx.db.patch(verification.userId, {
+      emailVerified: true,
+      updatedAt: Date.now(),
+    });
+
+    // Mark token as verified
+    await ctx.db.patch(verification._id, {
+      verified: true,
+      verifiedAt: Date.now(),
+    });
+
+    console.log(`[AUTH] ✅ Email verified successfully for user: ${user.email}`);
+
+    return {
+      success: true,
+      message: "Email verified successfully",
+      email: user.email,
+      alreadyVerified: false,
+    };
+  },
+});
+
+/**
+ * Resend verification email
+ * Creates new token and returns it (actual email sending happens in HTTP endpoint)
+ * Rate limited to prevent abuse (max 5 resends per hour)
+ */
+export const resendVerificationEmail = mutation({
+  args: {
+    email: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const email = args.email.toLowerCase().trim();
+
+    // Find user
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .first();
+
+    if (!user) {
+      // Don't reveal if user exists (prevent email enumeration)
+      console.log(`[AUTH] Resend verification requested for non-existent email: ${email}`);
+      return {
+        success: true,
+        message: "If an account exists with this email, a verification link will be sent.",
+      };
+    }
+
+    // Check if already verified
+    if (user.emailVerified) {
+      console.log(`[AUTH] Resend verification requested for already verified user: ${email}`);
+      return {
+        success: true,
+        message: "Email is already verified",
+        alreadyVerified: true,
+      };
+    }
+
+    // Find existing verification token
+    const existingToken = await ctx.db
+      .query("emailVerifications")
+      .withIndex("by_user_unverified", (q) =>
+        q.eq("userId", user._id).eq("verified", false)
+      )
+      .first();
+
+    // Rate limiting: Max 5 resends per hour
+    if (existingToken) {
+      const oneHourAgo = Date.now() - 60 * 60 * 1000;
+      const resendCount = existingToken.resendCount || 0;
+      const lastResendAt = existingToken.lastResendAt || existingToken.createdAt;
+
+      if (resendCount >= 5 && lastResendAt > oneHourAgo) {
+        console.warn(
+          `[AUTH] Rate limit exceeded for verification resend: ${email} (${resendCount} resends in last hour)`
+        );
+        throw new Error(
+          "Too many verification emails sent. Please wait an hour before requesting another."
+        );
+      }
+
+      // Update resend count
+      await ctx.db.patch(existingToken._id, {
+        resendCount: resendCount + 1,
+        lastResendAt: Date.now(),
+      });
+
+      console.log(
+        `[AUTH] Resending verification email for ${email} (resend #${resendCount + 1})`
+      );
+
+      return {
+        success: true,
+        token: existingToken.token,
+        userId: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        message: "Verification email will be sent",
+      };
+    }
+
+    // No existing token - create new one
+    const tokenResult = await ctx.runMutation(api.auth.createEmailVerificationToken, {
+      userId: user._id,
+    });
+
+    if (!tokenResult.success) {
+      throw new Error("Failed to create verification token");
+    }
+
+    console.log(`[AUTH] Created new verification token for resend: ${email}`);
+
+    return {
+      success: true,
+      token: tokenResult.token,
+      userId: user._id,
+      email: user.email,
+      firstName: user.firstName,
+      message: "Verification email will be sent",
+    };
   },
 });
