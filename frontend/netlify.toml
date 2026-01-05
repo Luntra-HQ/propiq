@@ -2,12 +2,28 @@
 # Fast deployment alternative to Azure Static Web Apps
 
 [build]
-  # Build command when base directory is set to "frontend" in Netlify UI
-  # Install root deps first (for convex package), then frontend deps and build
-  command = "echo '📦 Installing root dependencies...' && cd .. && npm install && echo '📦 Installing frontend dependencies...' && cd frontend && npm install && echo '🔨 Building frontend...' && npm run build:prod && echo '✅ Frontend build complete!'"
+  # Build command with test enforcement
+  # 1. Install dependencies
+  # 2. Run critical auth tests (BLOCKS DEPLOY IF FAILED)
+  # 3. Build if tests pass
+  command = """
+    echo '📦 Installing root dependencies...' && \
+    cd .. && npm install && \
+    echo '📦 Installing frontend dependencies...' && \
+    cd frontend && npm install && \
+    echo '🧪 Running critical auth tests...' && \
+    npx playwright install chromium && \
+    npx playwright test tests/user-signup-integration.spec.ts tests/password-reset.spec.ts --project=chromium --reporter=list && \
+    echo '✅ Tests passed! Building frontend...' && \
+    npm run build:prod && \
+    echo '✅ Build complete!'
+  """
 
   # Output directory (relative to base: frontend/)
   publish = "dist"
+
+  # If tests fail, Netlify build fails and deployment is blocked
+  ignore = "git diff --quiet HEAD^ HEAD ./"
 
 [build.environment]
   # Node.js version (Vite 7 requires Node 20+)
