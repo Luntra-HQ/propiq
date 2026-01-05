@@ -22,9 +22,6 @@ import {
 } from 'lucide-react';
 
 const LoginPage: React.FC = () => {
-  // DELIBERATE BREAKING CHANGE TO TEST ENFORCEMENT
-  THIS_WILL_BREAK_COMPILATION = true;
-
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
