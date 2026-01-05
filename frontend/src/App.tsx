@@ -459,10 +459,18 @@ const App = () => {
   };
 
   const handleSelectTier = async (tierId: string) => {
-    console.log(`Upgrading to tier: ${tierId}`);
+    console.log('=== CHECKOUT DEBUG START ===');
+    console.log('1. Tier selected:', tierId);
+    console.log('2. User ID:', userId);
+    console.log('3. Current URL:', window.location.origin);
 
+    // UNAUTHENTICATED USER FLOW:
+    // Save tier to localStorage, redirect to signup with plan query param
+    // After auth success, App.tsx will auto-trigger checkout (see useEffect below)
     if (!userId) {
-      alert('Please log in to upgrade your plan.');
+      console.log('4. User not authenticated - saving tier and redirecting to signup');
+      localStorage.setItem('pendingTier', tierId);
+      window.location.href = `/signup?plan=${tierId}`;
       return;
     }
 
@@ -470,31 +478,44 @@ const App = () => {
       // Show loading state
       setShowPricingPage(false);
 
-      // Call Convex action to create Stripe checkout session
-      const result = await createCheckout({
+      console.log('4. Calling createCheckout action...');
+      const checkoutParams = {
         userId: userId as Id<"users">,
         tier: tierId,
         successUrl: `${window.location.origin}/app?upgrade=success`,
         cancelUrl: `${window.location.origin}/app?upgrade=cancelled`,
-      });
+      };
+      console.log('5. Checkout params:', checkoutParams);
+
+      // Call Convex action to create Stripe checkout session
+      const result = await createCheckout(checkoutParams);
+
+      console.log('6. Checkout result received:', result);
 
       if (result.success && result.url) {
         // Redirect to Stripe Checkout
-        console.log('Redirecting to Stripe checkout:', result.sessionId);
+        console.log('7. SUCCESS - Redirecting to Stripe checkout:', result.sessionId);
+        console.log('8. Stripe URL:', result.url);
         window.location.href = result.url;
       } else {
-        throw new Error('Failed to create checkout session');
+        console.error('ERROR: Result missing success or url:', result);
+        throw new Error('Failed to create checkout session - invalid response');
       }
     } catch (error: any) {
-      console.error('Stripe checkout error:', error);
+      console.error('=== CHECKOUT ERROR ===');
+      console.error('Error type:', error.constructor.name);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+      console.error('Full error object:', error);
 
       // Show user-friendly error message
       const errorMessage = error.message || 'Unable to start checkout. Please try again.';
-      alert(`Checkout Error: ${errorMessage}`);
+      alert(`Checkout Error: ${errorMessage}\n\nCheck browser console for details.`);
 
       // Reopen pricing page so user can try again
       setShowPricingPage(true);
     }
+    console.log('=== CHECKOUT DEBUG END ===');
   };
 
   const handleTopUpPurchase = async (packageId: string) => {
@@ -534,6 +555,25 @@ const App = () => {
     // Store dismissal in localStorage to prevent repeated prompts
     localStorage.setItem('upgradeBannerDismissed', Date.now().toString());
   };
+
+  // AUTO-TRIGGER CHECKOUT FOR PENDING TIER (after signup/login)
+  // If user selected a tier before authenticating, this will automatically
+  // start the checkout process after they successfully log in
+  useEffect(() => {
+    if (userId && !showAuthModal) {
+      const pendingTier = localStorage.getItem('pendingTier');
+      if (pendingTier) {
+        console.log('Detected pending tier after auth:', pendingTier);
+        // Clear it first to prevent infinite loops
+        localStorage.removeItem('pendingTier');
+        // Small delay to let auth state settle
+        setTimeout(() => {
+          console.log('Auto-triggering checkout for pending tier');
+          handleSelectTier(pendingTier);
+        }, 1000);
+      }
+    }
+  }, [userId, showAuthModal]);
 
   // Show product tour after user logs in (if they haven't seen it)
   useEffect(() => {
