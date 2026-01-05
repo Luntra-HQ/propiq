@@ -19,9 +19,10 @@ const ProductTour = lazy(() => import('./components/ProductTour').then(m => ({ d
 const HelpCenter = lazy(() => import('./components/HelpCenter').then(m => ({ default: m.HelpCenter })));
 const OnboardingChecklist = lazy(() => import('./components/OnboardingChecklist').then(m => ({ default: m.OnboardingChecklist })));
 const ComponentTestPage = lazy(() => import('./pages/ComponentTestPage'));
+const ResendVerificationBanner = lazy(() => import('./components/ResendVerification').then(m => ({ default: m.ResendVerificationBanner })));
 
-// Import hook directly (small, needed for initial render logic)
-import { useShouldShowTour } from './components/ProductTour';
+// Import hook from separate file (avoids static/dynamic import conflict)
+import { useShouldShowTour } from './hooks/useProductTour';
 
 // Suspense fallback component
 const SuspenseFallback: React.FC<{ minHeight?: string }> = ({ minHeight = '100px' }) => (
@@ -626,6 +627,13 @@ const App = () => {
         onLogout={handleLogout}
         onHelpClick={() => setShowHelpCenter(true)}
       />
+
+      {/* Email Verification Banner (shows if email not verified) */}
+      {user && !user.emailVerified && userEmail && (
+        <Suspense fallback={null}>
+          <ResendVerificationBanner email={userEmail} />
+        </Suspense>
+      )}
 
       {/* Onboarding Checklist (shows for first 7 days) */}
       {userId && <OnboardingChecklist userId={userId as any} />}

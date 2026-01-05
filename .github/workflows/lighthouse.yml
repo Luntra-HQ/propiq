@@ -1,0 +1,54 @@
+name: Lighthouse CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+      - name: Serve build
+        working-directory: frontend
+        run: npx serve -s dist -l 8080 &
+
+      - name: Wait for server
+        run: npx wait-on http://localhost:8080
+
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          urls: |
+            http://localhost:8080
+            http://localhost:8080/login
+            http://localhost:8080/pricing
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+          budgetPath: ./frontend/lighthouse-budget.json
+          runs: 3
+
+      - name: Upload Lighthouse results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-results
+          path: '.lighthouseci'
