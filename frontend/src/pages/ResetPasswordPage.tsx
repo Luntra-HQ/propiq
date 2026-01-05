@@ -49,6 +49,13 @@ const ResetPasswordPage: React.FC = () => {
   const handleRequestReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    // Prevent duplicate requests (Issue #19)
+    if (requestLoading) {
+      console.log('[Reset Password] Request already in progress, ignoring duplicate');
+      return;
+    }
+
     setRequestLoading(true);
 
     try {
@@ -112,6 +119,12 @@ const ResetPasswordPage: React.FC = () => {
       return;
     }
 
+    // Prevent duplicate requests (same as Issue #19 fix)
+    if (resetLoading) {
+      console.log('[Reset Password] Reset already in progress, ignoring duplicate');
+      return;
+    }
+
     setResetLoading(true);
 
     try {
@@ -123,7 +136,17 @@ const ResetPasswordPage: React.FC = () => {
       console.log('[Reset Password] Endpoint:', endpoint);
       console.log('[Reset Password] Token length:', token?.length);
 
-      const response = await fetch(endpoint, {
+      // Issue #18 Fix: Add 10-second timeout for password reset request
+      const fetchWithTimeout = (url: string, options: RequestInit, timeout = 10000) => {
+        return Promise.race([
+          fetch(url, options),
+          new Promise<Response>((_, reject) =>
+            setTimeout(() => reject(new Error('Request timed out. Please try again.')), timeout)
+          ),
+        ]);
+      };
+
+      const response = await fetchWithTimeout(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -149,7 +172,7 @@ const ResetPasswordPage: React.FC = () => {
         setTimeout(() => navigate('/login'), 2000);
       }
     } catch (err: any) {
-      const errorMsg = err.message || 'An error occurred';
+      const errorMsg = err.message || 'An error occurred. Please check your connection and try again.';
       console.error('[Reset Password] Exception:', err);
       setError(errorMsg);
     } finally {
