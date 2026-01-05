@@ -464,13 +464,10 @@ const App = () => {
     console.log('2. User ID:', userId);
     console.log('3. Current URL:', window.location.origin);
 
-    // UNAUTHENTICATED USER FLOW:
-    // Save tier to localStorage, redirect to signup with plan query param
-    // After auth success, App.tsx will auto-trigger checkout (see useEffect below)
+    // UNAUTHENTICATED USER FLOW: Redirect to signup
     if (!userId) {
-      console.log('4. User not authenticated - saving tier and redirecting to signup');
-      localStorage.setItem('pendingTier', tierId);
-      window.location.href = `/signup?plan=${tierId}`;
+      console.log('4. User not authenticated - redirecting to signup');
+      window.location.href = '/signup';
       return;
     }
 
@@ -556,24 +553,7 @@ const App = () => {
     localStorage.setItem('upgradeBannerDismissed', Date.now().toString());
   };
 
-  // AUTO-TRIGGER CHECKOUT FOR PENDING TIER (after signup/login)
-  // If user selected a tier before authenticating, this will automatically
-  // start the checkout process after they successfully log in
-  useEffect(() => {
-    if (userId && !showAuthModal) {
-      const pendingTier = localStorage.getItem('pendingTier');
-      if (pendingTier) {
-        console.log('Detected pending tier after auth:', pendingTier);
-        // Clear it first to prevent infinite loops
-        localStorage.removeItem('pendingTier');
-        // Small delay to let auth state settle
-        setTimeout(() => {
-          console.log('Auto-triggering checkout for pending tier');
-          handleSelectTier(pendingTier);
-        }, 1000);
-      }
-    }
-  }, [userId, showAuthModal]);
+  // Removed auto-checkout logic - users now upgrade from dashboard after signup
 
   // Show product tour after user logs in (if they haven't seen it)
   useEffect(() => {

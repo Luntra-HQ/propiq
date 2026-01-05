@@ -7,13 +7,9 @@ const PricingPagePublic: React.FC = () => {
   const navigate = useNavigate();
   const tiers = Object.values(PRICING_TIERS);
 
-  // Handle tier selection for unauthenticated users
-  // Saves tier to localStorage and redirects to signup
-  const handleTierSelect = (tierId: string) => {
-    if (tierId !== 'free') {
-      localStorage.setItem('pendingTier', tierId);
-    }
-    navigate(`/signup?plan=${tierId}`);
+  // Simple redirect to signup - users create account first
+  const handleTierSelect = () => {
+    navigate('/signup');
   };
 
   return (
@@ -153,7 +149,7 @@ const PricingPagePublic: React.FC = () => {
                 </ul>
 
                 <button
-                  onClick={() => handleTierSelect(tier.id)}
+                  onClick={handleTierSelect}
                   className={`block w-full py-3 rounded-lg font-semibold text-center transition ${
                     isPopular
                       ? 'bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white'
@@ -162,7 +158,7 @@ const PricingPagePublic: React.FC = () => {
                       : 'bg-slate-700 hover:bg-slate-600 text-white'
                   }`}
                 >
-                  {tier.id === 'free' ? 'Start Free' : 'Get Started'}
+                  {tier.id === 'free' ? 'Start Free Trial' : 'Create Account'}
                 </button>
               </div>
             );
