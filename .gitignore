@@ -330,3 +330,5 @@ temp/
 
 # Local Netlify folder
 .netlify
+logs/*.log
+logs/crontab-backup-*.txt
