@@ -27,6 +27,9 @@ export default defineSchema({
     active: v.boolean(),
     emailVerified: v.boolean(),
 
+    // Referral system (optional)
+    referralCode: v.optional(v.string()),
+
     // Timestamps
     createdAt: v.number(),
     lastLogin: v.optional(v.number()),

@@ -23,12 +23,12 @@ export interface PricingTier {
   stripePriceId?: string; // Stripe price ID for checkout
 }
 
-// Stripe Price IDs - UNLIMITED MODEL (Updated Nov 25, 2025)
-// Starter: $49/month unlimited | Pro: $99/month unlimited | Elite: $199/month unlimited
+// Stripe Price IDs - USAGE-BASED MODEL (Updated Jan 4, 2026)
+// Starter: $29/month (20 analyses) | Pro: $79/month (100 analyses) | Elite: $199/month (300 analyses)
 export const STRIPE_PRICE_IDS: Record<string, string> = {
-  starter: 'price_1SXQEsJogOchEFxvG8fT5B0b', // $49/month (was $69)
-  pro: 'price_1SL51sJogOchEFxvVounuNcK', // $99/month (same)
-  elite: 'price_1SXQF2JogOchEFxvRpZ0GGuf' // $199/month (was $149)
+  starter: 'price_1Sm54hJogOchEFxvukES6gEC', // $29/month - 20 analyses
+  pro: 'price_1Sm55FJogOchEFxvHsjRST1K', // $79/month - 100 analyses
+  elite: 'price_1Sm57PJogOchEFxvQypRULNy' // $199/month - 300 analyses
 };
 
 export interface TopUpPackage {
@@ -61,50 +61,52 @@ export const PRICING_TIERS: Record<string, PricingTier> = {
     id: 'starter',
     name: 'Starter',
     displayName: 'Starter',
-    price: 49, // LOWERED from $69 - reduces barrier to entry
-    propIqLimit: 999999, // UNLIMITED - removes friction
-    cogs: 7.35, // Estimated 49 analyses/mo @ $0.15
-    grossMargin: 85.0, // (49 - 7.35) / 49 = 85%
+    price: 29, // Usage-based pricing - sustainable model
+    propIqLimit: 20, // 20 AI analyses per month
+    cogs: 3.00, // 20 runs × $0.15 = $3.00
+    grossMargin: 89.7, // (29 - 3) / 29 = 89.7%
     features: [
-      '✨ UNLIMITED AI analyses',
+      '20 AI analyses per month',
       'All calculator features',
       'Export reports (PDF)',
       'Mobile & desktop access',
       'Email support',
       'Save analysis history'
     ],
-    bestFor: 'New investors (1-3 properties)'
+    bestFor: 'New investors (1-3 properties)',
+    stripePriceId: STRIPE_PRICE_IDS.starter
   },
   pro: {
     id: 'pro',
     name: 'Pro',
     displayName: 'Pro',
-    price: 99,
-    propIqLimit: 999999, // UNLIMITED - sweet spot tier
-    cogs: 14.85, // Estimated 99 analyses/mo @ $0.15
-    grossMargin: 85.0, // (99 - 14.85) / 99 = 85%
+    price: 79,
+    propIqLimit: 100, // 100 AI analyses per month - sweet spot
+    cogs: 15.00, // 100 runs × $0.15 = $15.00
+    grossMargin: 81.0, // (79 - 15) / 79 = 81%
     features: [
-      '✨ UNLIMITED AI analyses',
+      '100 AI analyses per month',
       'Everything in Starter, plus:',
-      'Market comparisons & trends',
-      'Deal alerts (email notifications)',
       'Chrome extension (analyze from Zillow)',
-      'Bulk import (analyze 10+ at once)',
-      'Priority email + chat support'
+      'Export to PDF',
+      'Priority support',
+      'Market insights',
+      'Deal alerts (email notifications)'
     ],
     bestFor: 'Active investors (4-10 properties)',
-    isPopular: true // MOST POPULAR - Portfolio Paul's tier
+    isPopular: true, // MOST POPULAR - Portfolio Paul's tier
+    stripePriceId: STRIPE_PRICE_IDS.pro
   },
   elite: {
     id: 'elite',
     name: 'Elite',
     displayName: 'Elite',
-    price: 199, // RAISED from $149 - premium positioning
-    propIqLimit: 999999, // UNLIMITED - no restrictions
-    cogs: 29.85, // Estimated 199 analyses/mo @ $0.15
-    grossMargin: 85.0, // (199 - 29.85) / 199 = 85%
+    price: 199, // Premium tier with high volume
+    propIqLimit: 300, // 300 AI analyses per month
+    cogs: 45.00, // 300 runs × $0.15 = $45.00
+    grossMargin: 77.4, // (199 - 45) / 199 = 77.4%
     features: [
-      '✨ UNLIMITED AI analyses',
+      '300 AI analyses per month',
       'Everything in Pro, plus:',
       'White-label reports (your branding)',
       'API access (integrate with your tools)',
@@ -114,13 +116,32 @@ export const PRICING_TIERS: Record<string, PricingTier> = {
       'Priority phone + email + chat support',
       'Custom integrations (on request)'
     ],
-    bestFor: 'Power users & agents (10+ properties)'
+    bestFor: 'Power users & agents (10+ properties)',
+    stripePriceId: STRIPE_PRICE_IDS.elite
   }
 };
 
-// Top-Up Packages - DEPRECATED (unlimited model, no longer needed)
-// Kept for backwards compatibility, but hidden from UI
-export const TOP_UP_PACKAGES: TopUpPackage[] = [];
+// Top-Up Packages - For users who exceed monthly limits
+export const TOP_UP_PACKAGES: TopUpPackage[] = [
+  {
+    id: 'topup_10',
+    runs: 10,
+    price: 15,
+    pricePerRun: 1.50 // $15 / 10 = $1.50 per analysis
+  },
+  {
+    id: 'topup_25',
+    runs: 25,
+    price: 30,
+    pricePerRun: 1.20 // $30 / 25 = $1.20 per analysis (20% discount)
+  },
+  {
+    id: 'topup_50',
+    runs: 50,
+    price: 50,
+    pricePerRun: 1.00 // $50 / 50 = $1.00 per analysis (33% discount)
+  }
+];
 
 // Usage Threshold Configuration
 export const USAGE_THRESHOLDS = {
