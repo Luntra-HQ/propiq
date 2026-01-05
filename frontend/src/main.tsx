@@ -10,6 +10,7 @@ import LoginPage from './pages/LoginPage'
 import WelcomePage from './pages/WelcomePage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import FAQPage from './pages/FAQPage'
+import PricingPagePublic from './pages/PricingPagePublic'
 import App from './App'
 
 // Components
@@ -49,7 +50,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Routes>
             {/* Public routes - accessible to everyone */}
             <Route path="/" element={<LandingPage />} />
-            <Route path="/pricing" element={<LandingPage />} />
+            <Route path="/pricing" element={<PricingPagePublic />} />
             <Route path="/faq" element={<FAQPage />} />
             <Route path="/welcome" element={<WelcomePage />} />
 

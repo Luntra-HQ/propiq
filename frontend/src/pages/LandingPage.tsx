@@ -118,12 +118,18 @@ const LandingPage: React.FC = () => {
 
             {/* CTA */}
             <div className="flex items-center gap-4">
-              <a
-                href="#waitlist"
+              <Link
+                to="/login"
+                className="text-gray-300 hover:text-white transition font-medium"
+              >
+                Log In
+              </Link>
+              <Link
+                to="/signup"
                 className="px-4 py-2 bg-violet-600 hover:bg-violet-700 rounded-lg font-medium transition"
               >
-                Join Waitlist
-              </a>
+                Sign Up
+              </Link>
             </div>
           </div>
         </div>
@@ -147,17 +153,17 @@ const LandingPage: React.FC = () => {
 
           <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
             Get instant cap rate, cash flow, and ROI calculations powered by AI.
-            Make smarter investment decisions with PropIQ.
+            Save your analysis reports and access them anytime from your dashboard.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="#waitlist"
+            <Link
+              to="/signup"
               className="px-8 py-4 bg-violet-600 hover:bg-violet-700 rounded-lg font-semibold text-lg transition flex items-center justify-center gap-2"
             >
-              Get Early Access
+              Start Free Trial
               <ArrowRight className="h-5 w-5" />
-            </a>
+            </Link>
             <Link
               to="/pricing"
               className="px-8 py-4 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg font-semibold text-lg transition"
@@ -176,18 +182,11 @@ const LandingPage: React.FC = () => {
       <section className="py-12 border-y border-slate-800 bg-slate-800/30">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex flex-wrap justify-center items-center gap-8 text-gray-400">
-            <div className="flex items-center gap-2">
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-5 w-5 text-yellow-500 fill-yellow-500" />
-                ))}
-              </div>
-              <span>4.9/5 rating</span>
-            </div>
+            <span>AI-Powered Analysis</span>
             <div className="h-6 w-px bg-slate-700" />
-            <span>Trusted by 500+ investors</span>
+            <span>30-Second Results</span>
             <div className="h-6 w-px bg-slate-700" />
-            <span>10,000+ properties analyzed</span>
+            <span>Advanced Metrics</span>
           </div>
         </div>
       </section>
@@ -468,14 +467,14 @@ const LandingPage: React.FC = () => {
                 description: 'Get instant insights on any property with our GPT-4 powered analysis engine.',
               },
               {
+                icon: BarChart,
+                title: 'Saved Report History',
+                description: 'Access all your property analysis reports anytime from your personal dashboard.',
+              },
+              {
                 icon: Calculator,
                 title: 'Deal Calculator',
                 description: 'Comprehensive calculator with cap rate, cash flow, ROI, and 5-year projections.',
-              },
-              {
-                icon: BarChart,
-                title: 'Deal Scoring',
-                description: 'Automatic 0-100 deal score based on multiple investment criteria.',
               },
               {
                 icon: Clock,
@@ -489,8 +488,8 @@ const LandingPage: React.FC = () => {
               },
               {
                 icon: CheckCircle,
-                title: '1% Rule Check',
-                description: 'Instant validation against the 1% rule and other investment criteria.',
+                title: 'Deal Comparison',
+                description: 'Compare multiple properties side-by-side to find the best investment.',
               },
             ].map((feature, i) => (
               <div
@@ -565,7 +564,7 @@ const LandingPage: React.FC = () => {
             Get Early Access to PropIQ
           </h2>
           <p className="text-gray-400 text-lg mb-8">
-            Join 500+ investors on the waitlist. Be the first to know when we launch and get exclusive early access benefits.
+            Be the first to know when we launch and get exclusive early access benefits.
           </p>
 
           {/* Email Signup Form */}
