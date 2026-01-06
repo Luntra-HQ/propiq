@@ -25,19 +25,54 @@ export default defineConfig({
         drop_debugger: true,
       },
     },
-    // Code splitting configuration
+    // Code splitting configuration - aggressive chunking for better performance
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Vendor chunks for large libraries
-          'vendor-react': ['react', 'react-dom'],
-          'vendor-ui': ['lucide-react', 'styled-components'],
-          'vendor-utils': ['axios', 'jspdf', 'html2canvas'],
+        manualChunks(id) {
+          // React core (always needed)
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+            return 'vendor-react';
+          }
+
+          // Convex (database SDK)
+          if (id.includes('node_modules/convex')) {
+            return 'vendor-convex';
+          }
+
+          // Sentry (error tracking)
+          if (id.includes('node_modules/@sentry')) {
+            return 'vendor-sentry';
+          }
+
+          // PDF generation (heavy, only used in export)
+          if (id.includes('node_modules/jspdf') || id.includes('node_modules/html2canvas')) {
+            return 'vendor-pdf';
+          }
+
+          // HTTP client
+          if (id.includes('node_modules/axios')) {
+            return 'vendor-http';
+          }
+
+          // UI libraries
+          if (id.includes('node_modules/lucide-react') || id.includes('node_modules/styled-components')) {
+            return 'vendor-ui';
+          }
+
+          // Chart/visualization libraries (if any)
+          if (id.includes('node_modules/recharts') || id.includes('node_modules/chart')) {
+            return 'vendor-charts';
+          }
+
+          // All other node_modules
+          if (id.includes('node_modules')) {
+            return 'vendor-misc';
+          }
         },
       },
     },
     // Chunk size warning limit
-    chunkSizeWarningLimit: 500, // KB
+    chunkSizeWarningLimit: 600, // KB (increased slightly to account for split chunks)
   },
   // Performance hints
   server: {
