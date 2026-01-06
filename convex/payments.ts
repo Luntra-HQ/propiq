@@ -25,8 +25,8 @@ export const createCheckoutSession = action({
     successUrl: v.string(),
     cancelUrl: v.string(),
   },
-  handler: async (ctx, args) => {
-    const user = await ctx.runQuery(api.auth.getUser, { userId: args.userId });
+  handler: async (ctx, args): Promise<any> => {
+    const user: any = await ctx.runQuery(api.auth.getUser, { userId: args.userId });
 
     if (!user) {
       console.error("User not found for checkout:", args.userId);

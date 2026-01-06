@@ -801,7 +801,7 @@ export const signupWithSession = mutation({
     company: v.optional(v.string()),
     userAgent: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<any> => {
     const email = args.email.toLowerCase().trim();
 
     // Validate password strength
@@ -859,7 +859,7 @@ export const signupWithSession = mutation({
     // Create email verification token (non-blocking)
     let verificationToken = null;
     try {
-      const tokenResult = await ctx.runMutation(api.auth.createEmailVerificationToken, {
+      const tokenResult: any = await ctx.runMutation(api.auth.createEmailVerificationToken, {
         userId,
       });
 
@@ -1204,7 +1204,7 @@ export const resendVerificationEmail = mutation({
   args: {
     email: v.string(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<any> => {
     const email = args.email.toLowerCase().trim();
 
     // Find user
@@ -1276,7 +1276,7 @@ export const resendVerificationEmail = mutation({
     }
 
     // No existing token - create new one
-    const tokenResult = await ctx.runMutation(api.auth.createEmailVerificationToken, {
+    const tokenResult: any = await ctx.runMutation(api.auth.createEmailVerificationToken, {
       userId: user._id,
     });
 
