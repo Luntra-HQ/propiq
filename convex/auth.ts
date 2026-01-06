@@ -62,7 +62,16 @@ export const signup = mutation({
     lastName: v.optional(v.string()),
     company: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<{
+    success: boolean;
+    userId: string;
+    email: string;
+    subscriptionTier: string;
+    analysesLimit: number;
+    message: string;
+    verificationToken: string | null;
+    needsVerification: boolean;
+  }> => {
     // Normalize email to lowercase
     const email = args.email.toLowerCase().trim();
 
@@ -104,7 +113,7 @@ export const signup = mutation({
     // and request verification later
     let verificationToken = null;
     try {
-      const tokenResult = await ctx.runMutation(api.auth.createEmailVerificationToken, {
+      const tokenResult: any = await ctx.runMutation(api.auth.createEmailVerificationToken, {
         userId,
       });
 
@@ -356,8 +365,8 @@ async function hashPassword(password: string): Promise<string> {
   );
 
   // Format: $pbkdf2-sha256$v1$iterations$salt$hash
-  const saltB64 = arrayBufferToBase64(salt.buffer);
-  const hashB64 = arrayBufferToBase64(derivedBits);
+  const saltB64 = arrayBufferToBase64(salt.buffer as ArrayBuffer);
+  const hashB64 = arrayBufferToBase64(derivedBits as ArrayBuffer);
 
   return `$pbkdf2-sha256$${HASH_VERSION}$${PBKDF2_ITERATIONS}$${saltB64}$${hashB64}`;
 }

@@ -26,22 +26,17 @@ export const createCheckoutSession = action({
     cancelUrl: v.string(),
   },
   handler: async (ctx, args) => {
-    console.log("=== CONVEX CHECKOUT DEBUG START ===");
-    console.log("1. Args received:", args);
-
     const user = await ctx.runQuery(api.auth.getUser, { userId: args.userId });
-    console.log("2. User found:", user ? `${user.email} (ID: ${args.userId})` : "null");
 
     if (!user) {
-      console.error("ERROR: User not found for ID:", args.userId);
+      console.error("User not found for checkout:", args.userId);
       throw new Error("User not found");
     }
 
     const tierConfig = SUBSCRIPTION_TIERS[args.tier as keyof typeof SUBSCRIPTION_TIERS];
-    console.log("3. Tier config:", tierConfig);
 
     if (!tierConfig || !tierConfig.priceId) {
-      console.error("ERROR: Invalid tier:", args.tier);
+      console.error("Invalid subscription tier:", args.tier);
       throw new Error("Invalid subscription tier");
     }
 
@@ -49,7 +44,7 @@ export const createCheckoutSession = action({
     if (tierConfig.priceId.startsWith('price_STARTER_') ||
         tierConfig.priceId.startsWith('price_PRO_') ||
         tierConfig.priceId.startsWith('price_ELITE_')) {
-      console.error("ERROR: Placeholder price ID detected:", tierConfig.priceId);
+      console.error("Placeholder price ID detected:", tierConfig.priceId);
       throw new Error(
         "Pricing update in progress. New pricing tiers launching soon! " +
         "Current tier: " + args.tier.toUpperCase() + " ($" + tierConfig.price + "/month). " +
@@ -58,15 +53,13 @@ export const createCheckoutSession = action({
     }
 
     const apiKey = process.env.STRIPE_SECRET_KEY;
-    console.log("4. Stripe API key present:", apiKey ? `Yes (${apiKey.substring(0, 15)}...)` : "No");
 
     if (!apiKey) {
-      console.error("ERROR: STRIPE_SECRET_KEY not found in environment");
+      console.error("STRIPE_SECRET_KEY not configured");
       throw new Error("Stripe not configured");
     }
 
     try {
-      console.log("5. Preparing Stripe API request...");
       const requestBody = new URLSearchParams({
         "mode": "subscription",
         "customer_email": user.email,
@@ -78,9 +71,6 @@ export const createCheckoutSession = action({
         "metadata[tier]": args.tier,
       }).toString();
 
-      console.log("6. Request body:", requestBody);
-      console.log("7. Calling Stripe API...");
-
       // Create Stripe checkout session
       const response = await fetch("https://api.stripe.com/v1/checkout/sessions", {
         method: "POST",
@@ -91,22 +81,13 @@ export const createCheckoutSession = action({
         body: requestBody,
       });
 
-      console.log("8. Stripe API response status:", response.status);
-
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("ERROR: Stripe API returned error:", errorText);
+        console.error("Stripe API error:", errorText);
         throw new Error(`Stripe API error: ${errorText}`);
       }
 
       const session = await response.json();
-      console.log("9. Stripe session created successfully:", {
-        id: session.id,
-        url: session.url,
-        customer_email: session.customer_email,
-      });
-
-      console.log("=== CONVEX CHECKOUT DEBUG END (SUCCESS) ===");
 
       return {
         success: true,
@@ -114,7 +95,7 @@ export const createCheckoutSession = action({
         url: session.url,
       };
     } catch (error) {
-      console.error("=== CONVEX CHECKOUT ERROR ===");
+      console.error("Checkout creation failed:", error);
       console.error("Error type:", error instanceof Error ? error.constructor.name : typeof error);
       console.error("Error message:", error instanceof Error ? error.message : String(error));
       console.error("Full error:", error);

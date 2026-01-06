@@ -8,6 +8,7 @@ import { action, mutation, query } from "./_generated/server";
 import { api } from "./_generated/api";
 
 // Analyze property - Main analysis function
+// 🔒 RACE CONDITION FIX: Uses atomic slot reservation to prevent concurrent requests from bypassing limits
 export const analyzeProperty = action({
   args: {
     userId: v.id("users"),
@@ -19,26 +20,49 @@ export const analyzeProperty = action({
     downPayment: v.optional(v.number()),
     monthlyRent: v.optional(v.number()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<any> => {
+    // STEP 1: 🔒 ATOMICALLY reserve analysis slot BEFORE starting expensive operations
+    // This prevents race condition where multiple requests bypass the limit check
+    let slotReserved = false;
+    let reservationResult;
+
     try {
-      // Check user's analysis limit
-      const user = await ctx.runQuery(api.auth.getUser, { userId: args.userId });
+      reservationResult = await ctx.runMutation(api.propiq.reserveAnalysisSlot, {
+        userId: args.userId,
+      });
+      slotReserved = true;
 
-      if (!user) {
-        throw new Error("User not found");
+      console.log(
+        `[PropIQ] Analysis slot reserved: ${reservationResult.analysesUsed}/${reservationResult.analysesLimit} used`
+      );
+    } catch (error: any) {
+      // Slot reservation failed (likely limit reached)
+      console.error("[PropIQ] Slot reservation failed:", error.message);
+      throw error;
+    }
+
+    // STEP 2: Generate AI analysis (can fail - if so, we'll refund the slot)
+    let analysisResult;
+    try {
+      analysisResult = await generateAIAnalysis(args);
+    } catch (error: any) {
+      // AI analysis failed - refund the reserved slot
+      console.error("[PropIQ] AI analysis failed:", error.message);
+
+      if (slotReserved) {
+        await ctx.runMutation(api.propiq.refundAnalysisSlot, {
+          userId: args.userId,
+          reason: "ai_analysis_failed",
+        });
       }
 
-      if (user.analysesUsed >= user.analysesLimit) {
-        throw new Error(
-          `Analysis limit reached. You've used ${user.analysesUsed}/${user.analysesLimit} analyses. Please upgrade your plan.`
-        );
-      }
+      throw new Error(`AI analysis failed: ${error.message || error}`);
+    }
 
-      // Call OpenAI for property analysis
-      const analysisResult = await generateAIAnalysis(args);
-
-      // Save analysis to database
-      const analysisId = await ctx.runMutation(api.propiq.saveAnalysis, {
+    // STEP 3: Save analysis to database (can fail - if so, we'll refund the slot)
+    let analysisId;
+    try {
+      analysisId = await ctx.runMutation(api.propiq.saveAnalysis, {
         userId: args.userId,
         address: args.address,
         city: args.city,
@@ -53,19 +77,28 @@ export const analyzeProperty = action({
         tokensUsed: analysisResult.tokensUsed,
       });
 
-      // Increment user's analyses used count
-      await ctx.runMutation(api.propiq.incrementAnalysisCount, { userId: args.userId });
-
-      return {
-        success: true,
-        analysisId: analysisId.toString(),
-        ...analysisResult,
-        analysesRemaining: user.analysesLimit - user.analysesUsed - 1,
-      };
+      console.log(`[PropIQ] Analysis saved successfully: ${analysisId}`);
     } catch (error: any) {
-      console.error("[PropIQ] Analysis error:", error);
-      throw new Error(`Analysis failed: ${error.message || error}`);
+      // Database save failed - refund the reserved slot
+      console.error("[PropIQ] Database save failed:", error.message);
+
+      if (slotReserved) {
+        await ctx.runMutation(api.propiq.refundAnalysisSlot, {
+          userId: args.userId,
+          reason: "database_save_failed",
+        });
+      }
+
+      throw new Error(`Failed to save analysis: ${error.message || error}`);
     }
+
+    // STEP 4: Success! Return analysis results
+    return {
+      success: true,
+      analysisId: analysisId.toString(),
+      ...analysisResult,
+      analysesRemaining: reservationResult.analysesRemaining,
+    };
   },
 });
 
@@ -123,6 +156,88 @@ export const incrementAnalysisCount = mutation({
     });
 
     return { success: true };
+  },
+});
+
+// 🔒 ATOMIC: Reserve analysis slot (prevents race condition)
+// This mutation checks the limit AND increments the counter in a SINGLE transaction
+// This prevents multiple concurrent requests from bypassing the limit
+export const reserveAnalysisSlot = mutation({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // ATOMIC CHECK + INCREMENT: Both happen in same transaction
+    if (user.analysesUsed >= user.analysesLimit) {
+      throw new Error(
+        `Analysis limit reached. You've used ${user.analysesUsed}/${user.analysesLimit} analyses. Please upgrade your plan.`
+      );
+    }
+
+    // Immediately increment to reserve the slot
+    // This prevents race condition where multiple requests pass the check
+    await ctx.db.patch(args.userId, {
+      analysesUsed: user.analysesUsed + 1,
+      updatedAt: Date.now(),
+    });
+
+    const analysesRemaining = user.analysesLimit - user.analysesUsed - 1;
+
+    console.log(
+      `[PropIQ] Reserved analysis slot for user ${user.email}: ${user.analysesUsed + 1}/${user.analysesLimit} used (${analysesRemaining} remaining)`
+    );
+
+    return {
+      success: true,
+      analysesUsed: user.analysesUsed + 1,
+      analysesLimit: user.analysesLimit,
+      analysesRemaining,
+    };
+  },
+});
+
+// 🔄 ROLLBACK: Decrement analysis count (used if analysis fails after reservation)
+// This refunds the user's analysis slot if the AI call or save operation fails
+export const refundAnalysisSlot = mutation({
+  args: {
+    userId: v.id("users"),
+    reason: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Only refund if user has used at least 1 analysis
+    if (user.analysesUsed > 0) {
+      await ctx.db.patch(args.userId, {
+        analysesUsed: user.analysesUsed - 1,
+        updatedAt: Date.now(),
+      });
+
+      const reason = args.reason || "analysis_failed";
+      console.log(
+        `[PropIQ] Refunded analysis slot for user ${user.email}: ${user.analysesUsed - 1}/${user.analysesLimit} (reason: ${reason})`
+      );
+
+      return {
+        success: true,
+        analysesUsed: user.analysesUsed - 1,
+        analysesLimit: user.analysesLimit,
+        message: `Analysis slot refunded (reason: ${reason})`,
+      };
+    }
+
+    return {
+      success: false,
+      message: "No analysis to refund",
+    };
   },
 });
 

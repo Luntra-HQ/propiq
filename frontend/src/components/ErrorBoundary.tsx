@@ -35,7 +35,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
     // Send to Sentry
     Sentry.withScope((scope) => {
-      scope.setExtras(errorInfo);
+      scope.setExtras(errorInfo as Record<string, any>);
       const eventId = Sentry.captureException(error);
       this.setState({ eventId, errorInfo });
     });
@@ -123,7 +123,7 @@ export const SentryErrorBoundary = Sentry.withErrorBoundary(ErrorBoundary, {
       <div className="error-boundary-content">
         <AlertTriangle className="error-icon" size={64} />
         <h1>Application Error</h1>
-        <p>An unexpected error occurred: {error.message}</p>
+        <p>An unexpected error occurred: {error instanceof Error ? error.message : String(error)}</p>
         <button onClick={resetError} className="btn-primary">
           <RefreshCw size={20} />
           Reset Application

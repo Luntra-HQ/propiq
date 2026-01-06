@@ -460,14 +460,8 @@ const App = () => {
   };
 
   const handleSelectTier = async (tierId: string) => {
-    console.log('=== CHECKOUT DEBUG START ===');
-    console.log('1. Tier selected:', tierId);
-    console.log('2. User ID:', userId);
-    console.log('3. Current URL:', window.location.origin);
-
     // UNAUTHENTICATED USER FLOW: Redirect to signup
     if (!userId) {
-      console.log('4. User not authenticated - redirecting to signup');
       window.location.href = '/signup';
       return;
     }
@@ -476,35 +470,25 @@ const App = () => {
       // Show loading state
       setShowPricingPage(false);
 
-      console.log('4. Calling createCheckout action...');
       const checkoutParams = {
         userId: userId as Id<"users">,
         tier: tierId,
         successUrl: `${window.location.origin}/app?upgrade=success`,
         cancelUrl: `${window.location.origin}/app?upgrade=cancelled`,
       };
-      console.log('5. Checkout params:', checkoutParams);
 
       // Call Convex action to create Stripe checkout session
       const result = await createCheckout(checkoutParams);
 
-      console.log('6. Checkout result received:', result);
-
       if (result.success && result.url) {
         // Redirect to Stripe Checkout
-        console.log('7. SUCCESS - Redirecting to Stripe checkout:', result.sessionId);
-        console.log('8. Stripe URL:', result.url);
         window.location.href = result.url;
       } else {
-        console.error('ERROR: Result missing success or url:', result);
+        console.error('Checkout session creation failed:', result);
         throw new Error('Failed to create checkout session - invalid response');
       }
     } catch (error: any) {
-      console.error('=== CHECKOUT ERROR ===');
-      console.error('Error type:', error.constructor.name);
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
-      console.error('Full error object:', error);
+      console.error('Checkout error:', error.message || error);
 
       // Show user-friendly error message
       const errorMessage = error.message || 'Unable to start checkout. Please try again.';
@@ -513,7 +497,6 @@ const App = () => {
       // Reopen pricing page so user can try again
       setShowPricingPage(true);
     }
-    console.log('=== CHECKOUT DEBUG END ===');
   };
 
   const handleTopUpPurchase = async (packageId: string) => {
