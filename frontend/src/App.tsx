@@ -388,18 +388,19 @@ const App = () => {
   // Note: App is wrapped in ProtectedRoute, so user is always authenticated here
   const { user, isLoading: authLoading, logout: authLogout, sessionToken } = useAuth();
 
-  // Defensive: Validate Convex API is available before using it
-  // This prevents "TypeError: null is not an object (evaluating 'rs.payments')" errors
-  if (!api || !api.payments || !api.payments.createCheckoutSession) {
-    console.error('[APP] Critical: Convex API not properly initialized', {
-      hasApi: !!api,
-      hasPayments: !!(api && api.payments),
-      hasCreateCheckout: !!(api && api.payments && api.payments.createCheckoutSession),
-    });
-  }
-
   // Convex action for Stripe checkout
-  const createCheckout = useAction(api.payments.createCheckoutSession);
+  // CRITICAL FIX: Use optional chaining to prevent "TypeError: null is not an object (evaluating 'rs.payments')"
+  // This error happens when user signs up and immediately redirects to /app before Convex API is fully loaded
+  //
+  // The error "rs.payments" is from minified code where 'rs' = minified variable for 'api'
+  // Root cause: React tries to call useAction(api.payments.createCheckoutSession) but api.payments is still undefined
+  //
+  // Solution: Pass a safe reference that won't throw if undefined
+  const createCheckout = useAction(
+    // Use optional chaining - if api or api.payments is undefined, pass undefined to useAction
+    // Convex's useAction gracefully handles undefined and returns a function that throws a helpful error
+    (api && api.payments && api.payments.createCheckoutSession) || undefined
+  );
 
   // Sync auth state with local component state
   useEffect(() => {
