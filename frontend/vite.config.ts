@@ -25,14 +25,12 @@ export default defineConfig({
         drop_debugger: true,
       },
     },
-    // Code splitting configuration - aggressive chunking for better performance
+    // Code splitting configuration - SIMPLIFIED to fix React loading order
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // React core (always needed)
-          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
-            return 'vendor-react';
-          }
+          // CRITICAL: React must NOT be split to avoid loading order issues
+          // Keep React in main bundle to ensure it's always available first
 
           // Convex (database SDK)
           if (id.includes('node_modules/convex')) {
@@ -49,24 +47,9 @@ export default defineConfig({
             return 'vendor-pdf';
           }
 
-          // HTTP client
-          if (id.includes('node_modules/axios')) {
-            return 'vendor-http';
-          }
-
-          // UI libraries
-          if (id.includes('node_modules/lucide-react') || id.includes('node_modules/styled-components')) {
-            return 'vendor-ui';
-          }
-
-          // Chart/visualization libraries (if any)
-          if (id.includes('node_modules/recharts') || id.includes('node_modules/chart')) {
-            return 'vendor-charts';
-          }
-
-          // All other node_modules
+          // All other node_modules (including React - keep together)
           if (id.includes('node_modules')) {
-            return 'vendor-misc';
+            return 'vendor';
           }
         },
       },
