@@ -17,6 +17,8 @@ import {
   ArrowRight,
   Star,
   Lock,
+  Download,
+  Mail,
 } from 'lucide-react';
 import { calculateAllMetrics, formatCurrency, formatPercent } from '../utils/calculatorUtils';
 
@@ -25,6 +27,15 @@ const LandingPage: React.FC = () => {
   const [usageCount, setUsageCount] = useState(0);
   const [isLimited, setIsLimited] = useState(false);
   const USAGE_LIMIT = 3;
+
+  // Lead magnet form state
+  const [leadFormData, setLeadFormData] = useState({
+    email: '',
+    firstName: '',
+    lastName: '',
+  });
+  const [leadFormSubmitted, setLeadFormSubmitted] = useState(false);
+  const [leadFormSubmitting, setLeadFormSubmitting] = useState(false);
 
   // Calculator inputs
   const [inputs, setInputs] = useState({
@@ -73,7 +84,7 @@ const LandingPage: React.FC = () => {
 
   const handleCalculate = () => {
     if (isLimited) {
-      window.location.href = '#waitlist';
+      window.location.href = '#lead-magnet';
       return;
     }
 
@@ -83,6 +94,57 @@ const LandingPage: React.FC = () => {
 
     if (newCount >= USAGE_LIMIT) {
       setIsLimited(true);
+    }
+  };
+
+  // Handle lead magnet form submission
+  const handleLeadFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLeadFormSubmitting(true);
+
+    try {
+      // Get UTM parameters from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const data = {
+        ...leadFormData,
+        leadMagnetType: 'real-estate-checklist',
+        utm_source: urlParams.get('utm_source') || undefined,
+        utm_medium: urlParams.get('utm_medium') || undefined,
+        utm_campaign: urlParams.get('utm_campaign') || undefined,
+        utm_content: urlParams.get('utm_content') || undefined,
+        utm_term: urlParams.get('utm_term') || undefined,
+      };
+
+      // Send to our Convex webhook (primary - triggers nurture sequence)
+      const convexResponse = await fetch('https://mild-tern-361.convex.site/formspree-webhook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!convexResponse.ok) {
+        console.error('Convex webhook failed:', await convexResponse.text());
+      }
+
+      // Also send to Formspree (secondary - for your email notifications)
+      const formspreeData = new FormData();
+      formspreeData.append('email', leadFormData.email);
+      formspreeData.append('firstName', leadFormData.firstName);
+      formspreeData.append('lastName', leadFormData.lastName);
+      formspreeData.append('leadMagnetType', 'real-estate-checklist');
+
+      await fetch('https://formspree.io/f/xldqywge', {
+        method: 'POST',
+        body: formspreeData,
+      });
+
+      // Show success state
+      setLeadFormSubmitted(true);
+    } catch (error) {
+      console.error('Form submission error:', error);
+      alert('Something went wrong. Please try again or email us at support@luntra.one');
+    } finally {
+      setLeadFormSubmitting(false);
     }
   };
 
@@ -211,7 +273,7 @@ const LandingPage: React.FC = () => {
             </h2>
             <p className="text-gray-400 text-lg max-w-2xl mx-auto">
               {isLimited
-                ? 'Join the waitlist to get unlimited property analyses and early access benefits'
+                ? 'Download our free checklist or sign up for unlimited property analyses'
                 : 'Adjust the numbers below and see instant calculations. No signup required!'}
             </p>
           </div>
@@ -357,11 +419,11 @@ const LandingPage: React.FC = () => {
               {/* CTA */}
               {isLimited ? (
                 <a
-                  href="#waitlist"
+                  href="#lead-magnet"
                   className="w-full mt-6 px-6 py-3 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 rounded-lg font-semibold transition flex items-center justify-center gap-2"
                 >
-                  <Lock className="h-5 w-5" />
-                  Join Waitlist for Unlimited
+                  <Download className="h-5 w-5" />
+                  Get Free Checklist
                 </a>
               ) : (
                 <button
@@ -434,14 +496,23 @@ const LandingPage: React.FC = () => {
 
           {/* Video CTA */}
           <div className="mt-8 text-center">
-            <p className="text-gray-400 mb-4">Ready to get early access?</p>
-            <a
-              href="#waitlist"
-              className="px-8 py-4 bg-violet-600 hover:bg-violet-700 rounded-lg font-semibold text-lg transition inline-flex items-center gap-2"
-            >
-              Join Waitlist
-              <ArrowRight className="h-5 w-5" />
-            </a>
+            <p className="text-gray-400 mb-4">Ready to start analyzing properties?</p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                to="/signup"
+                className="px-8 py-4 bg-violet-600 hover:bg-violet-700 rounded-lg font-semibold text-lg transition inline-flex items-center justify-center gap-2"
+              >
+                Try Free
+                <ArrowRight className="h-5 w-5" />
+              </Link>
+              <a
+                href="#lead-magnet"
+                className="px-8 py-4 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg font-semibold text-lg transition inline-flex items-center justify-center gap-2"
+              >
+                Download Free Checklist
+                <Download className="h-5 w-5" />
+              </a>
+            </div>
           </div>
         </div>
       </section>
@@ -553,44 +624,164 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Waitlist Section */}
-      <section id="waitlist" className="py-20 px-4 bg-gradient-to-b from-slate-900 to-slate-800">
-        <div className="max-w-2xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-full text-green-400 text-sm mb-6">
-            <CheckCircle className="h-4 w-4" />
-            Launching Soon
-          </div>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Get Early Access to PropIQ
-          </h2>
-          <p className="text-gray-400 text-lg mb-8">
-            Be the first to know when we launch and get exclusive early access benefits.
-          </p>
+      {/* Lead Magnet Section - Free Checklist */}
+      <section id="lead-magnet" className="py-20 px-4 bg-gradient-to-b from-slate-900 via-violet-900/10 to-slate-800">
+        <div className="max-w-4xl mx-auto">
+          {!leadFormSubmitted ? (
+            // Form State
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              {/* Left: Value Proposition */}
+              <div>
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-full text-green-400 text-sm mb-6">
+                  <Download className="h-4 w-4" />
+                  FREE Download
+                </div>
+                <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                  Get Your FREE Real Estate Investment Checklist
+                </h2>
+                <p className="text-gray-400 text-lg mb-6">
+                  Not ready to sign up yet? Download our comprehensive checklist used by professional investors to analyze any property.
+                </p>
 
-          {/* Email Signup Form */}
-          <form
-            className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto mb-6"
-            action="https://formspree.io/f/xldqywge"
-            method="POST"
-          >
-            <input
-              type="email"
-              name="email"
-              placeholder="Enter your email"
-              required
-              className="flex-1 px-6 py-4 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-violet-500 transition"
-            />
-            <button
-              type="submit"
-              className="px-8 py-4 bg-violet-600 hover:bg-violet-700 rounded-lg font-semibold transition whitespace-nowrap"
-            >
-              Join Waitlist
-            </button>
-          </form>
+                <div className="space-y-3 mb-6">
+                  {[
+                    'Complete property analysis framework',
+                    'Financial calculation formulas',
+                    'Risk assessment criteria',
+                    'Deal scoring methodology',
+                    'Due diligence checklist',
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-300">{item}</span>
+                    </div>
+                  ))}
+                </div>
 
-          <p className="text-gray-500 text-sm">
-            🎁 Early access members get 1 month free + priority support
-          </p>
+                <p className="text-sm text-gray-500">
+                  📧 Plus, get exclusive tips on analyzing real estate deals (unsubscribe anytime)
+                </p>
+              </div>
+
+              {/* Right: Form */}
+              <div className="bg-slate-800/50 border border-violet-500/30 rounded-xl p-8 backdrop-blur">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 bg-violet-500/10 rounded-lg flex items-center justify-center">
+                    <Mail className="h-6 w-6 text-violet-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold">Download Now</h3>
+                    <p className="text-sm text-gray-400">Instant access • No credit card</p>
+                  </div>
+                </div>
+
+                <form onSubmit={handleLeadFormSubmit} className="space-y-4">
+                  <div>
+                    <label className="text-sm text-gray-400 mb-1 block">First Name</label>
+                    <input
+                      type="text"
+                      value={leadFormData.firstName}
+                      onChange={(e) => setLeadFormData({ ...leadFormData, firstName: e.target.value })}
+                      placeholder="John"
+                      required
+                      className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-violet-500 transition"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm text-gray-400 mb-1 block">Last Name</label>
+                    <input
+                      type="text"
+                      value={leadFormData.lastName}
+                      onChange={(e) => setLeadFormData({ ...leadFormData, lastName: e.target.value })}
+                      placeholder="Smith"
+                      required
+                      className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-violet-500 transition"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm text-gray-400 mb-1 block">Email Address</label>
+                    <input
+                      type="email"
+                      value={leadFormData.email}
+                      onChange={(e) => setLeadFormData({ ...leadFormData, email: e.target.value })}
+                      placeholder="john@example.com"
+                      required
+                      className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-violet-500 transition"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={leadFormSubmitting}
+                    className="w-full px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-semibold text-lg transition flex items-center justify-center gap-2"
+                  >
+                    {leadFormSubmitting ? (
+                      <>
+                        <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="h-5 w-5" />
+                        Download Free Checklist
+                      </>
+                    )}
+                  </button>
+
+                  <p className="text-xs text-gray-500 text-center">
+                    By downloading, you agree to receive occasional emails from PropIQ. Unsubscribe anytime.
+                  </p>
+                </form>
+              </div>
+            </div>
+          ) : (
+            // Success State
+            <div className="text-center max-w-2xl mx-auto">
+              <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle className="h-8 w-8 text-green-400" />
+              </div>
+
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                Check Your Email! 📧
+              </h2>
+
+              <p className="text-xl text-gray-400 mb-8">
+                We've sent your <strong>FREE Real Estate Investment Checklist</strong> to:
+              </p>
+
+              <p className="text-2xl font-semibold text-violet-400 mb-8">
+                {leadFormData.email}
+              </p>
+
+              <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 mb-8">
+                <h3 className="font-semibold mb-3">What's Next?</h3>
+                <div className="space-y-2 text-left text-gray-300">
+                  <p>✅ Check your inbox (and spam folder just in case)</p>
+                  <p>✅ Download your free checklist</p>
+                  <p>✅ Watch for our tips on analyzing real estate deals</p>
+                  <p>✅ When you're ready, try PropIQ's AI-powered analysis</p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link
+                  to="/signup"
+                  className="px-8 py-4 bg-violet-600 hover:bg-violet-700 rounded-lg font-semibold text-lg transition flex items-center justify-center gap-2"
+                >
+                  Try PropIQ Free
+                  <ArrowRight className="h-5 w-5" />
+                </Link>
+                <button
+                  onClick={() => setLeadFormSubmitted(false)}
+                  className="px-8 py-4 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg font-semibold text-lg transition"
+                >
+                  Download Another Copy
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </section>
       </main>
