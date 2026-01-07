@@ -388,6 +388,16 @@ const App = () => {
   // Note: App is wrapped in ProtectedRoute, so user is always authenticated here
   const { user, isLoading: authLoading, logout: authLogout, sessionToken } = useAuth();
 
+  // Defensive: Validate Convex API is available before using it
+  // This prevents "TypeError: null is not an object (evaluating 'rs.payments')" errors
+  if (!api || !api.payments || !api.payments.createCheckoutSession) {
+    console.error('[APP] Critical: Convex API not properly initialized', {
+      hasApi: !!api,
+      hasPayments: !!(api && api.payments),
+      hasCreateCheckout: !!(api && api.payments && api.payments.createCheckoutSession),
+    });
+  }
+
   // Convex action for Stripe checkout
   const createCheckout = useAction(api.payments.createCheckoutSession);
 
