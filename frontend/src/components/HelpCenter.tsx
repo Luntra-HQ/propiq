@@ -26,20 +26,20 @@ export const HelpCenter = ({ isOpen, onClose, userId, initialArticleSlug }: Help
   const [votedArticles, setVotedArticles] = useState<Set<string>>(new Set());
 
   // Queries
-  const allArticles = useQuery(api.articles.getAllArticles, {
+  const allArticles = useQuery(api?.articles?.getAllArticles ?? undefined, {
     category: selectedCategory || undefined,
   });
-  const popularArticles = useQuery(api.articles.getPopularArticles, { limit: 5 });
-  const categories = useQuery(api.articles.getCategories, {});
-  const searchArticles = useQuery(api.articles.searchArticles, {
+  const popularArticles = useQuery(api?.articles?.getPopularArticles ?? undefined, { limit: 5 });
+  const categories = useQuery(api?.articles?.getCategories ?? undefined, {});
+  const searchArticles = useQuery(api?.articles?.searchArticles ?? undefined, {
     query: searchQuery,
     category: selectedCategory || undefined,
   });
 
   // Mutations
-  const incrementViewCount = useMutation(api.articles.incrementViewCount);
-  const submitFeedback = useMutation(api.articles.submitArticleFeedback);
-  const logFailedSearch = useMutation(api.articles.logFailedSearch);
+  const incrementViewCount = useMutation(api?.articles?.incrementViewCount ?? undefined);
+  const submitFeedback = useMutation(api?.articles?.submitArticleFeedback ?? undefined);
+  const logFailedSearch = useMutation(api?.articles?.logFailedSearch ?? undefined);
 
   // Load initial article if provided
   useEffect(() => {

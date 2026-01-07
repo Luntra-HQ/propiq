@@ -397,9 +397,9 @@ const App = () => {
   //
   // Solution: Pass a safe reference that won't throw if undefined
   const createCheckout = useAction(
-    // Use optional chaining - if api or api.payments is undefined, pass undefined to useAction
+    // Use optional chaining - if api or api.payments is null/undefined, pass undefined to useAction
     // Convex's useAction gracefully handles undefined and returns a function that throws a helpful error
-    (api && api.payments && api.payments.createCheckoutSession) || undefined
+    api?.payments?.createCheckoutSession ?? undefined
   );
 
   // Sync auth state with local component state

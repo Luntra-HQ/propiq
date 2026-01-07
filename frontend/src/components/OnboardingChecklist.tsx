@@ -15,11 +15,11 @@ export const OnboardingChecklist = ({ userId }: OnboardingChecklistProps) => {
   const [showCompletionModal, setShowCompletionModal] = useState(false);
 
   // Query progress
-  const progress = useQuery(api.onboarding.getProgress, { userId });
-  const completionPercentage = useQuery(api.onboarding.getCompletionPercentage, { userId });
+  const progress = useQuery(api?.onboarding?.getProgress ?? undefined, { userId });
+  const completionPercentage = useQuery(api?.onboarding?.getCompletionPercentage ?? undefined, { userId });
 
   // Mutation
-  const dismissChecklist = useMutation(api.onboarding.dismissChecklist);
+  const dismissChecklist = useMutation(api?.onboarding?.dismissChecklist ?? undefined);
 
   // Check if we should show the checklist
   useEffect(() => {

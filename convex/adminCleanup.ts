@@ -132,7 +132,7 @@ export const deleteUserByEmail = mutation({
 
     // Delete all email verification tokens
     const tokens = await ctx.db
-      .query("emailVerificationTokens")
+      .query("emailVerifications")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
 
@@ -223,7 +223,7 @@ export const deleteUnverifiedUsers = mutation({
       }
 
       const tokens = await ctx.db
-        .query("emailVerificationTokens")
+        .query("emailVerifications")
         .withIndex("by_user", (q) => q.eq("userId", user._id))
         .collect();
 
@@ -302,7 +302,7 @@ const deleteUserByEmailHelper = async (
   }
 
   const tokens = await ctx.db
-    .query("emailVerificationTokens")
+    .query("emailVerifications")
     .withIndex("by_user", (q) => q.eq("userId", userId))
     .collect();
 
