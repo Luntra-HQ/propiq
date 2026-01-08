@@ -393,13 +393,15 @@ const App = () => {
   // - "TypeError: null is not an object (evaluating 'rs.payments')"
   // - "TypeError: undefined is not an object (evaluating 'e[le]')"
   // - "TypeError: Cannot read properties of undefined (reading 'Symbol(functionName)')"
+  // - "TypeError: Cannot read properties of null (reading 'payments')"
   //
   // Root Cause: When user signs up and redirects to /app, React components mount before
-  // Convex API object is fully initialized, causing useAction(undefined) to fail.
+  // Convex API object is fully initialized. The api object itself can be null during initial load.
   //
   // Solution: Loading guard pattern (recommended by Grok, idiomatic Convex + React pattern)
-  // Guard the component until api.payments is ready, then proceed with useAction
-  if (!api.payments?.createCheckoutSession) {
+  // Guard the component until BOTH api exists AND api.payments is ready
+  // IMPORTANT: Must check api?.payments (not api.payments) to handle api being null
+  if (!api?.payments?.createCheckoutSession) {
     return <LoadingScreen />;
   }
 
