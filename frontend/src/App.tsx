@@ -388,7 +388,7 @@ const App = () => {
   // Note: App is wrapped in ProtectedRoute, so user is always authenticated here
   const { user, isLoading: authLoading, logout: authLogout, sessionToken } = useAuth();
 
-  // CRITICAL FIX: Guard rendering until Convex API is fully loaded
+  // CRITICAL FIX: Guard rendering until Convex API base object loads
   // This prevents race condition errors during signup redirect:
   // - "TypeError: null is not an object (evaluating 'rs.payments')"
   // - "TypeError: undefined is not an object (evaluating 'e[le]')"
@@ -398,15 +398,19 @@ const App = () => {
   // Root Cause: When user signs up and redirects to /app, React components mount before
   // Convex API object is fully initialized. The api object itself can be null during initial load.
   //
-  // Solution: Loading guard pattern (recommended by Grok, idiomatic Convex + React pattern)
-  // Guard the component until BOTH api exists AND api.payments is ready
-  // IMPORTANT: Must check api?.payments (not api.payments) to handle api being null
-  if (!api?.payments?.createCheckoutSession) {
+  // Solution: Guard only on api existing (not specific modules)
+  // - This allows dashboard to load immediately
+  // - Payment functionality will be available once module loads
+  // - User doesn't get stuck on loading screen waiting for non-critical features
+  if (!api) {
     return <LoadingScreen />;
   }
 
-  // Now safe to call useAction - Convex API is guaranteed to be loaded
-  const createCheckout = useAction(api.payments.createCheckoutSession);
+  // Convex action for Stripe checkout - conditionally use if available
+  // Using optional chaining because payments module may load after initial render
+  const createCheckout = useAction(api.payments?.createCheckoutSession ?? (() => {
+    throw new Error('Payment system not yet loaded. Please try again in a moment.');
+  }));
 
   // Sync auth state with local component state
   useEffect(() => {
