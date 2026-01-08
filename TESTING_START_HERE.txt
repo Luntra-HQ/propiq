@@ -1,0 +1,39 @@
+🎯 PROPIQ DAY 1 TESTING - START HERE
+====================================
+
+YOU ARE HERE: Day 1 Afternoon (Thursday Jan 8, 2026)
+GOAL: Test 8 critical flows in 2-3 hours
+
+📂 OPEN THESE 2 FILES:
+
+1. DAY_1_TESTING_CHECKLIST.md
+   → This has your 8 tests to run
+
+2. UAT_QUICK_REFERENCE.md  
+   → This has test data (cards, emails, etc.)
+
+🚀 QUICK START (30 seconds):
+
+   open DAY_1_TESTING_CHECKLIST.md
+   
+   Then start Test 1 (Signup)
+   
+✅ THE 3 MUST-PASS TESTS:
+
+   Test 1: Signup (10 min)
+   Test 5: PropIQ Analysis (15 min)  
+   Test 6: Stripe Payment (15 min)
+   
+   If these 3 work → You can launch Monday!
+
+📋 OTHER HELPFUL FILES:
+
+   - UAT_INDEX.md → Full doc organization
+   - 5_DAY_LAUNCH_PLAN.md → Overall strategy
+   - UAT_TEST_MATRIX.csv → All 92 tests (Week 2)
+
+🆘 IF YOU GET STUCK:
+
+   Tell Claude: "Help with Test X" or "Bug found: [describe]"
+
+🎯 GO! Open DAY_1_TESTING_CHECKLIST.md and start!
