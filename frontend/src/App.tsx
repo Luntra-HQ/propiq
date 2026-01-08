@@ -388,19 +388,23 @@ const App = () => {
   // Note: App is wrapped in ProtectedRoute, so user is always authenticated here
   const { user, isLoading: authLoading, logout: authLogout, sessionToken } = useAuth();
 
-  // Convex action for Stripe checkout
-  // CRITICAL FIX: Use optional chaining to prevent "TypeError: null is not an object (evaluating 'rs.payments')"
-  // This error happens when user signs up and immediately redirects to /app before Convex API is fully loaded
+  // CRITICAL FIX: Guard rendering until Convex API is fully loaded
+  // This prevents race condition errors during signup redirect:
+  // - "TypeError: null is not an object (evaluating 'rs.payments')"
+  // - "TypeError: undefined is not an object (evaluating 'e[le]')"
+  // - "TypeError: Cannot read properties of undefined (reading 'Symbol(functionName)')"
   //
-  // The error "rs.payments" is from minified code where 'rs' = minified variable for 'api'
-  // Root cause: React tries to call useAction(api.payments.createCheckoutSession) but api.payments is still undefined
+  // Root Cause: When user signs up and redirects to /app, React components mount before
+  // Convex API object is fully initialized, causing useAction(undefined) to fail.
   //
-  // Solution: Pass a safe reference that won't throw if undefined
-  const createCheckout = useAction(
-    // Use optional chaining - if api or api.payments is null/undefined, pass undefined to useAction
-    // Convex's useAction gracefully handles undefined and returns a function that throws a helpful error
-    api?.payments?.createCheckoutSession ?? undefined
-  );
+  // Solution: Loading guard pattern (recommended by Grok, idiomatic Convex + React pattern)
+  // Guard the component until api.payments is ready, then proceed with useAction
+  if (!api.payments?.createCheckoutSession) {
+    return <LoadingScreen />;
+  }
+
+  // Now safe to call useAction - Convex API is guaranteed to be loaded
+  const createCheckout = useAction(api.payments.createCheckoutSession);
 
   // Sync auth state with local component state
   useEffect(() => {
