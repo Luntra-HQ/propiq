@@ -872,6 +872,21 @@ export const signupWithSession = mutation({
       // Non-blocking: Continue with signup even if token creation fails
     }
 
+    // Check if user downloaded lead magnet and convert lead to trial (non-blocking)
+    try {
+      const conversionResult: any = await ctx.runMutation(api.leads.convertLeadToTrial, {
+        email,
+        userId,
+      });
+
+      if (conversionResult.success) {
+        console.log(`[SIGNUP] Lead converted to trial: ${email}`);
+      }
+    } catch (error) {
+      console.error(`[SIGNUP] Failed to convert lead for ${email}:`, error);
+      // Non-blocking: Continue with signup even if conversion fails
+    }
+
     return {
       success: true,
       sessionToken,
@@ -1294,5 +1309,20 @@ export const resendVerificationEmail = mutation({
       firstName: user.firstName,
       message: "Verification email will be sent",
     };
+  },
+});
+
+/**
+ * Mark Day 0 onboarding email as sent
+ * Called after sending welcome email on email verification
+ */
+export const markOnboardingDay0Sent = mutation({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.userId, {
+      onboardingDay0Sent: true,
+      onboardingDay0SentAt: Date.now(),
+      updatedAt: Date.now(),
+    });
   },
 });

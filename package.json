@@ -9,6 +9,8 @@
     "build:frontend": "echo '📦 Installing frontend dependencies...' && cd frontend && npm install && echo '🔨 Building frontend...' && npm run build:prod && echo '✅ Frontend build complete!'"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.962.0",
+    "@aws-sdk/s3-request-presigner": "^3.962.0",
     "convex": "^1.17.2"
   },
   "devDependencies": {

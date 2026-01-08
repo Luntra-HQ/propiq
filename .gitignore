@@ -327,3 +327,6 @@ temp/
 #   git check-ignore -v <filename>
 #
 # ============================================================================
+
+# Local Netlify folder
+.netlify

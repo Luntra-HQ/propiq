@@ -279,6 +279,82 @@ export const getAnalysis = query({
   },
 });
 
+// Save property image metadata after S3 upload
+export const savePropertyImage = mutation({
+  args: {
+    analysisId: v.id("propertyAnalyses"),
+    imageData: v.object({
+      s3Key: v.string(),
+      s3Url: v.string(),
+      filename: v.string(),
+      size: v.number(),
+      mimeType: v.string(),
+      width: v.optional(v.number()),
+      height: v.optional(v.number()),
+    }),
+  },
+  handler: async (ctx, args) => {
+    const analysis = await ctx.db.get(args.analysisId);
+
+    if (!analysis) {
+      throw new Error("Analysis not found");
+    }
+
+    // Get existing images or initialize empty array
+    const currentImages = analysis.images || [];
+
+    // Add new image (limit to 5 images per property)
+    if (currentImages.length >= 5) {
+      throw new Error("Maximum 5 images per property reached");
+    }
+
+    const updatedImages = [
+      ...currentImages,
+      {
+        ...args.imageData,
+        uploadedAt: Date.now(),
+      },
+    ];
+
+    // Update analysis with new image
+    await ctx.db.patch(args.analysisId, {
+      images: updatedImages,
+    });
+
+    console.log(`[PropIQ] Image added to analysis ${args.analysisId}`);
+
+    return { success: true, imageCount: updatedImages.length };
+  },
+});
+
+// Delete property image
+export const deletePropertyImage = mutation({
+  args: {
+    analysisId: v.id("propertyAnalyses"),
+    s3Key: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const analysis = await ctx.db.get(args.analysisId);
+
+    if (!analysis) {
+      throw new Error("Analysis not found");
+    }
+
+    // Remove image from array
+    const updatedImages = (analysis.images || []).filter(
+      (img) => img.s3Key !== args.s3Key
+    );
+
+    await ctx.db.patch(args.analysisId, {
+      images: updatedImages,
+    });
+
+    console.log(`[PropIQ] Image removed from analysis ${args.analysisId}`);
+
+    return { success: true, imageCount: updatedImages.length };
+  },
+});
+
 // AI Analysis helper function
 async function generateAIAnalysis(propertyData: {
   address: string;

@@ -1,0 +1,632 @@
+Test ID,Priority,Feature Area,Test Scenario,Pre-conditions,Test Steps,Expected Results,Actual Results,Status,Bug ID,Tester,Date,Notes
+UAT-001,P0,Revenue Flow,New User Signup → Email Verification,User not logged in,"1. Navigate to propiq.luntra.one
+2. Click ""Get Started Free""
+3. Fill signup form (name, email, password)
+4. Submit form","✓ Account created
+✓ Email verification sent via Resend
+✓ User logged in automatically
+✓ Dashboard shows 3/3 analyses remaining
+✓ Email received within 60 seconds
+✓ Verification link works",,,,,
+UAT-002,P0,Revenue Flow,Free Trial → Paywall Trigger,User has 3 free analyses,"1. Run 1st PropIQ analysis
+2. Check usage counter
+3. Run 2nd analysis
+4. Check usage counter
+5. Run 3rd analysis
+6. Attempt 4th analysis","✓ After 1st: Shows 2/3 remaining
+✓ After 2nd: Shows 1/3 remaining
+✓ After 3rd: Shows 0/3 remaining
+✓ Paywall modal blocks 4th analysis
+✓ ""Upgrade Now"" button visible
+✓ Cannot access PropIQ Analysis button",,,,,
+UAT-003,P0,Revenue Flow,Stripe Checkout - Starter Tier ($29/mo),User at paywall (0 analyses left),"1. Click ""Upgrade to Starter""
+2. Stripe checkout opens
+3. Enter test card: 4242 4242 4242 4242
+4. Complete payment
+5. Return to dashboard","✓ Stripe checkout URL correct
+✓ Shows $29/month subscription
+✓ Payment processes successfully
+✓ Redirected to dashboard
+✓ Tier badge shows ""Starter""
+✓ Usage shows 0/20
+✓ Can run analyses again",,,,,
+UAT-004,P0,Revenue Flow,Stripe Checkout - Pro Tier ($79/mo),User at paywall or on Starter tier,"1. Click ""Upgrade to Pro""
+2. Complete Stripe checkout
+3. Return to dashboard","✓ Shows $79/month
+✓ Payment succeeds
+✓ Tier badge shows ""Pro""
+✓ Usage shows 0/100
+✓ Webhook processed correctly",,,,,
+UAT-005,P0,Revenue Flow,Stripe Checkout - Elite Tier ($199/mo),User at paywall or on lower tier,"1. Click ""Upgrade to Elite""
+2. Complete Stripe checkout
+3. Return to dashboard","✓ Shows $199/month
+✓ Payment succeeds
+✓ Tier badge shows ""Elite""
+✓ Usage shows 0/300
+✓ Webhook processed correctly",,,,,
+UAT-006,P0,Revenue Flow,Stripe Webhook Processing,User just completed checkout,"1. Complete Stripe checkout
+2. Wait 5 seconds
+3. Check Convex dashboard → stripeEvents table
+4. Check users table → subscriptionTier","✓ Webhook received within 5 seconds
+✓ Event logged in stripeEvents table
+✓ user.subscriptionTier updated
+✓ user.stripeCustomerId set
+✓ user.stripeSubscriptionId set
+✓ user.analysesUsed reset to 0
+✓ user.analysesLimit updated correctly",,,,,
+UAT-007,P0,Revenue Flow,Payment Failure Handling,User attempts checkout with declined card,"1. Click ""Upgrade to Starter""
+2. Enter declined test card: 4000 0000 0000 0002
+3. Submit payment","✓ Stripe shows ""Card declined"" error
+✓ User remains on free tier
+✓ Dashboard shows original tier
+✓ Error message displayed
+✓ Sentry captures error with context",,,,,
+UAT-008,P0,Authentication,Login with Valid Credentials,User has registered account,"1. Navigate to login page
+2. Enter email and password
+3. Click ""Login""","✓ Login successful
+✓ Redirected to dashboard
+✓ Session cookie set (httpOnly)
+✓ User data loaded correctly
+✓ Tier and usage visible",,,,,
+UAT-009,P0,Authentication,Login with Invalid Credentials,User has registered account,"1. Navigate to login page
+2. Enter email with wrong password
+3. Click ""Login""","✓ Error message: ""Invalid email or password""
+✓ User not logged in
+✓ No session created
+✓ Can retry login",,,,,
+UAT-010,P0,Authentication,Session Persistence,User logged in,"1. Login to dashboard
+2. Refresh page
+3. Close browser
+4. Reopen browser
+5. Navigate to propiq.luntra.one","✓ User stays logged in after refresh
+✓ User stays logged in after browser close
+✓ Session persists for 30 days (idle timeout)
+✓ lastActivityAt updates on each request",,,,,
+UAT-011,P0,Authentication,Logout,User logged in,"1. Click ""Logout"" button
+2. Confirm logout
+3. Check dashboard access","✓ Session destroyed
+✓ Cookie cleared
+✓ Redirected to landing/login page
+✓ Cannot access dashboard without re-login",,,,,
+UAT-012,P0,Authentication,Password Reset - Request,User forgot password,"1. Click ""Forgot Password""
+2. Enter email address
+3. Submit request","✓ Email sent via Resend within 60 seconds
+✓ Email contains reset link
+✓ Link format: /reset-password?token=...
+✓ Token saved in passwordResets table
+✓ expiresAt = now + 15 minutes",,,,,
+UAT-013,P0,Authentication,Password Reset - Complete,User received reset email,"1. Click reset link in email
+2. Enter new password
+3. Confirm new password
+4. Submit form","✓ Token validated successfully
+✓ Token not expired (<15 min)
+✓ passwordHash updated
+✓ Token marked as used
+✓ Success message shown
+✓ Can login with new password
+✓ Old password rejected",,,,,
+UAT-014,P0,Authentication,Password Reset - Expired Token,User has expired reset token (>15 min old),"1. Wait 16 minutes after requesting reset
+2. Click reset link
+3. Attempt to reset password","✓ Error: ""Reset link expired""
+✓ Password not changed
+✓ User must request new reset link",,,,,
+UAT-015,P0,Authentication,Password Reset - Reused Token,User already used reset token,"1. Complete password reset
+2. Try to use same reset link again","✓ Error: ""Reset link already used""
+✓ Password not changed
+✓ User must request new reset link",,,,,
+UAT-016,P0,PropIQ Analysis,AI Analysis - Valid Property,User has analyses remaining,"1. Click ""Analyze Property"" button
+2. Enter address: 123 Main St, Austin, TX 78701
+3. Enter purchase price: $300,000
+4. Enter monthly rent: $2,500
+5. Submit analysis","✓ AI analysis completes <10 seconds
+✓ Deal score (0-100) displayed
+✓ Recommendations make sense
+✓ Financial metrics shown
+✓ Analysis saved to propertyAnalyses table
+✓ Usage counter increments (e.g., 1/3)
+✓ Analysis appears in history",,,,,
+UAT-017,P0,PropIQ Analysis,AI Analysis - Invalid Address,User has analyses remaining,"1. Click ""Analyze Property""
+2. Enter invalid address: ""asdfgh""
+3. Submit analysis","✓ Error message: ""Invalid address""
+✓ Usage counter does NOT increment
+✓ Analysis not saved
+✓ User can retry with valid address",,,,,
+UAT-018,P0,PropIQ Analysis,AI Analysis - Missing Required Fields,User has analyses remaining,"1. Click ""Analyze Property""
+2. Leave address blank
+3. Submit analysis","✓ Validation error shown
+✓ Form highlights required fields
+✓ Cannot submit until fields filled",,,,,
+UAT-019,P0,PropIQ Analysis,Analysis History,User has completed 3+ analyses,"1. Navigate to dashboard
+2. Check ""Recent Analyses"" section
+3. Click on previous analysis","✓ All analyses shown in chronological order
+✓ Each shows: address, date, score
+✓ Clicking analysis reopens full report
+✓ Analysis data persisted correctly",,,,,
+UAT-020,P0,PropIQ Analysis,Usage Counter Accuracy,User on Starter tier (20 analyses),"1. Run 1 analysis → Check counter
+2. Run 5 more analyses → Check counter
+3. Run 10 more analyses → Check counter
+4. Run 4 more analyses → Check counter","✓ After 1: Shows 1/20
+✓ After 6: Shows 6/20
+✓ After 16: Shows 16/20
+✓ After 20: Shows 20/20
+✓ Paywall triggers after 20th",,,,,
+UAT-021,P1,Subscription,90% Usage Warning Banner,User at 18/20 analyses (Starter tier),"1. User has used 18 analyses
+2. Run 19th analysis
+3. Check for warning banner","✓ Warning banner appears at top
+✓ Shows ""You've used 19/20 analyses""
+✓ ""Buy 10 More ($5)"" button visible
+✓ ""Upgrade to Pro"" button visible
+✓ Can dismiss banner
+✓ Banner reappears on next visit if not dismissed",,,,,
+UAT-022,P1,Subscription,Hard Cap Enforcement,User at 20/20 analyses (Starter tier),"1. User has used all 20 analyses
+2. Attempt to run another analysis","✓ Paywall modal blocks analysis
+✓ ""Upgrade to continue"" message shown
+✓ Cannot access PropIQ Analysis button
+✓ Calculator still accessible (not blocked)",,,,,
+UAT-023,P1,Subscription,Tier Upgrade - Free to Starter,User on Free tier,"1. Click ""Upgrade""
+2. Select Starter ($29/mo)
+3. Complete Stripe checkout","✓ Payment succeeds
+✓ Tier changes from Free to Starter
+✓ analysesLimit: 3 → 20
+✓ analysesUsed resets to 0
+✓ Dashboard shows new tier badge",,,,,
+UAT-024,P1,Subscription,Tier Upgrade - Starter to Pro,User on Starter tier,"1. Click ""Upgrade""
+2. Select Pro ($79/mo)
+3. Complete Stripe checkout","✓ Payment succeeds (prorated)
+✓ Tier changes to Pro
+✓ analysesLimit: 20 → 100
+✓ analysesUsed resets to 0
+✓ Stripe subscription updated",,,,,
+UAT-025,P1,Subscription,Tier Upgrade - Pro to Elite,User on Pro tier,"1. Click ""Upgrade""
+2. Select Elite ($199/mo)
+3. Complete Stripe checkout","✓ Payment succeeds (prorated)
+✓ Tier changes to Elite
+✓ analysesLimit: 100 → 300
+✓ analysesUsed resets to 0",,,,,
+UAT-026,P1,Deal Calculator,Basic Tab - Mortgage Calculation,User logged in,"1. Navigate to Deal Calculator
+2. Enter:
+   - Purchase Price: $300,000
+   - Down Payment: 20%
+   - Interest Rate: 7%
+   - Loan Term: 30 years
+3. Check results","✓ Loan Amount: $240,000
+✓ Monthly P&I: ~$1,596
+✓ Calculations accurate (<1% error vs Excel)
+✓ Updates in real-time as inputs change",,,,,
+UAT-027,P1,Deal Calculator,Basic Tab - Cash Flow Calculation,User on Basic tab with mortgage data,"1. Continue from UAT-026
+2. Add:
+   - Monthly Rent: $2,500
+   - Property Tax: $3,000/year
+   - Insurance: $1,200/year
+   - Maintenance: 1% ($3,000/year)
+3. Check cash flow","✓ PITI calculated correctly (~$1,946)
+✓ Monthly Cash Flow: ~$304
+✓ Annual Cash Flow: ~$3,648
+✓ Cash-on-Cash Return: ~6.08%
+✓ All calculations accurate",,,,,
+UAT-028,P1,Deal Calculator,Basic Tab - Deal Scoring,User on Basic tab with all data entered,"1. Review deal score
+2. Check recommendation
+3. Try different scenarios (good/bad deals)","✓ Deal score (0-100) makes sense
+✓ Score reflects actual deal quality:
+  - 80-100: Excellent (green)
+  - 65-79: Good (blue)
+  - 50-64: Fair (yellow)
+  - 35-49: Poor (orange)
+  - 0-34: Avoid (red)
+✓ Recommendation aligns with score",,,,,
+UAT-029,P1,Deal Calculator,Advanced Tab - Detailed Breakdown,User on Basic tab,"1. Click ""Advanced"" tab
+2. Review detailed metrics","✓ Tab switches successfully
+✓ All Basic tab data preserved
+✓ Additional metrics shown:
+  - Cap Rate
+  - Debt Service Coverage Ratio
+  - Break-even occupancy
+  - Gross Rent Multiplier
+✓ All calculations accurate",,,,,
+UAT-030,P1,Deal Calculator,Scenarios Tab - Best/Worst Case,User on Scenarios tab,"1. Click ""Scenarios"" tab
+2. Review projections","✓ Tab switches successfully
+✓ Best case scenario shown (optimistic)
+✓ Worst case scenario shown (pessimistic)
+✓ Base case (realistic) shown
+✓ 5-year projections displayed
+✓ NPV and IRR calculated",,,,,
+UAT-031,P1,Deal Calculator,5-Year Projections,User on Scenarios tab,"1. Review 5-year projection table
+2. Check Year 1 → Year 5 data","✓ Each year shows:
+  - Rental income (with appreciation)
+  - Operating expenses
+  - Net operating income
+  - Loan balance
+  - Equity buildup
+✓ Appreciation rate applied correctly
+✓ Expense growth rate applied correctly",,,,,
+UAT-032,P1,Deal Calculator,Calculator State Persistence,User has filled calculator,"1. Fill calculator with data
+2. Navigate away (click PropIQ Analysis)
+3. Return to calculator","✓ All inputs preserved
+✓ Calculations still accurate
+✓ Tab selection preserved
+✓ No data loss",,,,,
+UAT-033,P1,Dashboard,Bento Grid Layout,User logged in,"1. Navigate to dashboard
+2. Check all dashboard cards","✓ All cards render correctly:
+  - PropIQ Analysis card
+  - Deal Calculator card
+  - Recent Analyses card
+  - Usage Stats card
+  - Onboarding Checklist
+✓ Grid layout responsive
+✓ No overlapping elements",,,,,
+UAT-034,P1,Dashboard,PropIQ Analysis Card,User has analyses remaining,"1. Click ""Analyze Property"" from dashboard card
+2. Complete analysis
+3. Return to dashboard","✓ Modal opens correctly
+✓ Analysis completes
+✓ Recent analyses updates
+✓ Usage counter updates",,,,,
+UAT-035,P1,Dashboard,Recent Analyses Display,User has 5+ analyses completed,"1. Check ""Recent Analyses"" card
+2. Scroll through analyses","✓ Shows most recent analyses first
+✓ Each analysis shows:
+  - Address
+  - Date
+  - Deal score (with color)
+  - Quick action buttons
+✓ Clicking analysis opens full report",,,,,
+UAT-036,P1,Navigation,Header Navigation,User logged in,"1. Check header elements
+2. Click each navigation item","✓ Logo visible (PropIQ)
+✓ Tier badge visible
+✓ Usage badge visible
+✓ Help button works
+✓ Logout button works
+✓ All elements properly aligned",,,,,
+UAT-037,P1,Navigation,Command Palette (Cmd+K),User logged in,"1. Press Cmd+K (Mac) or Ctrl+K (Windows)
+2. Type search query
+3. Select command","✓ Palette opens with keyboard shortcut
+✓ Search filters commands
+✓ Commands execute correctly:
+  - Analyze property
+  - Open calculator
+  - View pricing
+  - Open help
+  - Logout
+✓ ESC closes palette",,,,,
+UAT-038,P1,Mobile,Dashboard - iPhone,User logged in on iPhone,"1. Open propiq.luntra.one on iPhone
+2. Login
+3. Navigate dashboard","✓ Layout adapts to mobile (single column)
+✓ All cards stack vertically
+✓ Touch targets ≥44x44px
+✓ No horizontal scrolling
+✓ Text readable without zoom
+✓ Images scale properly",,,,,
+UAT-039,P1,Mobile,Calculator - iPhone,User on iPhone,"1. Open Deal Calculator
+2. Fill inputs
+3. Switch tabs
+4. Review results","✓ Calculator usable on mobile
+✓ Input fields easy to tap
+✓ Tabs switch smoothly
+✓ Results visible without scrolling too much
+✓ Keyboard doesn't cover inputs
+✓ Number inputs trigger numeric keyboard",,,,,
+UAT-040,P1,Mobile,PropIQ Analysis - iPhone,User on iPhone with analyses left,"1. Click ""Analyze Property""
+2. Fill form
+3. Submit analysis
+4. Review results","✓ Modal fits mobile screen
+✓ Form fields easy to fill
+✓ Submit button accessible
+✓ Results render correctly
+✓ Can scroll to see full analysis
+✓ Can close modal easily",,,,,
+UAT-041,P1,Mobile,Dashboard - iPad,User logged in on iPad,"1. Open propiq.luntra.one on iPad
+2. Test in portrait and landscape","✓ Tablet layout (2-column grid in landscape)
+✓ Single column in portrait
+✓ Touch interactions work
+✓ All features accessible",,,,,
+UAT-042,P1,Mobile,Dashboard - Android,User logged in on Samsung Galaxy,"1. Open propiq.luntra.one on Android
+2. Test all features","✓ Layout renders correctly
+✓ Touch targets work
+✓ Forms usable
+✓ No Android-specific bugs",,,,,
+UAT-043,P2,Onboarding,Product Tour - Auto Start,New user just signed up,"1. Complete signup
+2. Land on dashboard
+3. Wait 1.5 seconds","✓ Product tour starts automatically
+✓ First step highlights PropIQ button
+✓ Tooltip/popover visible
+✓ ""Next"" and ""Skip"" buttons work
+✓ Tour progresses through all steps",,,,,
+UAT-044,P2,Onboarding,Product Tour - Skip,New user with tour active,"1. Start product tour
+2. Click ""Skip"" button","✓ Tour closes immediately
+✓ onboardingProgress.completedProductTour = false
+✓ Tour doesn't reappear on next login
+✓ User can continue using app",,,,,
+UAT-045,P2,Onboarding,Product Tour - Complete,New user with tour active,"1. Start product tour
+2. Click ""Next"" through all steps
+3. Click ""Done"" on final step","✓ Tour completes successfully
+✓ onboardingProgress.completedProductTour = true
+✓ Tour doesn't reappear
+✓ Completion recorded in database",,,,,
+UAT-046,P2,Onboarding,Checklist - Task Completion,User with checklist visible,"1. Complete ""Analyze First Property"" task
+2. Check checklist
+3. Complete more tasks","✓ Checkmark appears immediately
+✓ Progress bar updates
+✓ onboardingProgress table updates
+✓ Each completed task persists",,,,,
+UAT-047,P2,Onboarding,Checklist - 100% Completion,User at 6/7 tasks complete,"1. Complete final checklist task
+2. Watch completion animation","✓ All 7 tasks checked
+✓ Progress bar at 100%
+✓ Completion message shown
+✓ onboardingProgress.checklistCompletedAt set
+✓ Checklist auto-dismisses (or shows celebration)",,,,,
+UAT-048,P2,Onboarding,Checklist - Dismiss,User with checklist visible,"1. Click ""Dismiss"" on checklist
+2. Refresh page
+3. Check if checklist reappears","✓ Checklist closes
+✓ onboardingProgress.checklistDismissed = true
+✓ Checklist doesn't reappear
+✓ User can re-open from settings (if implemented)",,,,,
+UAT-049,P2,Help Center,Help Modal - Open,User logged in,"1. Click ""Help"" button in header
+2. Check modal contents","✓ Help Center modal opens
+✓ Search bar visible
+✓ Featured articles displayed
+✓ Category navigation visible
+✓ Recent articles shown",,,,,
+UAT-050,P2,Help Center,Search - Valid Query,User in Help Center,"1. Enter search: ""how to analyze property""
+2. Review results","✓ Search executes <500ms
+✓ Relevant articles returned
+✓ Results ranked by relevance
+✓ Article excerpts shown
+✓ Article titles highlighted
+✓ Can click to open article",,,,,
+UAT-051,P2,Help Center,Search - No Results,User in Help Center,"1. Enter search: ""asdfjkl random text""
+2. Check results","✓ ""No results found"" message shown
+✓ Search suggestions shown
+✓ failedSearches table logs query
+✓ Can clear search and try again",,,,,
+UAT-052,P2,Help Center,Article View,User viewing article,"1. Click on article from search results
+2. Read article
+3. Scroll to bottom","✓ Full article content displayed
+✓ Markdown rendered correctly
+✓ Images load (if any)
+✓ Code blocks formatted properly
+✓ ""Was this helpful?"" section at bottom
+✓ viewCount increments in database",,,,,
+UAT-053,P2,Help Center,Article Feedback - Helpful,User viewing article,"1. Scroll to bottom of article
+2. Click ""Yes, this was helpful""","✓ Thank you message shown
+✓ articles.helpfulVotes increments
+✓ articleFeedback row created
+✓ Cannot vote again on same article
+✓ Feedback persists",,,,,
+UAT-054,P2,Help Center,Article Feedback - Not Helpful,User viewing article,"1. Scroll to bottom of article
+2. Click ""No, not helpful""
+3. (Optional) Enter feedback comment","✓ Feedback form shown (optional comment)
+✓ articles.unhelpfulVotes increments
+✓ articleFeedback row created with comment
+✓ Cannot vote again
+✓ Admin can see negative feedback",,,,,
+UAT-055,P2,Help Center,Category Navigation,User in Help Center,"1. Click category: ""Getting Started""
+2. Review articles
+3. Click another category: ""Calculator""","✓ Articles filtered by category
+✓ Category title shown
+✓ All articles in category displayed
+✓ Switching categories works smoothly
+✓ Can return to all articles",,,,,
+UAT-056,P2,Support Chat,Chat Widget - Open,User logged in,"1. Click ""Need Help?"" chat button (bottom right)
+2. Check chat interface","✓ Chat widget opens
+✓ Greeting message shown
+✓ Input field visible
+✓ Send button enabled
+✓ Previous conversation loaded (if any)",,,,,
+UAT-057,P2,Support Chat,Send Message,User with chat open,"1. Type message: ""How do I analyze a property?""
+2. Press Enter or click Send","✓ Message appears in chat
+✓ AI response generated <5 seconds
+✓ Response is relevant and helpful
+✓ Message saved to supportChats table
+✓ conversationId created",,,,,
+UAT-058,P2,Support Chat,Conversation History,User with previous chat history,"1. Open chat widget
+2. Scroll up to see previous messages","✓ Previous conversation loaded
+✓ Messages in chronological order
+✓ User messages aligned right
+✓ AI messages aligned left
+✓ Timestamps shown
+✓ Can scroll to see full history",,,,,
+UAT-059,P2,Support Chat,Close and Reopen,User mid-conversation,"1. Close chat widget
+2. Navigate to different page
+3. Reopen chat widget","✓ Conversation persists
+✓ Previous messages visible
+✓ Can continue conversation
+✓ No messages lost",,,,,
+UAT-060,P2,Email,Verification Email,User just signed up,"1. Complete signup
+2. Check email inbox (within 60 seconds)
+3. Open verification email","✓ Email received via Resend
+✓ Subject: ""Verify your PropIQ account""
+✓ From: PropIQ <noreply@propiq.com>
+✓ Contains verification link
+✓ Link format correct
+✓ Email template renders correctly
+✓ Mobile-friendly",,,,,
+UAT-061,P2,Email,Welcome Email,User verified email,"1. Click verification link
+2. Check for welcome email","✓ Welcome email sent
+✓ Subject: ""Welcome to PropIQ!""
+✓ Contains getting started tips
+✓ Links to help center
+✓ CTA to start first analysis
+✓ Unsubscribe link present",,,,,
+UAT-062,P2,Email,Password Reset Email,User requested password reset,"1. Request password reset
+2. Check email inbox","✓ Email received within 60 seconds
+✓ Subject: ""Reset your PropIQ password""
+✓ Contains reset link
+✓ Link expires in 15 minutes
+✓ Instructions clear
+✓ Template renders correctly",,,,,
+UAT-063,P2,Email,Subscription Confirmation,User completed Stripe checkout,"1. Complete subscription purchase
+2. Check email inbox","✓ Confirmation email sent
+✓ Subject: ""Your PropIQ [Tier] subscription is active""
+✓ Contains subscription details:
+  - Tier name
+  - Price
+  - Billing date
+  - Analyses limit
+✓ Receipt/invoice attached or linked
+✓ Link to manage subscription",,,,,
+UAT-064,P2,Email,90% Usage Warning,User at 90% usage threshold,"1. Reach 90% of analysis limit
+2. Check email inbox","✓ Warning email sent
+✓ Subject: ""You've used 90% of your PropIQ analyses""
+✓ Shows current usage (e.g., 18/20)
+✓ CTA to upgrade or buy top-up
+✓ Links work correctly",,,,,
+UAT-065,P3,Analytics,Sentry Error Capture,User encounters error,"1. Trigger an error (e.g., invalid analysis)
+2. Check Sentry dashboard","✓ Error captured in Sentry
+✓ User context included (userId, email, tier)
+✓ Stack trace complete
+✓ Breadcrumbs show user actions
+✓ Error grouped correctly
+✓ Sourcemaps working (readable stack trace)",,,,,
+UAT-066,P3,Analytics,Error Boundary,Critical error occurs,"1. Trigger component error
+2. Check if app crashes","✓ Error boundary catches error
+✓ Fallback UI shown
+✓ User can refresh/retry
+✓ Rest of app still functional
+✓ Error reported to Sentry",,,,,
+UAT-067,P3,Analytics,Microsoft Clarity Tracking,User navigating app,"1. Use app normally
+2. Check Clarity dashboard (after 5 minutes)","✓ Session recorded in Clarity
+✓ Heatmaps capture clicks
+✓ Scroll depth tracked
+✓ Page views logged
+✓ No sensitive data exposed (passwords masked)",,,,,
+UAT-068,P3,Analytics,Failed Search Logging,User searches with no results,"1. Search in Help Center: ""xyz random text""
+2. Check database","✓ Search logged to failedSearches table
+✓ query field = ""xyz random text""
+✓ userId captured
+✓ resultsCount = 0
+✓ timestamp recorded",,,,,
+UAT-069,P3,Analytics,NPS Survey Trigger,User at Day 7 after signup,"1. Login on day 7 after signup
+2. Check for NPS survey","✓ NPS survey modal appears
+✓ Shows 0-10 scale
+✓ ""How likely are you to recommend PropIQ?""
+✓ Optional reason field
+✓ Can dismiss survey
+✓ Survey doesn't reappear",,,,,
+UAT-070,P3,Analytics,NPS Response Saved,User completes NPS survey,"1. Complete NPS survey (score: 9, reason: ""Great tool!"")
+2. Check database","✓ Response saved to npsResponses table
+✓ score = 9
+✓ reason = ""Great tool!""
+✓ subscriptionTier captured
+✓ daysSinceSignup = 7
+✓ createdAt timestamp set",,,,,
+UAT-071,P1,Cross-Browser,Chrome Desktop,User on Chrome (latest version),"1. Open propiq.luntra.one in Chrome
+2. Test all major features
+3. Check console for errors","✓ All features work correctly
+✓ No console errors
+✓ Styling correct
+✓ Animations smooth
+✓ Forms functional",,,,,
+UAT-072,P1,Cross-Browser,Safari Desktop,User on Safari (latest version),"1. Open propiq.luntra.one in Safari
+2. Test all major features","✓ All features work correctly
+✓ No Safari-specific bugs
+✓ Styling matches Chrome
+✓ Performance good",,,,,
+UAT-073,P1,Cross-Browser,Firefox Desktop,User on Firefox (latest version),"1. Open propiq.luntra.one in Firefox
+2. Test all major features","✓ All features work correctly
+✓ No Firefox-specific bugs
+✓ Forms work
+✓ Cookies/sessions work",,,,,
+UAT-074,P1,Cross-Browser,Edge Desktop,User on Edge (latest version),"1. Open propiq.luntra.one in Edge
+2. Test all major features","✓ All features work correctly
+✓ No Edge-specific bugs
+✓ Compatibility with Chromium engine",,,,,
+UAT-075,P2,Performance,Page Load Time,User on fast connection (>10 Mbps),"1. Open propiq.luntra.one
+2. Measure time to interactive","✓ Initial load <3 seconds
+✓ Dashboard interactive <2 seconds
+✓ No layout shifts
+✓ Images lazy load",,,,,
+UAT-076,P2,Performance,PropIQ Analysis Speed,User running analysis,"1. Submit PropIQ analysis
+2. Measure time to results","✓ Analysis completes <10 seconds
+✓ Median time ~5-7 seconds
+✓ Loading indicator shown
+✓ No timeouts",,,,,
+UAT-077,P2,Performance,Calculator Responsiveness,User using calculator,"1. Enter values in calculator
+2. Change inputs rapidly","✓ Calculations update in real-time
+✓ No lag or delay
+✓ UI remains responsive
+✓ No performance degradation",,,,,
+UAT-078,P2,Performance,Concurrent Users,50 users accessing simultaneously,"1. Simulate 50 concurrent users
+2. Monitor Convex dashboard
+3. Check response times","✓ All users can login
+✓ Analysis requests processed
+✓ Response times <2s p95
+✓ No rate limit errors
+✓ Database handles load",,,,,
+UAT-079,P2,Accessibility,Keyboard Navigation,User using keyboard only,"1. Tab through entire app
+2. Navigate without mouse","✓ All interactive elements focusable
+✓ Focus indicators visible
+✓ Tab order logical
+✓ Can complete all actions via keyboard
+✓ Modals can be closed with ESC",,,,,
+UAT-080,P2,Accessibility,Screen Reader,User with VoiceOver/NVDA,"1. Enable screen reader
+2. Navigate app
+3. Test major features","✓ All content readable
+✓ Form labels announced
+✓ Button purposes clear
+✓ Error messages read aloud
+✓ ARIA labels present
+✓ Landmarks defined",,,,,
+UAT-081,P2,Accessibility,Color Contrast,Visual inspection + audit,"1. Run axe DevTools audit
+2. Check WCAG AA compliance","✓ All text meets 4.5:1 contrast (normal text)
+✓ Large text meets 3:1 contrast
+✓ UI components meet 3:1 contrast
+✓ No color-only indicators
+✓ Passes WCAG 2.1 Level AA",,,,,
+UAT-082,P2,Security,SQL Injection Prevention,Malicious user attempts injection,"1. Enter SQL in address field: ""'; DROP TABLE users; --""
+2. Submit analysis","✓ Input sanitized
+✓ No SQL executed
+✓ Error message or safe handling
+✓ Database unaffected
+✓ Attack logged",,,,,
+UAT-083,P2,Security,XSS Prevention,Malicious user attempts XSS,"1. Enter script in form: ""<script>alert('xss')</script>""
+2. Submit form","✓ Input sanitized
+✓ Script not executed
+✓ Output escaped
+✓ No XSS vulnerability",,,,,
+UAT-084,P2,Security,Session Hijacking Prevention,Attacker with session token,"1. Copy session token
+2. Attempt to use in different browser/IP
+3. Check if session valid","✓ Session tied to user agent (if implemented)
+✓ IP validation (if implemented)
+✓ Suspicious activity flagged
+✓ Session expires on logout",,,,,
+UAT-085,P2,Security,HTTPS Enforcement,User accessing via HTTP,"1. Navigate to http://propiq.luntra.one
+2. Check redirect","✓ Automatically redirected to HTTPS
+✓ All resources loaded via HTTPS
+✓ No mixed content warnings
+✓ SSL certificate valid",,,,,
+UAT-086,P3,Edge Cases,Empty State - No Analyses,New user with 0 analyses,"1. Login as new user
+2. Check Recent Analyses section","✓ Empty state shown
+✓ Message: ""No analyses yet""
+✓ CTA: ""Run your first analysis""
+✓ UI not broken",,,,,
+UAT-087,P3,Edge Cases,Long Property Address,User enters very long address,"1. Enter 200+ character address
+2. Submit analysis","✓ Address accepted or truncated
+✓ Display doesn't break UI
+✓ Analysis processes correctly
+✓ History shows truncated version",,,,,
+UAT-088,P3,Edge Cases,Special Characters in Name,User with special chars in name,"1. Signup with name: ""O'Brien-Müller""
+2. Complete signup
+3. Check display","✓ Name saved correctly
+✓ Special characters preserved
+✓ Display correct throughout app
+✓ No encoding issues",,,,,
+UAT-089,P3,Edge Cases,Zero Values in Calculator,User enters all zeros,"1. Enter $0 for all calculator fields
+2. Check results","✓ App doesn't crash
+✓ Shows ""Invalid inputs"" or zero results
+✓ No division by zero errors
+✓ User can correct inputs",,,,,
+UAT-090,P3,Edge Cases,Extremely High Values,User enters $999,999,999 values,"1. Enter very high purchase price
+2. Submit calculator","✓ App handles large numbers
+✓ Calculations accurate
+✓ No overflow errors
+✓ Display formatted correctly (e.g., $999.9M)",,,,,
+UAT-091,P3,Regression,Existing Playwright Tests,Developer running test suite,"1. cd propiq/frontend
+2. npm run test
+3. Check results","✓ All tests pass
+✓ No new failures
+✓ Test coverage maintained
+✓ Screenshots match baselines",,,,,
+UAT-092,P3,Regression,Production Smoke Test,Post-deployment verification,"1. npm run test:production
+2. Check critical paths","✓ Login works
+✓ Signup works
+✓ Analysis works
+✓ Calculator works
+✓ No 500 errors",,,,,

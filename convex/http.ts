@@ -208,6 +208,103 @@ http.route({
         );
       }
 
+      // Send verification email if token was created
+      if (result.verificationToken) {
+        const resendApiKey = process.env.RESEND_API_KEY;
+
+        if (resendApiKey) {
+          const verificationUrl = `https://propiq.luntra.one/verify-email?token=${result.verificationToken}`;
+          const firstName = result.user.firstName || "there";
+
+          try {
+            const emailResponse = await fetch("https://api.resend.com/emails", {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${resendApiKey}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                from: "PropIQ <noreply@propiq.luntra.one>",
+                to: result.user.email,
+                subject: "Verify your PropIQ email address",
+                html: `
+                  <!DOCTYPE html>
+                  <html>
+                    <head>
+                      <meta charset="utf-8">
+                      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    </head>
+                    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+                      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+                        <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to PropIQ! 🏡</h1>
+                      </div>
+
+                      <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
+                        <p style="font-size: 16px; margin-bottom: 20px;">Hi ${firstName},</p>
+
+                        <p style="font-size: 16px; margin-bottom: 20px;">
+                          Thanks for signing up for PropIQ! We're excited to help you analyze real estate investments with AI-powered insights.
+                        </p>
+
+                        <p style="font-size: 16px; margin-bottom: 30px;">
+                          Please verify your email address to activate your account:
+                        </p>
+
+                        <div style="text-align: center; margin: 30px 0;">
+                          <a href="${verificationUrl}"
+                             style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                    color: white;
+                                    padding: 15px 40px;
+                                    text-decoration: none;
+                                    border-radius: 8px;
+                                    font-weight: bold;
+                                    font-size: 16px;
+                                    display: inline-block;">
+                            Verify Email Address
+                          </a>
+                        </div>
+
+                        <p style="font-size: 14px; color: #666; margin-top: 30px;">
+                          Or copy and paste this link into your browser:<br>
+                          <a href="${verificationUrl}" style="color: #667eea; word-break: break-all;">${verificationUrl}</a>
+                        </p>
+
+                        <p style="font-size: 14px; color: #666; margin-top: 20px;">
+                          This link will expire in 24 hours.
+                        </p>
+
+                        <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+
+                        <p style="font-size: 14px; color: #666;">
+                          If you didn't create a PropIQ account, you can safely ignore this email.
+                        </p>
+
+                        <p style="font-size: 14px; color: #666; margin-top: 20px;">
+                          Happy analyzing!<br>
+                          The PropIQ Team
+                        </p>
+                      </div>
+                    </body>
+                  </html>
+                `,
+              }),
+            });
+
+            if (emailResponse.ok) {
+              console.log(`[AUTH] ✅ Verification email sent to ${result.user.email}`);
+            } else {
+              const errorData = await emailResponse.json();
+              console.error("[AUTH] Failed to send verification email:", errorData);
+            }
+          } catch (emailError) {
+            console.error("[AUTH] Error sending verification email:", emailError);
+            // Non-blocking: Don't fail signup if email fails
+          }
+        } else {
+          console.warn("[AUTH] RESEND_API_KEY not configured - verification email not sent");
+        }
+      }
+
       // Return sessionToken in response body
       // Frontend stores in localStorage and sends via Authorization header
       return new Response(
@@ -597,6 +694,88 @@ http.route({
   }),
 });
 
+/**
+ * Verify Stripe webhook signature using Web Crypto API
+ * Implements HMAC-SHA256 verification per Stripe's specification
+ * https://stripe.com/docs/webhooks/signatures
+ */
+async function verifyStripeSignature(
+  payload: string,
+  signature: string,
+  secret: string
+): Promise<boolean> {
+  try {
+    // Parse signature header: "t=timestamp,v1=signature"
+    const signatureParts = signature.split(",");
+    let timestamp = "";
+    let v1Signature = "";
+
+    for (const part of signatureParts) {
+      const [key, value] = part.split("=");
+      if (key === "t") timestamp = value;
+      if (key === "v1") v1Signature = value;
+    }
+
+    if (!timestamp || !v1Signature) {
+      console.error("[WEBHOOK] Invalid signature format");
+      return false;
+    }
+
+    // Check timestamp to prevent replay attacks (reject if > 5 minutes old)
+    const currentTime = Math.floor(Date.now() / 1000);
+    const signatureTime = parseInt(timestamp, 10);
+    const timeDifference = currentTime - signatureTime;
+
+    if (timeDifference > 300) {
+      console.error("[WEBHOOK] Signature timestamp too old:", timeDifference, "seconds");
+      return false;
+    }
+
+    // Construct signed payload: timestamp.payload
+    const signedPayload = `${timestamp}.${payload}`;
+
+    // Convert webhook secret to Uint8Array
+    const encoder = new TextEncoder();
+    const keyData = encoder.encode(secret);
+    const messageData = encoder.encode(signedPayload);
+
+    // Import key for HMAC-SHA256
+    const key = await crypto.subtle.importKey(
+      "raw",
+      keyData,
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"]
+    );
+
+    // Compute HMAC-SHA256 signature
+    const signatureBuffer = await crypto.subtle.sign("HMAC", key, messageData);
+
+    // Convert signature to hex string
+    const computedSignature = Array.from(new Uint8Array(signatureBuffer))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+
+    // Compare signatures using constant-time comparison (prevent timing attacks)
+    if (computedSignature.length !== v1Signature.length) {
+      console.error("[WEBHOOK] Signature length mismatch");
+      return false;
+    }
+
+    let isValid = true;
+    for (let i = 0; i < computedSignature.length; i++) {
+      if (computedSignature[i] !== v1Signature[i]) {
+        isValid = false;
+      }
+    }
+
+    return isValid;
+  } catch (error) {
+    console.error("[WEBHOOK] Signature verification error:", error);
+    return false;
+  }
+}
+
 // Stripe webhook handler
 http.route({
   path: "/stripe-webhook",
@@ -607,18 +786,29 @@ http.route({
       const signature = request.headers.get("stripe-signature");
 
       if (!signature) {
+        console.error("[WEBHOOK] Missing stripe-signature header");
         return new Response("Missing stripe-signature header", { status: 400 });
       }
 
-      // Verify webhook signature
+      // Get webhook secret from environment
       const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
       if (!webhookSecret) {
-        console.error("Stripe webhook secret not configured");
+        console.error("[WEBHOOK] Stripe webhook secret not configured");
         return new Response("Webhook not configured", { status: 500 });
       }
 
-      // Parse event
+      // ✅ SECURITY FIX: Verify webhook signature before processing
+      const isValid = await verifyStripeSignature(body, signature, webhookSecret);
+
+      if (!isValid) {
+        console.error("[WEBHOOK] ⚠️ Invalid signature - rejecting webhook");
+        return new Response("Invalid signature", { status: 401 });
+      }
+
+      console.log("[WEBHOOK] ✅ Signature verified successfully");
+
+      // Parse event (now safe after signature verification)
       const event = JSON.parse(body);
 
       // Log webhook event
@@ -663,17 +853,129 @@ http.route({
           const subscription = event.data.object;
           const customerId = subscription.customer;
 
-          // Find user by Stripe customer ID and cancel subscription
-          // This would require a query by stripeCustomerId
-          // For now, log the event
-          await ctx.runMutation(api.payments.logStripeEvent, {
-            eventId: event.id,
-            eventType: event.type,
-            customerId,
-            subscriptionId: subscription.id,
-            status: "completed",
-            rawData: body,
-          });
+          console.log(`[WEBHOOK] Processing subscription cancellation for customer: ${customerId}`);
+
+          try {
+            // Find user by Stripe customer ID
+            const user = await ctx.runQuery(api.auth.getUserByStripeCustomer, {
+              stripeCustomerId: customerId,
+            });
+
+            if (user) {
+              // Downgrade user to free tier
+              const result = await ctx.runMutation(api.auth.downgradeToFreeTier, {
+                userId: user._id,
+                reason: "subscription_cancelled",
+              });
+
+              console.log(`[WEBHOOK] ✅ ${result.message}`);
+
+              // Log successful cancellation
+              await ctx.runMutation(api.payments.logStripeEvent, {
+                eventId: event.id,
+                eventType: event.type,
+                customerId,
+                subscriptionId: subscription.id,
+                status: "completed",
+                rawData: body,
+              });
+            } else {
+              console.error(`[WEBHOOK] ⚠️ No user found for Stripe customer: ${customerId}`);
+
+              // Log event even if user not found
+              await ctx.runMutation(api.payments.logStripeEvent, {
+                eventId: event.id,
+                eventType: event.type,
+                customerId,
+                subscriptionId: subscription.id,
+                status: "failed",
+                error: "User not found for Stripe customer ID",
+                rawData: body,
+              });
+            }
+          } catch (error) {
+            console.error(`[WEBHOOK] Error processing subscription cancellation:`, error);
+
+            // Log failure
+            await ctx.runMutation(api.payments.logStripeEvent, {
+              eventId: event.id,
+              eventType: event.type,
+              customerId,
+              subscriptionId: subscription.id,
+              status: "failed",
+              error: String(error),
+              rawData: body,
+            });
+          }
+          break;
+        }
+
+        case "invoice.payment_failed": {
+          const invoice = event.data.object;
+          const customerId = invoice.customer;
+          const subscriptionId = invoice.subscription;
+
+          console.log(`[WEBHOOK] Processing payment failure for customer: ${customerId}`);
+
+          try {
+            // Find user by Stripe customer ID
+            const user = await ctx.runQuery(api.auth.getUserByStripeCustomer, {
+              stripeCustomerId: customerId,
+            });
+
+            if (user) {
+              // Check if this is a recurring payment failure (not first invoice)
+              const attemptCount = invoice.attempt_count || 1;
+
+              if (attemptCount >= 3) {
+                // After 3 failed attempts, downgrade to free tier
+                console.log(`[WEBHOOK] Payment failed ${attemptCount} times, downgrading user`);
+
+                await ctx.runMutation(api.auth.downgradeToFreeTier, {
+                  userId: user._id,
+                  reason: "payment_failed_multiple_attempts",
+                });
+
+                console.log(`[WEBHOOK] ✅ User downgraded after ${attemptCount} payment failures`);
+              } else {
+                console.log(`[WEBHOOK] Payment failed (attempt ${attemptCount}/3), user not downgraded yet`);
+              }
+
+              // Log event
+              await ctx.runMutation(api.payments.logStripeEvent, {
+                eventId: event.id,
+                eventType: event.type,
+                customerId,
+                subscriptionId,
+                status: "completed",
+                rawData: body,
+              });
+            } else {
+              console.error(`[WEBHOOK] ⚠️ No user found for Stripe customer: ${customerId}`);
+
+              await ctx.runMutation(api.payments.logStripeEvent, {
+                eventId: event.id,
+                eventType: event.type,
+                customerId,
+                subscriptionId,
+                status: "failed",
+                error: "User not found for Stripe customer ID",
+                rawData: body,
+              });
+            }
+          } catch (error) {
+            console.error(`[WEBHOOK] Error processing payment failure:`, error);
+
+            await ctx.runMutation(api.payments.logStripeEvent, {
+              eventId: event.id,
+              eventType: event.type,
+              customerId,
+              subscriptionId,
+              status: "failed",
+              error: String(error),
+              rawData: body,
+            });
+          }
           break;
         }
 
@@ -694,6 +996,80 @@ http.route({
     } catch (error) {
       console.error("Stripe webhook error:", error);
       return new Response(`Webhook Error: ${error}`, { status: 400 });
+    }
+  }),
+});
+
+// ============================================
+// FORMSPREE WEBHOOK - Lead Capture
+// ============================================
+
+/**
+ * POST /formspree-webhook
+ * Receives lead captures from Formspree when users download lead magnets
+ *
+ * Formspree Configuration:
+ * 1. Go to Formspree dashboard
+ * 2. Select your form
+ * 3. Add webhook URL: https://mild-tern-361.convex.site/formspree-webhook
+ * 4. Formspree will POST form data to this endpoint
+ */
+http.route({
+  path: "/formspree-webhook",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    try {
+      const body = await request.json();
+
+      console.log("[FORMSPREE] Received webhook:", JSON.stringify(body, null, 2));
+
+      // Extract form fields from Formspree payload
+      const email = body.email;
+      const firstName = body.firstName || body.first_name;
+      const lastName = body.lastName || body.last_name;
+      const leadMagnetType = body.leadMagnetType || "real-estate-checklist";
+
+      // Extract UTM parameters if present
+      const utmSource = body.utm_source || body.utmSource;
+      const utmMedium = body.utm_medium || body.utmMedium;
+      const utmCampaign = body.utm_campaign || body.utmCampaign;
+      const utmContent = body.utm_content || body.utmContent;
+      const utmTerm = body.utm_term || body.utmTerm;
+
+      if (!email) {
+        console.error("[FORMSPREE] Email is required");
+        return new Response(
+          JSON.stringify({ success: false, error: "Email is required" }),
+          { status: 400, headers: { "Content-Type": "application/json" } }
+        );
+      }
+
+      // Capture the lead in database
+      const result = await ctx.runMutation(api.leads.captureLead, {
+        email,
+        firstName,
+        lastName,
+        leadMagnetType,
+        source: "formspree",
+        utmSource,
+        utmMedium,
+        utmCampaign,
+        utmContent,
+        utmTerm,
+      });
+
+      console.log(`[FORMSPREE] Lead captured: ${email}`, result);
+
+      return new Response(
+        JSON.stringify({ success: true, message: "Lead captured successfully" }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    } catch (error) {
+      console.error("[FORMSPREE] Webhook error:", error);
+      return new Response(
+        JSON.stringify({ success: false, error: "Failed to process webhook" }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
     }
   }),
 });
@@ -1056,6 +1432,212 @@ http.route({
       return new Response(
         JSON.stringify({ success: true }),
         { status: 200, headers: { ...extensionCorsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+  }),
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EMAIL VERIFICATION ENDPOINTS
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * POST /auth/verify-email
+ * Verify user's email address using token from email link
+ * Sends Day 0 welcome email after successful verification
+ */
+http.route({
+  path: "/auth/verify-email",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    try {
+      const body = await request.json();
+      const { token } = body;
+
+      if (!token) {
+        return new Response(
+          JSON.stringify({ success: false, error: "Verification token required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Verify email
+      const result = await ctx.runMutation(api.auth.verifyEmail, { token });
+
+      // If verification succeeded, send Day 0 welcome email
+      if (result.success && result.user) {
+        try {
+          // Import the sendDay0WelcomeEmail function
+          const { sendDay0WelcomeEmail } = await import("./onboardingEmailScheduler");
+
+          await sendDay0WelcomeEmail(result.user);
+
+          // Mark Day 0 email as sent
+          await ctx.runMutation(api.auth.markOnboardingDay0Sent, {
+            userId: result.user._id,
+          });
+
+          console.log(`[AUTH] Day 0 welcome email sent to ${result.user.email}`);
+        } catch (emailError) {
+          console.error("[AUTH] Failed to send Day 0 welcome email:", emailError);
+          // Non-blocking: Don't fail verification if email send fails
+        }
+      }
+
+      return new Response(JSON.stringify(result), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    } catch (error: any) {
+      console.error("[AUTH] Email verification error:", error);
+      return new Response(
+        JSON.stringify({ success: false, error: error.message || "Verification failed" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+  }),
+});
+
+/**
+ * POST /auth/resend-verification
+ * Resend verification email to user
+ * Sends email using Resend API
+ */
+http.route({
+  path: "/auth/resend-verification",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    try {
+      const body = await request.json();
+      const { email } = body;
+
+      if (!email) {
+        return new Response(
+          JSON.stringify({ success: false, error: "Email required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Create/get verification token
+      const result = await ctx.runMutation(api.auth.resendVerificationEmail, { email });
+
+      // If token was created, send email
+      if (result.success && result.token) {
+        const resendApiKey = process.env.RESEND_API_KEY;
+
+        if (resendApiKey) {
+          const verificationUrl = `https://propiq.luntra.one/verify-email?token=${result.token}`;
+          const firstName = result.firstName || "there";
+
+          try {
+            const emailResponse = await fetch("https://api.resend.com/emails", {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${resendApiKey}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                from: "PropIQ <noreply@propiq.luntra.one>",
+                to: result.email,
+                subject: "Verify your PropIQ email address",
+                html: `
+                  <!DOCTYPE html>
+                  <html>
+                    <head>
+                      <meta charset="utf-8">
+                      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    </head>
+                    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+                      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+                        <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to PropIQ! 🏡</h1>
+                      </div>
+
+                      <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
+                        <p style="font-size: 16px; margin-bottom: 20px;">Hi ${firstName},</p>
+
+                        <p style="font-size: 16px; margin-bottom: 20px;">
+                          Thanks for signing up for PropIQ! We're excited to help you analyze real estate investments with AI-powered insights.
+                        </p>
+
+                        <p style="font-size: 16px; margin-bottom: 30px;">
+                          Please verify your email address to activate your account and start analyzing properties:
+                        </p>
+
+                        <div style="text-align: center; margin: 30px 0;">
+                          <a href="${verificationUrl}"
+                             style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                    color: white;
+                                    padding: 15px 40px;
+                                    text-decoration: none;
+                                    border-radius: 8px;
+                                    font-weight: bold;
+                                    font-size: 16px;
+                                    display: inline-block;">
+                            Verify Email Address
+                          </a>
+                        </div>
+
+                        <p style="font-size: 14px; color: #666; margin-top: 30px;">
+                          Or copy and paste this link into your browser:<br>
+                          <a href="${verificationUrl}" style="color: #667eea; word-break: break-all;">${verificationUrl}</a>
+                        </p>
+
+                        <p style="font-size: 14px; color: #666; margin-top: 20px;">
+                          This link will expire in 24 hours.
+                        </p>
+
+                        <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+
+                        <p style="font-size: 14px; color: #666;">
+                          If you didn't create a PropIQ account, you can safely ignore this email.
+                        </p>
+
+                        <p style="font-size: 14px; color: #666; margin-top: 20px;">
+                          Happy analyzing!<br>
+                          The PropIQ Team
+                        </p>
+                      </div>
+                    </body>
+                  </html>
+                `,
+              }),
+            });
+
+            if (!emailResponse.ok) {
+              const errorData = await emailResponse.json();
+              console.error("[AUTH] Resend API error:", errorData);
+              throw new Error("Failed to send verification email");
+            }
+
+            console.log(`[AUTH] ✅ Verification email sent to ${result.email}`);
+          } catch (emailError) {
+            console.error("[AUTH] Failed to send verification email:", emailError);
+            // Don't fail the request - token was created successfully
+          }
+        } else {
+          console.warn("[AUTH] RESEND_API_KEY not configured - verification email not sent");
+        }
+      }
+
+      // Return success regardless of email sending (for security - don't reveal if email exists)
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: "If an account exists with this email, a verification link will be sent.",
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    } catch (error: any) {
+      console.error("[AUTH] Resend verification error:", error);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: error.message || "Failed to resend verification email",
+        }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
   }),

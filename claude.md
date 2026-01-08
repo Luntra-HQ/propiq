@@ -6,18 +6,47 @@ This document contains all essential context, rules, and workflows for PropIQ de
 
 ---
 
+## ⚠️ MANDATORY RULES - READ FIRST
+
+**You are forbidden from:**
+1. ❌ Using `--no-verify` or bypassing git hooks
+2. ❌ Deploying without running tests first
+3. ❌ Modifying auth/payments/core features without explicit approval
+4. ❌ Creating new "enforcement" infrastructure without checking if it already exists
+5. ❌ Claiming "tests passed" without pasting terminal output
+
+**You are required to:**
+1. ✅ Read `SESSION_LOG.md` at the start of EVERY session
+2. ✅ Follow `SESSION_START_PROTOCOL.md` before any code changes
+3. ✅ Follow `PRE_DEPLOYMENT_CHECKLIST.md` before any deployment
+4. ✅ Update `SESSION_LOG.md` at end of session with proof of work
+5. ✅ Wait for user approval before deploying or modifying critical features
+
+**Critical Features (Require Approval):**
+- Authentication (login, signup, password reset)
+- Payments (Stripe checkout, subscriptions)
+- PropIQ Analysis (core AI functionality)
+
+**If you violate these rules, you must:**
+1. Stop immediately
+2. Explain why you bypassed the protocol
+3. Follow the protocol now and show evidence
+
+---
+
 ## Table of Contents
 
 1. [Project Overview](#project-overview)
 2. [Architecture](#architecture)
 3. [Tech Stack](#tech-stack)
-4. [Git Workflow](#git-workflow)
-5. [Development Commands](#development-commands)
-6. [Design Principles](#design-principles)
-7. [Integration Rules](#integration-rules)
-8. [Testing Strategy](#testing-strategy)
-9. [Deployment](#deployment)
-10. [Code Standards](#code-standards)
+4. [**🚨 TEST ENFORCEMENT POLICY**](#test-enforcement-policy)
+5. [Git Workflow](#git-workflow)
+6. [Development Commands](#development-commands)
+7. [Design Principles](#design-principles)
+8. [Integration Rules](#integration-rules)
+9. [Testing Strategy](#testing-strategy)
+10. [Deployment](#deployment)
+11. [Code Standards](#code-standards)
 
 ---
 
@@ -92,6 +121,97 @@ propiq/backend/
 - `users` - User accounts, authentication, subscription info
 - `property_analyses` - Analysis history with W&B tracking
 - `support_chats` - Support conversation history
+
+---
+
+## 🚨 TEST ENFORCEMENT POLICY
+
+**CRITICAL: Read this before making ANY code changes or deployments**
+
+### The Rule
+
+**NEVER deploy code without running tests first. NO EXCEPTIONS.**
+
+### Why This Exists
+
+After weeks of work, critical features (like login) broke because changes were deployed without testing. This policy prevents that from happening again.
+
+### Enforcement Layers
+
+#### 1. **GitHub Actions (Automatic)**
+- Location: `.github/workflows/ci.yml`
+- Runs on every push to `main`
+- Tests: Auth (signup, login, password reset)
+- **Blocks merge if tests fail**
+
+#### 2. **Netlify Build Checks (Automatic)**
+- Location: `frontend/netlify.toml`
+- Runs tests before every deployment
+- **Blocks deployment if tests fail**
+- No way to bypass this - deploy simply fails
+
+#### 3. **Pre-commit Hook (Optional, Manual Setup)**
+- Location: `.git/hooks/pre-commit-tests`
+- Run locally before commits
+- To enable: `ln -sf ../../.git/hooks/pre-commit-tests .git/hooks/pre-commit`
+- Can bypass with `--no-verify` if needed
+
+### What Tests Are Required
+
+**Before ANY deployment, these must pass:**
+
+```bash
+# Critical auth tests (REQUIRED)
+npx playwright test tests/user-signup-integration.spec.ts --project=chromium
+npx playwright test tests/password-reset.spec.ts --project=chromium
+
+# Build must succeed
+npm run build
+```
+
+**If these fail, DO NOT DEPLOY. Fix the tests or fix the code.**
+
+### For Claude Code Sessions
+
+**Every time you make changes to:**
+- Authentication (login, signup, password reset)
+- Pricing/payments (Stripe checkout)
+- Core features (PropIQ analysis, calculator)
+
+**You MUST:**
+1. Run the relevant tests BEFORE building
+2. Only build if tests pass
+3. Only deploy if build succeeds
+4. Document what tests were run in commit message
+
+### Emergency Override
+
+If tests are failing but you need to deploy urgently:
+1. **Document why in commit message**
+2. **Create GitHub issue to fix tests**
+3. **Fix within 24 hours**
+
+### Test Files Location
+
+All tests are in: `frontend/tests/`
+
+Key test files:
+- `user-signup-integration.spec.ts` - Auth flows
+- `password-reset.spec.ts` - Password reset
+- `full-user-journey.spec.ts` - End-to-end user flows
+
+### Checking Test Status
+
+```bash
+# Run all critical tests
+npm run test
+
+# Run specific test
+npx playwright test tests/user-signup-integration.spec.ts
+
+# See test results
+npx playwright show-report
+```
 
 ---
 

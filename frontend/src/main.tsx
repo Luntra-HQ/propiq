@@ -11,6 +11,7 @@ import WelcomePage from './pages/WelcomePage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import FAQPage from './pages/FAQPage'
 import PricingPagePublic from './pages/PricingPagePublic'
+import { VerifyEmail } from './pages/VerifyEmail'
 import App from './App'
 
 // Components
@@ -53,6 +54,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="/pricing" element={<PricingPagePublic />} />
             <Route path="/faq" element={<FAQPage />} />
             <Route path="/welcome" element={<WelcomePage />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
 
             {/* Auth routes - redirect to /app if already logged in */}
             <Route

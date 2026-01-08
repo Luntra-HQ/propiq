@@ -27,6 +27,16 @@ export default defineSchema({
     active: v.boolean(),
     emailVerified: v.boolean(),
 
+    // Onboarding email tracking
+    onboardingDay0Sent: v.optional(v.boolean()),
+    onboardingDay0SentAt: v.optional(v.number()),
+    onboardingDay1Sent: v.optional(v.boolean()),
+    onboardingDay1SentAt: v.optional(v.number()),
+    onboardingDay3Sent: v.optional(v.boolean()),
+    onboardingDay3SentAt: v.optional(v.number()),
+    onboardingDay7Sent: v.optional(v.boolean()),
+    onboardingDay7SentAt: v.optional(v.number()),
+
     // Referral system (optional)
     referralCode: v.optional(v.string()),
 
@@ -61,6 +71,18 @@ export default defineSchema({
     // Metadata
     model: v.string(), // "gpt-4o-mini"
     tokensUsed: v.optional(v.number()),
+
+    // Property images stored in AWS S3
+    images: v.optional(v.array(v.object({
+      s3Key: v.string(),              // S3 object key (e.g., "properties/userId/timestamp-random.jpg")
+      s3Url: v.string(),               // Full S3 URL for display
+      filename: v.string(),            // Original filename
+      size: v.number(),                // File size in bytes
+      mimeType: v.string(),            // e.g., "image/jpeg"
+      uploadedAt: v.number(),          // Timestamp
+      width: v.optional(v.number()),   // Image dimensions (optional)
+      height: v.optional(v.number()),
+    }))),
 
     // Timestamps
     createdAt: v.number(),
@@ -151,6 +173,33 @@ export default defineSchema({
     .index("by_token", ["token"])
     .index("by_email", ["email"])
     .index("by_user", ["userId"]),
+
+  // Email verification tokens - For verifying user email addresses on signup
+  emailVerifications: defineTable({
+    userId: v.id("users"),
+    email: v.string(),
+
+    // Verification token (cryptographically secure random string)
+    token: v.string(),
+
+    // Expiration (24 hours from creation)
+    expiresAt: v.number(),
+
+    // Status tracking
+    verified: v.boolean(),
+    verifiedAt: v.optional(v.number()),
+
+    // Resend tracking (prevent abuse)
+    resendCount: v.number(), // Track how many times verification was resent
+    lastResendAt: v.optional(v.number()),
+
+    // Timestamps
+    createdAt: v.number(),
+  })
+    .index("by_token", ["token"])
+    .index("by_email", ["email"])
+    .index("by_user", ["userId"])
+    .index("by_user_unverified", ["userId", "verified"]),
 
   // Knowledge base articles - Help center content
   articles: defineTable({
@@ -277,4 +326,47 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_score", ["score"])
     .index("by_date", ["createdAt"]),
+
+  // Lead captures - Track lead magnet downloads and nurture sequence
+  leadCaptures: defineTable({
+    email: v.string(),
+    firstName: v.optional(v.string()),
+    lastName: v.optional(v.string()),
+
+    // Lead source tracking
+    leadMagnetType: v.string(), // "real-estate-checklist" | "deal-analyzer-guide" | etc.
+    source: v.optional(v.string()), // "landing-page" | "blog-post" | "formspree"
+
+    // UTM tracking for attribution
+    utmSource: v.optional(v.string()),
+    utmMedium: v.optional(v.string()),
+    utmCampaign: v.optional(v.string()),
+    utmContent: v.optional(v.string()),
+    utmTerm: v.optional(v.string()),
+
+    // Conversion tracking
+    status: v.string(), // "captured" | "nurtured_day3" | "nurtured_day7" | "converted_trial" | "converted_paid"
+    userId: v.optional(v.id("users")), // Linked when user signs up
+    convertedAt: v.optional(v.number()), // When they became a trial/paid user
+
+    // Email nurture tracking
+    day3EmailSent: v.boolean(),
+    day3EmailSentAt: v.optional(v.number()),
+    day7EmailSent: v.boolean(),
+    day7EmailSentAt: v.optional(v.number()),
+
+    // Engagement tracking
+    emailOpened: v.boolean(),
+    emailClicked: v.boolean(),
+    lastEngagementAt: v.optional(v.number()),
+
+    // Timestamps
+    capturedAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_email", ["email"])
+    .index("by_status", ["status"])
+    .index("by_user", ["userId"])
+    .index("by_captured_date", ["capturedAt"])
+    .index("by_status_and_date", ["status", "capturedAt"]),
 });
