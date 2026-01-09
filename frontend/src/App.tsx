@@ -388,27 +388,17 @@ const App = () => {
   // Note: App is wrapped in ProtectedRoute, so user is always authenticated here
   const { user, isLoading: authLoading, logout: authLogout, sessionToken } = useAuth();
 
-  // CRITICAL FIX: Guard rendering until Convex API modules are loaded
-  // This prevents race condition errors during signup redirect:
-  // - "TypeError: null is not an object (evaluating 'rs.payments')"
-  // - "TypeError: undefined is not an object (evaluating 'e[le]')"
-  // - "TypeError: Cannot read properties of undefined (reading 'Symbol(functionName)')"
-  // - "TypeError: Cannot read properties of null (reading 'payments')"
-  //
-  // Root Cause: When user signs up and redirects to /app, React components mount before
-  // Convex API object is fully initialized. The api object itself can be null during initial load.
-  //
-  // Solution: Guard on both api and critical modules existing
-  // - Ensures useAction receives a properly typed Convex function
-  // - Prevents TypeScript type errors from ?? operator with mismatched types
-  // - User sees loading screen briefly until all required modules load
-  if (!api || !api.payments?.createCheckoutSession) {
+  // CRITICAL FIX: Guard rendering until Convex API loads
+  // Only block on api existing, not specific modules (they may lazy-load)
+  if (!api) {
     return <LoadingScreen />;
   }
 
-  // Now safe to call useAction - Convex API and payments module are guaranteed to be loaded
-  // TypeScript can properly infer the type without fallback complications
-  const createCheckout = useAction(api.payments.createCheckoutSession);
+  // Payment checkout action - may be undefined initially if module still loading
+  // We'll handle this gracefully in the upgrade handler
+  const createCheckout = api.payments?.createCheckoutSession
+    ? useAction(api.payments.createCheckoutSession)
+    : null;
 
   // Sync auth state with local component state
   useEffect(() => {
