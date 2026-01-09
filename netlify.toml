@@ -15,6 +15,13 @@
   # Node.js version (Vite 7 requires Node 20+)
   NODE_VERSION = "20"
 
+  # CRITICAL: Convex backend URL (required for app to load)
+  VITE_CONVEX_URL = "https://mild-tern-361.convex.cloud"
+
+  # Sentry Error Tracking
+  VITE_SENTRY_DSN = "https://40030bebf39c05993afb993b0b81630b@o4510522471219200.ingest.us.sentry.io/4510522474496000"
+  VITE_SENTRY_ENVIRONMENT = "production"
+
   # Note: NODE_ENV removed - we need devDependencies (typescript, vite) to build
   # Vite automatically optimizes for production during build
 
