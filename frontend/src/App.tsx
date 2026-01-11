@@ -394,11 +394,15 @@ const App = () => {
     return <LoadingScreen />;
   }
 
-  // Payment checkout action - may be undefined initially if module still loading
-  // We'll handle this gracefully in the upgrade handler
-  const createCheckout = api.payments?.createCheckoutSession
-    ? useAction(api.payments.createCheckoutSession)
-    : null;
+  // Payment checkout action
+  // CRITICAL FIX: Always call useAction unconditionally (Rules of Hooks)
+  // Provide a no-op fallback if payments module isn't loaded yet
+  const paymentsAction = api.payments?.createCheckoutSession;
+  const noopAction = async () => {
+    console.error('[APP] Payments module not available');
+    throw new Error('Payment system temporarily unavailable. Please refresh.');
+  };
+  const createCheckout = useAction(paymentsAction || noopAction);
 
   // Sync auth state with local component state
   useEffect(() => {
