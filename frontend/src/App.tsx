@@ -390,14 +390,9 @@ const App = () => {
 
   // Payment checkout action
   // CRITICAL FIX: Always call useAction unconditionally (Rules of Hooks)
-  // Provide a no-op fallback if payments module isn't loaded yet
-  // Use optional chaining on api itself since it's null in browser (server-side import)
-  const paymentsAction = api?.payments?.createCheckoutSession;
-  const noopAction = async () => {
-    console.error('[APP] Payments module not available');
-    throw new Error('Payment system temporarily unavailable. Please refresh.');
-  };
-  const createCheckout = useAction(paymentsAction || noopAction);
+  // useAction expects a Convex FunctionReference or undefined - NOT a regular JS function
+  // When api is null (browser doesn't support server-side import), pass undefined
+  const createCheckout = useAction(api?.payments?.createCheckoutSession ?? undefined);
 
   // Sync auth state with local component state
   // OPTIMIZED: Removed userId/userEmail duplication, use user directly
@@ -472,6 +467,11 @@ const App = () => {
         successUrl: `${window.location.origin}/app?upgrade=success`,
         cancelUrl: `${window.location.origin}/app?upgrade=cancelled`,
       };
+
+      // Check if Convex payments action is available
+      if (!createCheckout) {
+        throw new Error('Payment system is temporarily unavailable. Please refresh the page and try again.');
+      }
 
       // Call Convex action to create Stripe checkout session
       const result = await createCheckout(checkoutParams);
