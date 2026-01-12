@@ -12,8 +12,16 @@
 
 import { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff, Check, X, Loader2, Sparkles } from 'lucide-react';
-import { signup, type SignupData } from '../utils/auth';
+import { useAuth } from '../hooks/useAuth';
 import './SignupFlow.css';
+
+interface SignupData {
+  email: string;
+  password: string;
+  firstName?: string;
+  lastName?: string;
+  company?: string;
+}
 
 interface SignupFlowProps {
   onSuccess: (userData: any) => void;
@@ -26,6 +34,7 @@ export const SignupFlow: React.FC<SignupFlowProps> = ({
   onSwitchToLogin,
   onClose
 }) => {
+  const { signup: signupUser } = useAuth();  // Use the auth hook
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -85,7 +94,7 @@ export const SignupFlow: React.FC<SignupFlowProps> = ({
         password
       };
 
-      const result = await signup(signupData);
+      const result = await signupUser(signupData);  // Use the hook's signup method
 
       if (result.success) {
         // Track signup completion
