@@ -361,7 +361,6 @@ const App = () => {
   const [showPricingPage, setShowPricingPage] = useState(false);
   const [showPropIQAnalysis, setShowPropIQAnalysis] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   // authToken is now provided by useAuth hook as sessionToken
@@ -405,17 +404,8 @@ const App = () => {
   const createCheckout = useAction(paymentsAction || noopAction);
 
   // Sync auth state with local component state
+  // FIXED: Use authLoading directly, no duplicate isLoading state
   useEffect(() => {
-    // Still loading auth - ProtectedRoute handles the loading state,
-    // but we still sync here for internal state
-    if (authLoading) {
-      setIsLoading(true);
-      return;
-    }
-
-    // Auth loaded - update state from user data
-    setIsLoading(false);
-
     if (user) {
       console.log('[APP] User data synced:', user.email);
       setUserId(user._id);
@@ -423,12 +413,11 @@ const App = () => {
       setPropIqUsed(user.analysesUsed || 0);
       setCurrentTier(user.subscriptionTier || 'free');
     }
-    // Note: No need to handle unauthenticated case - ProtectedRoute handles it
-  }, [user, authLoading]);
+  }, [user]);
 
   // Effect to show upgrade prompts based on usage thresholds
   useEffect(() => {
-    if (isLoading) return;
+    if (authLoading) return;
 
     // Check if at hard cap (100% usage)
     if (isAtHardCap(propIqUsed, propIqLimit)) {
@@ -580,11 +569,13 @@ const App = () => {
     currentTheme,
   });
 
-  if (isLoading) {
+  // Show loading screen while auth is loading
+  // ProtectedRoute already guards this, but this is for local state sync
+  if (authLoading) {
     return <LoadingScreen />;
   }
 
-  // Show auth modal if not logged in
+  // Show auth modal if not logged in (shouldn't happen due to ProtectedRoute)
   if (!userId) {
     return (
       <>

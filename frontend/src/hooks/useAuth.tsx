@@ -124,13 +124,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (!token) {
         console.log('[AUTH] No token stored, not authenticated');
-        setState({
+        setState(prev => ({
+          ...prev,
           user: null,
           isLoading: false,
           isAuthenticated: false,
           error: null,
           sessionToken: null,
-        });
+        }));
         return;
       }
 
@@ -148,33 +149,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('[AUTH] /me response:', data);
 
       if (data.authenticated && data.user) {
-        setState({
+        setState(prev => ({
+          ...prev,
           user: data.user,
           isLoading: false,
           isAuthenticated: true,
           error: null,
           sessionToken: token,
-        });
+        }));
       } else {
         // Token invalid, clear it
         clearStoredToken();
-        setState({
+        setState(prev => ({
+          ...prev,
           user: null,
           isLoading: false,
           isAuthenticated: false,
           error: null,
           sessionToken: null,
-        });
+        }));
       }
     } catch (error) {
       console.error('[AUTH] Error fetching user:', error);
-      setState({
+      setState(prev => ({
+        ...prev,
         user: null,
         isLoading: false,
         isAuthenticated: false,
         error: 'Failed to fetch user',
         sessionToken: null,
-      });
+      }));
     }
   }, []);
 
