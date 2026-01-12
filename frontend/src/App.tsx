@@ -126,16 +126,14 @@ const Header = ({
   propIqUsed,
   propIqLimit,
   currentTier,
-  userId,
-  userEmail,
+  user,
   onLogout,
   onHelpClick
 }: {
   propIqUsed: number;
   propIqLimit: number;
   currentTier: string;
-  userId: string | null;
-  userEmail: string | null;
+  user: any; // User from useAuth
   onLogout: () => void;
   onHelpClick: () => void;
 }) => {
@@ -168,10 +166,10 @@ const Header = ({
           <HelpCircle className="h-4 w-4" />
           <span className="hidden md:inline text-xs font-semibold">Help</span>
         </button>
-        {userId && (
+        {user && (
           <div className="flex items-center space-x-2">
-            <div className="hidden lg:block text-xs text-gray-400 truncate max-w-[120px]" title={userEmail || userId}>
-              {userEmail || 'Logged In'}
+            <div className="hidden lg:block text-xs text-gray-400 truncate max-w-[120px]" title={user.email || user._id}>
+              {user.email || 'Logged In'}
             </div>
             <button
               onClick={onLogout}
@@ -361,8 +359,7 @@ const App = () => {
   const [showPricingPage, setShowPricingPage] = useState(false);
   const [showPropIQAnalysis, setShowPropIQAnalysis] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
+  // REMOVED: userId and userEmail local state - use user from useAuth directly
   // authToken is now provided by useAuth hook as sessionToken
 
   // Help Center state
@@ -404,12 +401,10 @@ const App = () => {
   const createCheckout = useAction(paymentsAction || noopAction);
 
   // Sync auth state with local component state
-  // FIXED: Use authLoading directly, no duplicate isLoading state
+  // OPTIMIZED: Removed userId/userEmail duplication, use user directly
   useEffect(() => {
     if (user) {
       console.log('[APP] User data synced:', user.email);
-      setUserId(user._id);
-      setUserEmail(user.email);
       setPropIqUsed(user.analysesUsed || 0);
       setCurrentTier(user.subscriptionTier || 'free');
     }
@@ -428,11 +423,11 @@ const App = () => {
     else if (shouldShowUpgradePrompt(propIqUsed, propIqLimit) && !showUpgradeBanner) {
       setShowUpgradeBanner(true);
     }
-  }, [propIqUsed, propIqLimit, isLoading]);
+  }, [propIqUsed, propIqLimit, authLoading, showUpgradeBanner]);
 
   // Handler to use PropIQ feature (increments usage)
   const handleUsePropIq = async () => {
-    if (isLoading || !userId) return;
+    if (authLoading || !user) return;
 
     // Check if at hard cap
     if (isAtHardCap(propIqUsed, propIqLimit)) {
@@ -463,7 +458,7 @@ const App = () => {
 
   const handleSelectTier = async (tierId: string) => {
     // UNAUTHENTICATED USER FLOW: Redirect to signup
-    if (!userId) {
+    if (!user) {
       window.location.href = '/signup';
       return;
     }
@@ -473,7 +468,7 @@ const App = () => {
       setShowPricingPage(false);
 
       const checkoutParams = {
-        userId: userId as Id<"users">,
+        userId: user._id,
         tier: tierId,
         successUrl: `${window.location.origin}/app?upgrade=success`,
         cancelUrl: `${window.location.origin}/app?upgrade=cancelled`,
@@ -543,14 +538,14 @@ const App = () => {
 
   // Show product tour after user logs in (if they haven't seen it)
   useEffect(() => {
-    if (userId && shouldShowTour && !showAuthModal) {
+    if (user && shouldShowTour && !showAuthModal) {
       // Small delay to let the app finish loading
       const timer = setTimeout(() => {
         setShowTour(true);
       }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [userId, shouldShowTour, showAuthModal]);
+  }, [user, shouldShowTour, showAuthModal]);
 
   // Command palette commands
   const commandPaletteCommands = getDefaultCommands({
@@ -571,28 +566,14 @@ const App = () => {
 
   // Show loading screen while auth is loading
   // ProtectedRoute already guards this, but this is for local state sync
-  // CRITICAL FIX: Check user from useAuth directly to avoid race condition
-  // The local userId state is synced in useEffect which runs AFTER first render
-  // So we must check the source of truth (user from useAuth) not the derived state
+  // OPTIMIZED: Use user from useAuth directly (no state duplication)
   if (authLoading || !user) {
     return <LoadingScreen />;
   }
 
-  // Show auth modal if not logged in (shouldn't happen due to ProtectedRoute)
-  // Keep this as defensive programming, but it should never trigger
-  if (!userId) {
-    return (
-      <>
-        <LoadingScreen />
-        <AuthModal
-          isOpen={showAuthModal}
-          onClose={() => {/* Don't allow closing when not logged in */}}
-          onSuccess={handleAuthSuccess}
-          defaultMode="signup"
-        />
-      </>
-    );
-  }
+  // Auth is confirmed at this point - user exists and is authenticated
+  // ProtectedRoute + the guard above ensure we never render without a valid user
+  // REMOVED: Redundant !userId check (userId local state eliminated)
 
   // Component Test Page (accessible at /test for rapid testing)
   if (window.location.pathname === '/test') {
@@ -613,21 +594,20 @@ const App = () => {
         propIqUsed={propIqUsed}
         propIqLimit={propIqLimit}
         currentTier={currentTier}
-        userId={userId}
-        userEmail={userEmail}
+        user={user}
         onLogout={handleLogout}
         onHelpClick={() => setShowHelpCenter(true)}
       />
 
       {/* Email Verification Banner (shows if email not verified) */}
-      {user && !user.emailVerified && userEmail && (
+      {user && !user.emailVerified && user.email && (
         <Suspense fallback={null}>
-          <ResendVerificationBanner email={userEmail} />
+          <ResendVerificationBanner email={user.email} />
         </Suspense>
       )}
 
       {/* Onboarding Checklist (shows for first 7 days) */}
-      {userId && <OnboardingChecklist userId={userId as any} />}
+      {user && <OnboardingChecklist userId={user._id} />}
 
       {/* Upgrade Prompt Banner (90% threshold) */}
       {showUpgradeBanner && (
@@ -647,7 +627,7 @@ const App = () => {
           propIqUsed={propIqUsed}
           propIqLimit={propIqLimit}
           currentTier={currentTier}
-          userEmail={userEmail}
+          userEmail={user.email}
           onAnalyzeClick={() => setShowPropIQAnalysis(true)}
           onUpgradeClick={handleUpgradeClick}
           onHelpClick={() => setShowHelpCenter(true)}
@@ -694,15 +674,15 @@ const App = () => {
       {/* Lazy-loaded components with Suspense */}
       <Suspense fallback={null}>
         {/* Support Chat Widget (shows for logged-in users) */}
-        {userId && <SupportChat />}
+        {user && <SupportChat />}
 
         {/* Feedback Widget (shows for logged-in users) */}
-        {userId && (
+        {user && (
           <FeedbackWidget
             tallyFormId="wkD6rj"
             hiddenFields={{
               user_tier: currentTier,
-              user_id: userId,
+              user_id: user._id,
               feedback_source: 'general'
             }}
             position="bottom-right"
@@ -731,7 +711,7 @@ const App = () => {
         {showPropIQAnalysis && (
           <PropIQAnalysis
             onClose={() => setShowPropIQAnalysis(false)}
-            userId={userId}
+            userId={user._id}
             authToken={sessionToken}
           />
         )}
@@ -748,9 +728,9 @@ const App = () => {
       <CookieConsent />
 
       {/* Onboarding Checklist - Shows for new users */}
-      {userId && (
+      {user && (
         <Suspense fallback={null}>
-          <OnboardingChecklist userId={userId as any} />
+          <OnboardingChecklist userId={user._id} />
         </Suspense>
       )}
 
@@ -760,7 +740,7 @@ const App = () => {
           <HelpCenter
             isOpen={showHelpCenter}
             onClose={() => setShowHelpCenter(false)}
-            userId={userId as any}
+            userId={user._id}
           />
         )}
       </Suspense>
