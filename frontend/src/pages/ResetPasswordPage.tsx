@@ -47,8 +47,8 @@ const ResetPasswordPage: React.FC = () => {
   // Verify token validity if in reset mode
   // CRITICAL FIX: Safe access to api.auth (may be null during initial load)
   const tokenVerification = useQuery(
-    api.auth?.verifyResetToken ?? (undefined as any),
-    token ? { token } : 'skip'
+    api.auth?.verifyResetToken,
+    !api.auth || !token ? 'skip' : { token }
   );
 
   useEffect(() => {
