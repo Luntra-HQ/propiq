@@ -79,8 +79,8 @@ const LoginPage: React.FC = () => {
 
         if (result.success) {
           setSuccess('Account created! Please check your email to verify your account.');
-          // Show verification message for 3 seconds, then redirect
-          setTimeout(() => navigate(from, { replace: true }), 3000);
+          // Navigate immediately - no delay needed (fixes race condition)
+          navigate(from, { replace: true });
         } else {
           setError(result.error || 'Signup failed');
         }
@@ -89,7 +89,8 @@ const LoginPage: React.FC = () => {
 
         if (result.success) {
           setSuccess('Login successful! Redirecting...');
-          setTimeout(() => navigate(from, { replace: true }), 1000);
+          // Navigate immediately - no delay needed
+          navigate(from, { replace: true });
         } else {
           setError(result.error || 'Login failed');
         }

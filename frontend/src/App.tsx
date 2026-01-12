@@ -564,16 +564,15 @@ const App = () => {
     currentTheme,
   });
 
-  // Show loading screen while auth is loading
-  // ProtectedRoute already guards this, but this is for local state sync
-  // OPTIMIZED: Use user from useAuth directly (no state duplication)
-  if (authLoading || !user) {
-    return <LoadingScreen />;
-  }
-
-  // Auth is confirmed at this point - user exists and is authenticated
-  // ProtectedRoute + the guard above ensure we never render without a valid user
-  // REMOVED: Redundant !userId check (userId local state eliminated)
+  // REMOVED: Redundant auth guard that caused race condition
+  // ProtectedRoute already validates authentication before App mounts
+  // Double-checking here created a timing race where authLoading could be
+  // true during fetchCurrentUser() refetch, causing infinite LoadingScreen
+  //
+  // Auth is guaranteed valid at this point:
+  // - ProtectedRoute checked isAuthenticated=true before rendering <App />
+  // - If auth fails, ProtectedRoute redirects to /login
+  // - No need to check again here
 
   // Component Test Page (accessible at /test for rapid testing)
   if (window.location.pathname === '/test') {

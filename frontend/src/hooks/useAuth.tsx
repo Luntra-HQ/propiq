@@ -396,10 +396,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await fetchCurrentUser();
   }, [fetchCurrentUser]);
 
-  // Fetch user on mount
+  // Fetch user on mount ONLY if we don't already have valid user data
+  // This prevents redundant fetches after signup/login when we already have the user
   useEffect(() => {
-    fetchCurrentUser();
-  }, [fetchCurrentUser]);
+    const token = getStoredToken();
+
+    // Case 1: No token - clear state and mark as not loading
+    if (!token) {
+      setState(prev => ({
+        ...prev,
+        user: null,
+        isLoading: false,
+        isAuthenticated: false,
+        error: null,
+        sessionToken: null,
+      }));
+      return;
+    }
+
+    // Case 2: Have token but no user - fetch user data
+    if (!state.user) {
+      fetchCurrentUser();
+      return;
+    }
+
+    // Case 3: Have both token and user - just ensure loading is false
+    // This happens after signup/login when state is already set correctly
+    setState(prev => ({
+      ...prev,
+      isLoading: false,
+    }));
+  }, []); // Empty deps - only run on initial AuthProvider mount
 
   // Refresh user on window focus - THROTTLED to prevent session race conditions
   // Only check once every 5 minutes, with a 30-second delay after focus
