@@ -571,11 +571,15 @@ const App = () => {
 
   // Show loading screen while auth is loading
   // ProtectedRoute already guards this, but this is for local state sync
-  if (authLoading) {
+  // CRITICAL FIX: Check user from useAuth directly to avoid race condition
+  // The local userId state is synced in useEffect which runs AFTER first render
+  // So we must check the source of truth (user from useAuth) not the derived state
+  if (authLoading || !user) {
     return <LoadingScreen />;
   }
 
   // Show auth modal if not logged in (shouldn't happen due to ProtectedRoute)
+  // Keep this as defensive programming, but it should never trigger
   if (!userId) {
     return (
       <>
