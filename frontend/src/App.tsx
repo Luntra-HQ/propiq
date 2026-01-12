@@ -391,7 +391,8 @@ const App = () => {
   // Payment checkout action
   // CRITICAL FIX: Always call useAction unconditionally (Rules of Hooks)
   // Provide a no-op fallback if payments module isn't loaded yet
-  const paymentsAction = api.payments?.createCheckoutSession;
+  // Use optional chaining on api itself since it's null in browser (server-side import)
+  const paymentsAction = api?.payments?.createCheckoutSession;
   const noopAction = async () => {
     console.error('[APP] Payments module not available');
     throw new Error('Payment system temporarily unavailable. Please refresh.');
