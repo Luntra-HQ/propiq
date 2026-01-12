@@ -57,8 +57,10 @@ import {
   type PricingTier
 } from './config/pricing';
 import { useAction } from 'convex/react';
-import { api } from '../convex/_generated/api';
-import { Id } from '../convex/_generated/dataModel';
+// GROK'S FIX: Removed generated api import - it's a type-only placeholder that becomes
+// undefined in browser (convex/server is Node.js-only). Use string literals instead.
+// import { api } from '../convex/_generated/api';
+// import { Id } from '../convex/_generated/dataModel';
 // ------------------------
 
 // --- CONFIGURATION ---
@@ -388,11 +390,10 @@ const App = () => {
   console.log('🟠 [10a-APP-STATE] authLoading:', authLoading, 'has user:', !!user);
   console.log('🟠 [10b-APP-USER] user:', user);
 
-  // Payment checkout action
-  // CRITICAL FIX: Always call useAction unconditionally (Rules of Hooks)
-  // useAction expects a Convex FunctionReference or undefined - NOT a regular JS function
-  // When api is null (browser doesn't support server-side import), pass undefined
-  const createCheckout = useAction(api?.payments?.createCheckoutSession ?? undefined);
+  // Payment checkout action - GROK'S FIX
+  // Use string literal instead of generated api object (which is type-only and becomes undefined in browser)
+  // String literals are officially supported by Convex and work reliably in production
+  const createCheckout = useAction("payments:createCheckoutSession" as any);
 
   // Sync auth state with local component state
   // OPTIMIZED: Removed userId/userEmail duplication, use user directly
