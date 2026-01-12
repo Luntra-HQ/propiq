@@ -78,20 +78,27 @@ const LoginPage: React.FC = () => {
         });
 
         if (result.success) {
+          console.log('🟣 [6-SIGNUP-SUCCESS-RECEIVED] LoginPage received success from signup');
+          console.log('🟣 [6a-NAVIGATION-TARGET] Will navigate to:', from);
           setSuccess('Account created! Please check your email to verify your account.');
           // Navigate immediately - no delay needed (fixes race condition)
+          console.log('🟣 [7-NAVIGATE-CALLED] Calling navigate to /app');
           navigate(from, { replace: true });
+          console.log('🟣 [7a-NAVIGATE-COMPLETE] Navigate function returned');
         } else {
+          console.log('❌ [SIGNUP-RESULT-FAILED] Signup returned failure');
           setError(result.error || 'Signup failed');
         }
       } else {
         const result = await login(email.trim(), password);
 
         if (result.success) {
+          console.log('🟣 [LOGIN-SUCCESS] Login successful');
           setSuccess('Login successful! Redirecting...');
           // Navigate immediately - no delay needed
           navigate(from, { replace: true });
         } else {
+          console.log('❌ [LOGIN-FAILED] Login failed');
           setError(result.error || 'Login failed');
         }
       }

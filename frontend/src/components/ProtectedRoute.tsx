@@ -21,18 +21,25 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 
+  console.log('🔴 [8-PROTECTED-ROUTE] ProtectedRoute checking auth');
+  console.log('🔴 [8a-PROTECTED-STATE] isLoading:', isLoading, 'isAuthenticated:', isAuthenticated);
+  console.log('🔴 [8b-PROTECTED-LOCATION] Current location:', location.pathname);
+
   // State 1: Loading - show skeleton, NEVER render children
   if (isLoading) {
+    console.log('🔴 [8-LOADING] Still loading - showing skeleton');
     return <LoadingSkeleton />;
   }
 
   // State 2: Not authenticated - redirect to login
   if (!isAuthenticated) {
+    console.log('🔴 [8-NOT-AUTH] Not authenticated - redirecting to login');
     // Save the attempted URL for redirecting after login
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   // State 3: Authenticated - render children
+  console.log('🔴 [9-AUTH-PASSED] Authentication passed - rendering App');
   return <>{children}</>;
 };
 

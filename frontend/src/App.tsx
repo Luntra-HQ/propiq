@@ -384,9 +384,15 @@ const App = () => {
   // Note: App is wrapped in ProtectedRoute, so user is always authenticated here
   const { user, isLoading: authLoading, logout: authLogout, sessionToken } = useAuth();
 
+  console.log('🟠 [10-APP-RENDER] App component rendering');
+  console.log('🟠 [10a-APP-STATE] authLoading:', authLoading, 'has user:', !!user);
+  console.log('🟠 [10b-APP-USER] user:', user);
+  console.log('🟠 [10c-APP-API] api exists:', !!api);
+
   // CRITICAL FIX: Guard rendering until Convex API loads
   // Only block on api existing, not specific modules (they may lazy-load)
   if (!api) {
+    console.log('🟠 [10-API-NULL] API not loaded yet - showing LoadingScreen');
     return <LoadingScreen />;
   }
 
@@ -582,6 +588,8 @@ const App = () => {
       </Suspense>
     );
   }
+
+  console.log('🟢 [11-DASHBOARD-RENDER] All guards passed - rendering Dashboard');
 
   return (
     <div className="min-h-screen bg-slate-900 text-gray-100 flex flex-col font-sans antialiased">
