@@ -56,11 +56,9 @@ import {
   getNextTier,
   type PricingTier
 } from './config/pricing';
-// REMOVED: Convex imports causing browser incompatibility issues
-// import { useAction } from 'convex/react';
-// import { api } from '../convex/_generated/api';
-// import { Id } from '../convex/_generated/dataModel';
-// TODO: Re-implement payments without Convex or fix Convex browser support
+import { useAction } from 'convex/react';
+import { api } from '../convex/_generated/api';
+import { Id } from '../convex/_generated/dataModel';
 // ------------------------
 
 // --- CONFIGURATION ---
@@ -390,10 +388,11 @@ const App = () => {
   console.log('🟠 [10a-APP-STATE] authLoading:', authLoading, 'has user:', !!user);
   console.log('🟠 [10b-APP-USER] user:', user);
 
-  // REMOVED: Convex payment integration (was causing browser crashes)
-  // Payment checkout will need to be re-implemented without Convex
-  // or Convex browser support needs to be fixed
-  // const createCheckout = useAction(api?.payments?.createCheckoutSession ?? undefined);
+  // Payment checkout action
+  // CRITICAL FIX: Always call useAction unconditionally (Rules of Hooks)
+  // useAction expects a Convex FunctionReference or undefined - NOT a regular JS function
+  // When api is null (browser doesn't support server-side import), pass undefined
+  const createCheckout = useAction(api?.payments?.createCheckoutSession ?? undefined);
 
   // Sync auth state with local component state
   // OPTIMIZED: Removed userId/userEmail duplication, use user directly
@@ -458,22 +457,42 @@ const App = () => {
       return;
     }
 
-    // TEMPORARILY DISABLED: Payment integration being refactored
-    // Convex-based payment system was causing browser crashes
-    console.log('[PAYMENT] Checkout requested for tier:', tierId);
-    console.log('[PAYMENT] User:', user._id, user.email);
+    try {
+      // Show loading state
+      setShowPricingPage(false);
 
-    alert(`Payment Integration Temporarily Disabled
+      const checkoutParams = {
+        userId: user._id,
+        tier: tierId,
+        successUrl: `${window.location.origin}/app?upgrade=success`,
+        cancelUrl: `${window.location.origin}/app?upgrade=cancelled`,
+      };
 
-Tier selected: ${tierId}
+      // Check if Convex payments action is available
+      if (!createCheckout) {
+        throw new Error('Payment system is temporarily unavailable. Please refresh the page and try again.');
+      }
 
-The payment system is being refactored to fix browser compatibility issues.
-For now, please contact support@luntra.one to upgrade your account.
+      // Call Convex action to create Stripe checkout session
+      const result = await createCheckout(checkoutParams);
 
-Your free trial analyses are still available!`);
+      if (result.success && result.url) {
+        // Redirect to Stripe Checkout
+        window.location.href = result.url;
+      } else {
+        console.error('Checkout session creation failed:', result);
+        throw new Error('Failed to create checkout session - invalid response');
+      }
+    } catch (error: any) {
+      console.error('Checkout error:', error.message || error);
 
-    // Reopen pricing page
-    setShowPricingPage(true);
+      // Show user-friendly error message
+      const errorMessage = error.message || 'Unable to start checkout. Please try again.';
+      alert(`Checkout Error: ${errorMessage}\n\nCheck browser console for details.`);
+
+      // Reopen pricing page so user can try again
+      setShowPricingPage(true);
+    }
   };
 
   const handleTopUpPurchase = async (packageId: string) => {
