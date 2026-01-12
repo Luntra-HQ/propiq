@@ -387,14 +387,6 @@ const App = () => {
   console.log('🟠 [10-APP-RENDER] App component rendering');
   console.log('🟠 [10a-APP-STATE] authLoading:', authLoading, 'has user:', !!user);
   console.log('🟠 [10b-APP-USER] user:', user);
-  console.log('🟠 [10c-APP-API] api exists:', !!api);
-
-  // CRITICAL FIX: Guard rendering until Convex API loads
-  // Only block on api existing, not specific modules (they may lazy-load)
-  if (!api) {
-    console.log('🟠 [10-API-NULL] API not loaded yet - showing LoadingScreen');
-    return <LoadingScreen />;
-  }
 
   // Payment checkout action
   // CRITICAL FIX: Always call useAction unconditionally (Rules of Hooks)
