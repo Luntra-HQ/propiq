@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from 'convex/react';
-import { api } from '../../convex/_generated/api';
-import { Id } from '../../convex/_generated/dataModel';
+// GROK'S FIX: Remove api import, use string literals
+// import { api } from '../../convex/_generated/api';
+// import { Id } from '../../convex/_generated/dataModel';
 import { CheckCircle2, Circle, X, ChevronDown, ChevronUp, Trophy, Sparkles } from 'lucide-react';
 import './OnboardingChecklist.css';
 
 interface OnboardingChecklistProps {
-  userId: Id<"users">;
+  userId: string; // Changed from Id<"users"> to string
 }
 
 export const OnboardingChecklist = ({ userId }: OnboardingChecklistProps) => {
@@ -14,12 +15,12 @@ export const OnboardingChecklist = ({ userId }: OnboardingChecklistProps) => {
   const [isDismissed, setIsDismissed] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
 
-  // Query progress
-  const progress = useQuery(api?.onboarding?.getProgress ?? undefined, { userId });
-  const completionPercentage = useQuery(api?.onboarding?.getCompletionPercentage ?? undefined, { userId });
+  // Query progress - GROK'S FIX: Use string literals
+  const progress = useQuery("onboarding:getProgress" as any, { userId });
+  const completionPercentage = useQuery("onboarding:getCompletionPercentage" as any, { userId });
 
-  // Mutation
-  const dismissChecklist = useMutation(api?.onboarding?.dismissChecklist ?? undefined);
+  // Mutation - GROK'S FIX: Use string literal
+  const dismissChecklist = useMutation("onboarding:dismissChecklist" as any);
 
   // Check if we should show the checklist
   useEffect(() => {

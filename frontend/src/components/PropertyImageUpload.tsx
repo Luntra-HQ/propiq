@@ -1,13 +1,14 @@
 import { useState, useRef } from "react";
 import { useMutation, useAction } from "convex/react";
-import { api } from "../../../convex/_generated/api";
+// GROK'S FIX: Remove api import, use string literals
+// import { api } from "../../../convex/_generated/api";
 import imageCompression from "browser-image-compression";
 import { Upload, X, Loader2 } from "lucide-react";
-import type { Id } from "../../../convex/_generated/dataModel";
+// import type { Id } from "../../../convex/_generated/dataModel";
 
 interface PropertyImageUploadProps {
-  analysisId: Id<"propertyAnalyses">;
-  userId: Id<"users">;
+  analysisId: string; // Changed from Id<"propertyAnalyses">
+  userId: string; // Changed from Id<"users">
   existingImages?: Array<{
     s3Key: string;
     s3Url: string;
@@ -29,10 +30,11 @@ export const PropertyImageUpload = ({
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const generateUploadUrl = useAction(api?.s3Upload?.generateUploadUrl ?? undefined);
-  const savePropertyImage = useMutation(api?.propiq?.savePropertyImage ?? undefined);
-  const deletePropertyImage = useMutation(api?.propiq?.deletePropertyImage ?? undefined);
-  const deleteS3Image = useAction(api?.s3Upload?.deleteImage ?? undefined);
+  // GROK'S FIX: Use string literals
+  const generateUploadUrl = useAction("s3Upload:generateUploadUrl" as any);
+  const savePropertyImage = useMutation("propiq:savePropertyImage" as any);
+  const deletePropertyImage = useMutation("propiq:deletePropertyImage" as any);
+  const deleteS3Image = useAction("s3Upload:deleteImage" as any);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

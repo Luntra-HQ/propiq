@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from 'convex/react';
-import { api } from '../../convex/_generated/api';
-import { Id } from '../../convex/_generated/dataModel';
+// GROK'S FIX: Remove api import, use string literals
+// import { api } from '../../convex/_generated/api';
+// import { Id } from '../../convex/_generated/dataModel';
 import { Search, BookOpen, X, ThumbsUp, ThumbsDown, ArrowLeft, ExternalLink } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import DOMPurify from 'dompurify';
@@ -10,7 +11,7 @@ import './HelpCenter.css';
 interface HelpCenterProps {
   isOpen: boolean;
   onClose: () => void;
-  userId: Id<"users"> | null;
+  userId: string | null; // Changed from Id<"users">
   initialArticleSlug?: string;
 }
 
@@ -25,21 +26,21 @@ export const HelpCenter = ({ isOpen, onClose, userId, initialArticleSlug }: Help
   const [isSearching, setIsSearching] = useState(false);
   const [votedArticles, setVotedArticles] = useState<Set<string>>(new Set());
 
-  // Queries
-  const allArticles = useQuery(api?.articles?.getAllArticles ?? undefined, {
+  // Queries - GROK'S FIX: Use string literals
+  const allArticles = useQuery("articles:getAllArticles" as any, {
     category: selectedCategory || undefined,
   });
-  const popularArticles = useQuery(api?.articles?.getPopularArticles ?? undefined, { limit: 5 });
-  const categories = useQuery(api?.articles?.getCategories ?? undefined, {});
-  const searchArticles = useQuery(api?.articles?.searchArticles ?? undefined, {
+  const popularArticles = useQuery("articles:getPopularArticles" as any, { limit: 5 });
+  const categories = useQuery("articles:getCategories" as any, {});
+  const searchArticles = useQuery("articles:searchArticles" as any, {
     query: searchQuery,
     category: selectedCategory || undefined,
   });
 
-  // Mutations
-  const incrementViewCount = useMutation(api?.articles?.incrementViewCount ?? undefined);
-  const submitFeedback = useMutation(api?.articles?.submitArticleFeedback ?? undefined);
-  const logFailedSearch = useMutation(api?.articles?.logFailedSearch ?? undefined);
+  // Mutations - GROK'S FIX: Use string literals
+  const incrementViewCount = useMutation("articles:incrementViewCount" as any);
+  const submitFeedback = useMutation("articles:submitArticleFeedback" as any);
+  const logFailedSearch = useMutation("articles:logFailedSearch" as any);
 
   // Load initial article if provided
   useEffect(() => {
