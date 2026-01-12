@@ -214,7 +214,7 @@ http.route({
 
         if (resendApiKey) {
           const verificationUrl = `https://propiq.luntra.one/verify-email?token=${result.verificationToken}`;
-          const firstName = result.user.firstName || "there";
+          const firstNameForEmail = firstName || "there";  // Use firstName from body, fallback to "there"
 
           try {
             const emailResponse = await fetch("https://api.resend.com/emails", {
@@ -225,7 +225,7 @@ http.route({
               },
               body: JSON.stringify({
                 from: "PropIQ <noreply@propiq.luntra.one>",
-                to: result.user.email,
+                to: result.email,  // Use result.email instead of result.user.email
                 subject: "Verify your PropIQ email address",
                 html: `
                   <!DOCTYPE html>
@@ -240,7 +240,7 @@ http.route({
                       </div>
 
                       <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
-                        <p style="font-size: 16px; margin-bottom: 20px;">Hi ${firstName},</p>
+                        <p style="font-size: 16px; margin-bottom: 20px;">Hi ${firstNameForEmail},</p>
 
                         <p style="font-size: 16px; margin-bottom: 20px;">
                           Thanks for signing up for PropIQ! We're excited to help you analyze real estate investments with AI-powered insights.
@@ -291,7 +291,7 @@ http.route({
             });
 
             if (emailResponse.ok) {
-              console.log(`[AUTH] ✅ Verification email sent to ${result.user.email}`);
+              console.log(`[AUTH] ✅ Verification email sent to ${result.email}`);
             } else {
               const errorData = await emailResponse.json();
               console.error("[AUTH] Failed to send verification email:", errorData);
@@ -1553,7 +1553,7 @@ http.route({
                       </div>
 
                       <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
-                        <p style="font-size: 16px; margin-bottom: 20px;">Hi ${firstName},</p>
+                        <p style="font-size: 16px; margin-bottom: 20px;">Hi ${firstNameForEmail},</p>
 
                         <p style="font-size: 16px; margin-bottom: 20px;">
                           Thanks for signing up for PropIQ! We're excited to help you analyze real estate investments with AI-powered insights.
