@@ -38,6 +38,8 @@ import {
   FileText,
 } from 'lucide-react';
 import { validateAddress, type ValidationResult } from '../utils/addressValidation';
+import { PrintButton } from './PrintButton';
+import { PDFExportButton } from './PDFExportButton';
 import './PropIQAnalysis.css'; // Reuse existing styles
 
 interface PropIQAnalysisConvexProps {
@@ -477,25 +479,59 @@ export const PropIQAnalysisConvex: React.FC<PropIQAnalysisConvexProps> = ({ onCl
 
               {/* Actions */}
               <div className="propiq-actions">
-                <button
-                  onClick={() => {
-                    setStep('input');
-                    setSelectedFiles([]);
-                    setUploadedImages([]);
-                    setAnalysis(null);
-                    setAnalysisId(null);
-                    setAddress('');
-                    setPurchasePrice('');
-                    setDownPayment('');
-                    setMonthlyRent('');
-                  }}
-                  className="propiq-btn-secondary flex-1"
-                >
-                  Analyze Another Property
-                </button>
-                <button onClick={onClose} className="propiq-btn-primary flex-1">
-                  Close
-                </button>
+                <div className="flex flex-wrap gap-3 w-full mb-3">
+                  <PrintButton
+                    elementId="propiq-analysis-results"
+                    printOptions={{
+                      title: `PropIQ Analysis - ${address}`,
+                      includeDate: true,
+                      orientation: 'portrait'
+                    }}
+                    variant="outline"
+                    size="md"
+                    className="flex-1 min-w-[160px]"
+                  />
+                  <PDFExportButton
+                    analysis={{
+                      address: address,
+                      summary: analysis.summary || '',
+                      recommendation: analysis.recommendation || 'CONSIDER',
+                      dealScore: analysis.dealScore || 50,
+                      strengths: analysis.strengths || [],
+                      risks: analysis.risks || [],
+                      cashFlow: analysis.cashFlow || { monthly: 0, annual: 0 },
+                      roi: analysis.roi || { year1: 0, year5: 0 },
+                      images: uploadedImages,
+                      purchasePrice: purchasePrice ? Number(purchasePrice) : undefined,
+                      downPayment: downPayment ? Number(downPayment) : undefined,
+                      monthlyRent: monthlyRent ? Number(monthlyRent) : undefined,
+                    }}
+                    variant="secondary"
+                    size="md"
+                    className="flex-1 min-w-[160px]"
+                  />
+                </div>
+                <div className="flex gap-3 w-full">
+                  <button
+                    onClick={() => {
+                      setStep('input');
+                      setSelectedFiles([]);
+                      setUploadedImages([]);
+                      setAnalysis(null);
+                      setAnalysisId(null);
+                      setAddress('');
+                      setPurchasePrice('');
+                      setDownPayment('');
+                      setMonthlyRent('');
+                    }}
+                    className="propiq-btn-secondary flex-1"
+                  >
+                    Analyze Another Property
+                  </button>
+                  <button onClick={onClose} className="propiq-btn-primary flex-1">
+                    Close
+                  </button>
+                </div>
               </div>
 
               {analysesRemaining !== null && (

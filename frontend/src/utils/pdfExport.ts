@@ -11,8 +11,21 @@ export interface PropertyAnalysis {
   address: string;
   propertyType?: string;
   purchasePrice?: number;
+  downPayment?: number;
   monthlyRent?: number;
   summary?: string;
+  recommendation?: string;
+  dealScore?: number;
+  strengths?: string[];
+  risks?: string[];
+  cashFlow?: {
+    monthly: number;
+    annual: number;
+  };
+  roi?: {
+    year1: number;
+    year5: number;
+  };
   location?: {
     neighborhood: string;
     marketScore: number;
@@ -36,6 +49,12 @@ export interface PropertyAnalysis {
   keyInsights?: string[];
   nextSteps?: string[];
   dealCalculator?: DealCalculatorData;
+  images?: Array<{
+    s3Url: string;
+    filename: string;
+    width?: number;
+    height?: number;
+  }>;
   analyzedAt?: string;
 }
 
@@ -102,6 +121,59 @@ export const generatePDF = async (analysis: PropertyAnalysis): Promise<void> => 
   pdf.text(`Analyzed on: ${analysisDate}`, margin, yPosition);
   yPosition += 15;
 
+  // Property Images Section
+  if (analysis.images && analysis.images.length > 0) {
+    checkPageBreak(pdf, yPosition, pageHeight, margin);
+
+    addSectionHeader(pdf, 'Property Photos', yPosition, margin);
+    yPosition += 10;
+
+    // Load and embed images (max 3 for PDF size)
+    const imagesToInclude = analysis.images.slice(0, 3);
+    const imageWidth = contentWidth / 3 - 4;
+    const imageHeight = 40;
+
+    try {
+      for (let i = 0; i < imagesToInclude.length; i++) {
+        const img = imagesToInclude[i];
+        const xPos = margin + (i * (imageWidth + 6));
+
+        try {
+          // Load image from S3 URL (presigned URL should work)
+          const response = await fetch(img.s3Url);
+          const blob = await response.blob();
+          const imageDataUrl = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+          });
+
+          pdf.addImage(imageDataUrl, 'JPEG', xPos, yPosition, imageWidth, imageHeight);
+        } catch (imgError) {
+          console.warn(`Failed to load image ${img.filename}:`, imgError);
+          // Draw placeholder rectangle if image fails
+          pdf.setDrawColor(200, 200, 200);
+          pdf.setFillColor(240, 240, 240);
+          pdf.rect(xPos, yPosition, imageWidth, imageHeight, 'FD');
+          pdf.setFontSize(8);
+          pdf.setTextColor(150, 150, 150);
+          pdf.text('Image unavailable', xPos + imageWidth/2, yPosition + imageHeight/2, { align: 'center' });
+        }
+      }
+
+      yPosition += imageHeight + 5;
+
+      // Caption
+      pdf.setFontSize(8);
+      pdf.setTextColor(107, 114, 128);
+      pdf.text(`${analysis.images.length} image${analysis.images.length > 1 ? 's' : ''} uploaded${analysis.images.length > 3 ? ` (showing first 3)` : ''}`, margin, yPosition);
+      yPosition += 10;
+    } catch (error) {
+      console.warn('Failed to add images to PDF:', error);
+      // Continue without images
+    }
+  }
+
   // Executive Summary Section
   if (analysis.summary) {
     addSectionHeader(pdf, 'Executive Summary', yPosition, margin);
@@ -114,8 +186,32 @@ export const generatePDF = async (analysis: PropertyAnalysis): Promise<void> => 
     yPosition += summaryLines.length * 5 + 10;
   }
 
-  // Investment Recommendation Box (if available)
-  if (analysis.investment) {
+  // Investment Recommendation Box (new Convex format)
+  if (analysis.recommendation && analysis.dealScore !== undefined) {
+    checkPageBreak(pdf, yPosition, pageHeight, margin);
+
+    const boxHeight = 35;
+    const recommendationColor = getDealScoreColor(analysis.dealScore);
+
+    pdf.setFillColor(...recommendationColor);
+    pdf.roundedRect(margin, yPosition, contentWidth, boxHeight, 3, 3, 'F');
+
+    pdf.setFontSize(14);
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Investment Recommendation', margin + 5, yPosition + 10);
+
+    pdf.setFontSize(20);
+    pdf.text(analysis.recommendation.toUpperCase(), margin + 5, yPosition + 22);
+
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(`Deal Score: ${analysis.dealScore}/100`, margin + 5, yPosition + 30);
+
+    yPosition += boxHeight + 15;
+  }
+  // Investment Recommendation Box (legacy format)
+  else if (analysis.investment) {
     checkPageBreak(pdf, yPosition, pageHeight, margin);
 
     const boxHeight = 40;
@@ -140,7 +236,54 @@ export const generatePDF = async (analysis: PropertyAnalysis): Promise<void> => 
     yPosition += boxHeight + 15;
   }
 
-  // Key Metrics Section
+  // Cash Flow & ROI Section (new Convex format)
+  if (analysis.cashFlow || analysis.roi) {
+    checkPageBreak(pdf, yPosition, pageHeight, margin);
+
+    addSectionHeader(pdf, 'Financial Projections', yPosition, margin);
+    yPosition += 10;
+
+    const metricsData: Array<[string, string]> = [];
+
+    if (analysis.cashFlow) {
+      if (analysis.cashFlow.monthly !== undefined) {
+        metricsData.push(['Monthly Cash Flow', `$${analysis.cashFlow.monthly.toLocaleString()}`]);
+      }
+      if (analysis.cashFlow.annual !== undefined) {
+        metricsData.push(['Annual Cash Flow', `$${analysis.cashFlow.annual.toLocaleString()}`]);
+      }
+    }
+
+    if (analysis.roi) {
+      if (analysis.roi.year1 !== undefined) {
+        metricsData.push(['Year 1 ROI', `${analysis.roi.year1.toFixed(2)}%`]);
+      }
+      if (analysis.roi.year5 !== undefined) {
+        metricsData.push(['Year 5 ROI', `${analysis.roi.year5.toFixed(2)}%`]);
+      }
+    }
+
+    pdf.setFontSize(9);
+    metricsData.forEach(([label, value], index) => {
+      const col = index % 2;
+      const row = Math.floor(index / 2);
+      const colWidth = contentWidth / 2;
+      const xPos = margin + (col * colWidth);
+      const yPos = yPosition + (row * 8);
+
+      pdf.setTextColor(107, 114, 128);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(label + ':', xPos, yPos);
+
+      pdf.setTextColor(31, 41, 55);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(value, xPos + 45, yPos);
+    });
+
+    yPosition += Math.ceil(metricsData.length / 2) * 8 + 10;
+  }
+
+  // Key Metrics Section (legacy format)
   if (analysis.financials || analysis.location) {
     checkPageBreak(pdf, yPosition, pageHeight, margin);
 
@@ -255,56 +398,58 @@ export const generatePDF = async (analysis: PropertyAnalysis): Promise<void> => 
     yPosition += Math.ceil(calcMetrics.length / 2) * 7 + 10;
   }
 
-  // Pros and Cons
-  if (analysis.pros || analysis.cons) {
+  // Strengths and Risks (new Convex format) OR Pros and Cons (legacy)
+  if (analysis.strengths || analysis.risks || analysis.pros || analysis.cons) {
     checkPageBreak(pdf, yPosition, pageHeight, margin);
 
-    addSectionHeader(pdf, 'Pros & Cons', yPosition, margin);
+    addSectionHeader(pdf, analysis.strengths ? 'Strengths & Risks' : 'Pros & Cons', yPosition, margin);
     yPosition += 10;
 
     const colWidth = contentWidth / 2 - 5;
 
-    // Pros (left column)
-    if (analysis.pros && analysis.pros.length > 0) {
+    // Strengths/Pros (left column)
+    const strengthsList = analysis.strengths || analysis.pros || [];
+    if (strengthsList.length > 0) {
       pdf.setFontSize(11);
       pdf.setTextColor(16, 185, 129); // emerald-500
       pdf.setFont('helvetica', 'bold');
-      pdf.text('Pros', margin, yPosition);
+      pdf.text(analysis.strengths ? 'Strengths' : 'Pros', margin, yPosition);
       yPosition += 7;
 
       pdf.setFontSize(9);
       pdf.setTextColor(55, 65, 81);
       pdf.setFont('helvetica', 'normal');
 
-      analysis.pros.forEach((pro, index) => {
-        const lines = pdf.splitTextToSize(`• ${pro}`, colWidth);
+      strengthsList.forEach((item, index) => {
+        const lines = pdf.splitTextToSize(`• ${item}`, colWidth);
         pdf.text(lines, margin + 2, yPosition);
         yPosition += lines.length * 5;
       });
     }
 
-    // Cons (right column) - reset yPosition
-    let consYPosition = yPosition - (analysis.pros ? analysis.pros.length * 5 + 7 : 0);
+    // Risks/Cons (right column) - reset yPosition
+    const risksList = analysis.risks || analysis.cons || [];
+    let risksYPosition = yPosition - (strengthsList.length * 5 + 7);
 
-    if (analysis.cons && analysis.cons.length > 0) {
+    if (risksList.length > 0) {
       pdf.setFontSize(11);
       pdf.setTextColor(239, 68, 68); // red-500
       pdf.setFont('helvetica', 'bold');
-      pdf.text('Cons', margin + contentWidth / 2 + 5, consYPosition);
-      consYPosition += 7;
+      pdf.text(analysis.risks ? 'Risks' : 'Cons', margin + contentWidth / 2 + 5, risksYPosition);
+      risksYPosition += 7;
 
       pdf.setFontSize(9);
       pdf.setTextColor(55, 65, 81);
       pdf.setFont('helvetica', 'normal');
 
-      analysis.cons.forEach((con, index) => {
-        const lines = pdf.splitTextToSize(`• ${con}`, colWidth);
-        pdf.text(lines, margin + contentWidth / 2 + 7, consYPosition);
-        consYPosition += lines.length * 5;
+      risksList.forEach((item, index) => {
+        const lines = pdf.splitTextToSize(`• ${item}`, colWidth);
+        pdf.text(lines, margin + contentWidth / 2 + 7, risksYPosition);
+        risksYPosition += lines.length * 5;
       });
     }
 
-    yPosition = Math.max(yPosition, consYPosition) + 10;
+    yPosition = Math.max(yPosition, risksYPosition) + 10;
   }
 
   // Key Insights
