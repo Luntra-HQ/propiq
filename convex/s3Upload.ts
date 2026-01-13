@@ -5,7 +5,7 @@
 
 import { v } from "convex/values";
 import { action } from "./_generated/server";
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 // Initialize S3 client
@@ -66,16 +66,20 @@ export const generateUploadUrl = action({
 
     const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 300 });
 
-    // Generate public URL for the uploaded file
-    const region = process.env.AWS_S3_REGION || "us-east-1";
-    const publicUrl = `https://${bucket}.s3.${region}.amazonaws.com/${s3Key}`;
+    // Generate presigned GET URL for viewing the image (valid for 7 days)
+    // This allows private buckets while still letting users view their images
+    const getCommand = new GetObjectCommand({
+      Bucket: bucket,
+      Key: s3Key,
+    });
+    const publicUrl = await getSignedUrl(s3Client, getCommand, { expiresIn: 604800 }); // 7 days
 
-    console.log(`[S3 Upload] Generated presigned URL for ${args.filename}`);
+    console.log(`[S3 Upload] Generated presigned URLs for ${args.filename}`);
 
     return {
-      uploadUrl,      // Frontend uploads to this URL
+      uploadUrl,      // Frontend uploads to this URL (5 min expiry)
       s3Key,          // Store this in Convex database
-      publicUrl,      // Store this for displaying the image
+      publicUrl,      // Store this for displaying the image (7 day expiry)
     };
   },
 });

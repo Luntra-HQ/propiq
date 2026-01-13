@@ -35,6 +35,7 @@ import {
   Upload,
   Image as ImageIcon,
   Trash2,
+  FileText,
 } from 'lucide-react';
 import { validateAddress, type ValidationResult } from '../utils/addressValidation';
 import './PropIQAnalysis.css'; // Reuse existing styles
@@ -345,31 +346,163 @@ export const PropIQAnalysisConvex: React.FC<PropIQAnalysisConvexProps> = ({ onCl
               </div>
             )}
 
-            {/* Analysis results */}
-            <div className="space-y-4">
-              <div className="bg-slate-700/50 rounded-lg p-4">
-                <h4 className="text-violet-300 font-semibold mb-2">Analysis Summary</h4>
-                <p className="text-gray-300 text-sm leading-relaxed">
-                  {typeof analysis === 'string' ? analysis : JSON.stringify(analysis, null, 2)}
-                </p>
+            {/* Analysis results - properly formatted like original component */}
+            <div className="propiq-results" id="propiq-analysis-results">
+              {/* Executive Summary */}
+              {analysis.summary && (
+                <div className="propiq-section propiq-summary">
+                  <FileText className="h-5 w-5 text-violet-300" />
+                  <div>
+                    <h3>Executive Summary</h3>
+                    <p>{analysis.summary}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Investment Recommendation */}
+              {analysis.recommendation && (
+                <div className="propiq-section propiq-recommendation">
+                  <div className="propiq-recommendation-header">
+                    <Target className="h-6 w-6" />
+                    <h3>Investment Recommendation</h3>
+                  </div>
+                  <div className="propiq-badges">
+                    <span className={`propiq-badge ${
+                      analysis.dealScore >= 80 ? 'excellent' :
+                      analysis.dealScore >= 65 ? 'good' :
+                      analysis.dealScore >= 50 ? 'fair' : 'poor'
+                    }`}>
+                      {analysis.recommendation}
+                    </span>
+                    {analysis.dealScore !== undefined && (
+                      <span className="propiq-badge">
+                        Deal Score: {analysis.dealScore}/100
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Strengths */}
+              {analysis.strengths && analysis.strengths.length > 0 && (
+                <div className="propiq-section propiq-pros">
+                  <div className="propiq-section-header">
+                    <CheckCircle className="h-5 w-5 text-emerald-400" />
+                    <h3>Key Strengths</h3>
+                  </div>
+                  <ul>
+                    {analysis.strengths.map((strength: string, index: number) => (
+                      <li key={index}>
+                        <CheckCircle className="h-4 w-4 text-emerald-400" />
+                        <span>{strength}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Risks */}
+              {analysis.risks && analysis.risks.length > 0 && (
+                <div className="propiq-section propiq-cons">
+                  <div className="propiq-section-header">
+                    <AlertTriangle className="h-5 w-5 text-yellow-400" />
+                    <h3>Key Risks & Concerns</h3>
+                  </div>
+                  <ul>
+                    {analysis.risks.map((risk: string, index: number) => (
+                      <li key={index}>
+                        <AlertTriangle className="h-4 w-4 text-yellow-400" />
+                        <span>{risk}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Financial Metrics */}
+              {analysis.cashFlow && (
+                <div className="propiq-section">
+                  <div className="propiq-section-header">
+                    <DollarSign className="h-5 w-5 text-emerald-400" />
+                    <h3>Cash Flow Analysis</h3>
+                  </div>
+                  <div className="propiq-metrics">
+                    {analysis.cashFlow.monthly !== undefined && (
+                      <div className="propiq-metric">
+                        <span className="propiq-metric-label">Monthly Cash Flow</span>
+                        <span className={`propiq-metric-value ${analysis.cashFlow.monthly >= 0 ? 'positive' : 'negative'}`}>
+                          ${analysis.cashFlow.monthly.toLocaleString()}/mo
+                        </span>
+                      </div>
+                    )}
+                    {analysis.cashFlow.annual !== undefined && (
+                      <div className="propiq-metric">
+                        <span className="propiq-metric-label">Annual Cash Flow</span>
+                        <span className={`propiq-metric-value ${analysis.cashFlow.annual >= 0 ? 'positive' : 'negative'}`}>
+                          ${analysis.cashFlow.annual.toLocaleString()}/yr
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ROI Projections */}
+              {analysis.roi && (
+                <div className="propiq-section">
+                  <div className="propiq-section-header">
+                    <TrendingUp className="h-5 w-5 text-blue-400" />
+                    <h3>ROI Projections</h3>
+                  </div>
+                  <div className="propiq-metrics">
+                    {analysis.roi.year1 !== undefined && (
+                      <div className="propiq-metric">
+                        <span className="propiq-metric-label">Year 1 ROI</span>
+                        <span className={`propiq-metric-value ${analysis.roi.year1 >= 0 ? 'positive' : 'negative'}`}>
+                          {analysis.roi.year1.toFixed(2)}%
+                        </span>
+                      </div>
+                    )}
+                    {analysis.roi.year5 !== undefined && (
+                      <div className="propiq-metric">
+                        <span className="propiq-metric-label">Year 5 ROI</span>
+                        <span className={`propiq-metric-value ${analysis.roi.year5 >= 0 ? 'positive' : 'negative'}`}>
+                          {analysis.roi.year5.toFixed(2)}%
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="propiq-actions">
+                <button
+                  onClick={() => {
+                    setStep('input');
+                    setSelectedFiles([]);
+                    setUploadedImages([]);
+                    setAnalysis(null);
+                    setAnalysisId(null);
+                    setAddress('');
+                    setPurchasePrice('');
+                    setDownPayment('');
+                    setMonthlyRent('');
+                  }}
+                  className="propiq-btn-secondary flex-1"
+                >
+                  Analyze Another Property
+                </button>
+                <button onClick={onClose} className="propiq-btn-primary flex-1">
+                  Close
+                </button>
               </div>
 
-              <button
-                onClick={() => {
-                  setStep('input');
-                  setSelectedFiles([]);
-                  setUploadedImages([]);
-                  setAnalysis(null);
-                  setAnalysisId(null);
-                  setAddress('');
-                  setPurchasePrice('');
-                  setDownPayment('');
-                  setMonthlyRent('');
-                }}
-                className="w-full bg-violet-600 hover:bg-violet-500 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
-              >
-                Analyze Another Property
-              </button>
+              {analysesRemaining !== null && (
+                <p className="propiq-uses-remaining">
+                  {analysesRemaining} {analysesRemaining === 1 ? 'analysis' : 'analyses'} remaining
+                </p>
+              )}
             </div>
           </div>
         </div>
