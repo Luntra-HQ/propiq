@@ -14,7 +14,9 @@ import {
 const PricingPage = lazy(() => import('./components/PricingPage'));
 const SupportChat = lazy(() => import('./components/SupportChat').then(m => ({ default: m.SupportChat })));
 const FeedbackWidget = lazy(() => import('./components/FeedbackWidget').then(m => ({ default: m.FeedbackWidget })));
-const PropIQAnalysis = lazy(() => import('./components/PropIQAnalysis').then(m => ({ default: m.PropIQAnalysis })));
+// NEW: Convex-based analysis with integrated image upload
+const PropIQAnalysis = lazy(() => import('./components/PropIQAnalysisConvex').then(m => ({ default: m.PropIQAnalysisConvex })));
+// OLD FastAPI version (kept for reference): const PropIQAnalysis = lazy(() => import('./components/PropIQAnalysis').then(m => ({ default: m.PropIQAnalysis })));
 const ProductTour = lazy(() => import('./components/ProductTour').then(m => ({ default: m.ProductTour })));
 const HelpCenter = lazy(() => import('./components/HelpCenter').then(m => ({ default: m.HelpCenter })));
 const OnboardingChecklist = lazy(() => import('./components/OnboardingChecklist').then(m => ({ default: m.OnboardingChecklist })));
@@ -708,12 +710,11 @@ const App = () => {
           />
         )}
 
-        {/* PropIQ Analysis Modal */}
-        {showPropIQAnalysis && (
+        {/* PropIQ Analysis Modal - Convex version with image upload */}
+        {showPropIQAnalysis && user && (
           <PropIQAnalysis
             onClose={() => setShowPropIQAnalysis(false)}
             userId={user._id}
-            authToken={sessionToken}
           />
         )}
       </Suspense>

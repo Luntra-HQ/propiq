@@ -19,6 +19,17 @@ export const analyzeProperty = action({
     purchasePrice: v.optional(v.number()),
     downPayment: v.optional(v.number()),
     monthlyRent: v.optional(v.number()),
+    // Image upload integration: Accept images array uploaded to S3
+    images: v.optional(v.array(v.object({
+      s3Key: v.string(),
+      s3Url: v.string(),
+      filename: v.string(),
+      size: v.number(),
+      mimeType: v.string(),
+      uploadedAt: v.number(),
+      width: v.optional(v.number()),
+      height: v.optional(v.number()),
+    }))),
   },
   handler: async (ctx, args): Promise<any> => {
     // STEP 1: 🔒 ATOMICALLY reserve analysis slot BEFORE starting expensive operations
@@ -75,6 +86,7 @@ export const analyzeProperty = action({
         aiRecommendation: analysisResult.recommendation,
         dealScore: analysisResult.dealScore,
         tokensUsed: analysisResult.tokensUsed,
+        images: args.images || [],  // Pass images to be saved with analysis
       });
 
       console.log(`[PropIQ] Analysis saved successfully: ${analysisId}`);
@@ -117,6 +129,17 @@ export const saveAnalysis = mutation({
     aiRecommendation: v.string(),
     dealScore: v.number(),
     tokensUsed: v.optional(v.number()),
+    // Image upload integration: Accept images array
+    images: v.optional(v.array(v.object({
+      s3Key: v.string(),
+      s3Url: v.string(),
+      filename: v.string(),
+      size: v.number(),
+      mimeType: v.string(),
+      uploadedAt: v.number(),
+      width: v.optional(v.number()),
+      height: v.optional(v.number()),
+    }))),
   },
   handler: async (ctx, args) => {
     const analysisId = await ctx.db.insert("propertyAnalyses", {
@@ -133,6 +156,7 @@ export const saveAnalysis = mutation({
       dealScore: args.dealScore,
       model: "gpt-4o-mini",
       tokensUsed: args.tokensUsed,
+      images: args.images || [],  // Save images with analysis
       createdAt: Date.now(),
     });
 
