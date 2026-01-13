@@ -14,8 +14,9 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useAction } from 'convex/react';
-import { api } from '../../convex/_generated/api';
-import type { Id } from '../../convex/_generated/dataModel';
+// CONVEX FIX: Use string literals instead of api import (Convex best practice for client-side)
+// import { api } from '../../convex/_generated/api';
+// import type { Id } from '../../convex/_generated/dataModel';
 import imageCompression from 'browser-image-compression';
 import {
   Target,
@@ -40,7 +41,7 @@ import './PropIQAnalysis.css'; // Reuse existing styles
 
 interface PropIQAnalysisConvexProps {
   onClose: () => void;
-  userId: Id<"users">;
+  userId: string; // Changed from Id<"users"> to string for client compatibility
 }
 
 interface UploadedImage {
@@ -72,7 +73,7 @@ export const PropIQAnalysisConvex: React.FC<PropIQAnalysisConvexProps> = ({ onCl
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Analysis results
-  const [analysisId, setAnalysisId] = useState<Id<"propertyAnalyses"> | null>(null);
+  const [analysisId, setAnalysisId] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<any | null>(null);
   const [analysesRemaining, setAnalysesRemaining] = useState<number | null>(null);
 
@@ -80,10 +81,10 @@ export const PropIQAnalysisConvex: React.FC<PropIQAnalysisConvexProps> = ({ onCl
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
   const [showValidation, setShowValidation] = useState(false);
 
-  // Convex actions
-  const analyzeProperty = useAction(api.propiq.analyzeProperty);
-  const generateUploadUrl = useAction(api.s3Upload.generateUploadUrl as any);
-  const deleteS3Image = useAction(api.s3Upload.deleteImage as any);
+  // Convex actions - using string literals (Convex client-side pattern)
+  const analyzeProperty = useAction("propiq:analyzeProperty" as any);
+  const generateUploadUrl = useAction("s3Upload:generateUploadUrl" as any);
+  const deleteS3Image = useAction("s3Upload:deleteImage" as any);
 
   const maxImages = 5;
   const maxFileSize = 10 * 1024 * 1024; // 10 MB
@@ -265,7 +266,7 @@ export const PropIQAnalysisConvex: React.FC<PropIQAnalysisConvexProps> = ({ onCl
       setUploadProgress(100);
 
       if (result.success) {
-        setAnalysisId(result.analysisId as Id<"propertyAnalyses">);
+        setAnalysisId(result.analysisId);
         setAnalysis(result.analysis);
         setAnalysesRemaining(result.analysesRemaining);
         setStep('results');
