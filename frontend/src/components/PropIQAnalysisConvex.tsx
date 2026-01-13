@@ -36,6 +36,7 @@ import {
   Image as ImageIcon,
   Trash2,
   FileText,
+  ArrowRight,
 } from 'lucide-react';
 import { validateAddress, type ValidationResult } from '../utils/addressValidation';
 import { PrintButton } from './PrintButton';
@@ -474,6 +475,163 @@ export const PropIQAnalysisConvex: React.FC<PropIQAnalysisConvexProps> = ({ onCl
                       </div>
                     )}
                   </div>
+                </div>
+              )}
+
+              {/* Location & Market (new comprehensive format) */}
+              {analysis.location && (
+                <div className="propiq-section">
+                  <div className="propiq-section-header">
+                    <MapPin className="h-5 w-5 text-violet-300" />
+                    <h3>Location & Market</h3>
+                  </div>
+                  <div className="propiq-metrics">
+                    {analysis.location.neighborhood && (
+                      <div className="propiq-metric">
+                        <span className="propiq-metric-label">Neighborhood</span>
+                        <span className="propiq-metric-value">{analysis.location.neighborhood}</span>
+                      </div>
+                    )}
+                    {analysis.location.city && analysis.location.state && (
+                      <div className="propiq-metric">
+                        <span className="propiq-metric-label">City, State</span>
+                        <span className="propiq-metric-value">{analysis.location.city}, {analysis.location.state}</span>
+                      </div>
+                    )}
+                    {analysis.location.marketTrend && (
+                      <div className="propiq-metric">
+                        <span className="propiq-metric-label">Market Trend</span>
+                        <span className="propiq-metric-value">{analysis.location.marketTrend.toUpperCase()}</span>
+                      </div>
+                    )}
+                    {analysis.location.marketScore !== undefined && (
+                      <div className="propiq-metric">
+                        <span className="propiq-metric-label">Market Score</span>
+                        <span className="propiq-metric-value">{analysis.location.marketScore}/100</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Detailed Financials (new comprehensive format) */}
+              {analysis.financials && (
+                <div className="propiq-section">
+                  <div className="propiq-section-header">
+                    <DollarSign className="h-5 w-5 text-emerald-400" />
+                    <h3>Financial Metrics</h3>
+                  </div>
+                  <div className="propiq-metrics">
+                    {analysis.financials.estimatedValue && (
+                      <div className="propiq-metric">
+                        <span className="propiq-metric-label">Estimated Value</span>
+                        <span className="propiq-metric-value">${analysis.financials.estimatedValue.toLocaleString()}</span>
+                      </div>
+                    )}
+                    {analysis.financials.estimatedRent && (
+                      <div className="propiq-metric">
+                        <span className="propiq-metric-label">Est. Monthly Rent</span>
+                        <span className="propiq-metric-value">${analysis.financials.estimatedRent.toLocaleString()}/mo</span>
+                      </div>
+                    )}
+                    {analysis.financials.cashFlow !== undefined && (
+                      <div className="propiq-metric">
+                        <span className="propiq-metric-label">Monthly Cash Flow</span>
+                        <span className={`propiq-metric-value ${analysis.financials.cashFlow >= 0 ? 'positive' : 'negative'}`}>
+                          ${analysis.financials.cashFlow.toLocaleString()}/mo
+                        </span>
+                      </div>
+                    )}
+                    {analysis.financials.capRate !== undefined && (
+                      <div className="propiq-metric">
+                        <span className="propiq-metric-label">Cap Rate</span>
+                        <span className="propiq-metric-value">{analysis.financials.capRate.toFixed(2)}%</span>
+                      </div>
+                    )}
+                    {analysis.financials.roi !== undefined && (
+                      <div className="propiq-metric">
+                        <span className="propiq-metric-label">ROI</span>
+                        <span className={`propiq-metric-value ${analysis.financials.roi >= 0 ? 'positive' : 'negative'}`}>
+                          {analysis.financials.roi.toFixed(2)}%
+                        </span>
+                      </div>
+                    )}
+                    {analysis.financials.monthlyMortgage && (
+                      <div className="propiq-metric">
+                        <span className="propiq-metric-label">Monthly Mortgage</span>
+                        <span className="propiq-metric-value">${analysis.financials.monthlyMortgage.toLocaleString()}/mo</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Pros (legacy format fallback) */}
+              {analysis.pros && analysis.pros.length > 0 && !analysis.strengths && (
+                <div className="propiq-section propiq-pros">
+                  <div className="propiq-section-header">
+                    <CheckCircle className="h-5 w-5 text-emerald-400" />
+                    <h3>Advantages</h3>
+                  </div>
+                  <ul>
+                    {analysis.pros.map((pro: string, index: number) => (
+                      <li key={index}>
+                        <CheckCircle className="h-4 w-4 text-emerald-400" />
+                        <span>{pro}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Cons (legacy format fallback) */}
+              {analysis.cons && analysis.cons.length > 0 && !analysis.risks && (
+                <div className="propiq-section propiq-cons">
+                  <div className="propiq-section-header">
+                    <AlertTriangle className="h-5 w-5 text-yellow-400" />
+                    <h3>Considerations</h3>
+                  </div>
+                  <ul>
+                    {analysis.cons.map((con: string, index: number) => (
+                      <li key={index}>
+                        <AlertTriangle className="h-4 w-4 text-yellow-400" />
+                        <span>{con}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Key Insights */}
+              {analysis.keyInsights && analysis.keyInsights.length > 0 && (
+                <div className="propiq-section">
+                  <div className="propiq-section-header">
+                    <Lightbulb className="h-5 w-5 text-yellow-400" />
+                    <h3>Key Insights</h3>
+                  </div>
+                  <ul className="propiq-insights">
+                    {analysis.keyInsights.map((insight: string, index: number) => (
+                      <li key={index}>{insight}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Next Steps */}
+              {analysis.nextSteps && analysis.nextSteps.length > 0 && (
+                <div className="propiq-section propiq-next-steps">
+                  <div className="propiq-section-header">
+                    <ArrowRight className="h-5 w-5 text-violet-300" />
+                    <h3>Recommended Next Steps</h3>
+                  </div>
+                  <ol className="propiq-steps-list">
+                    {analysis.nextSteps.map((step: string, index: number) => (
+                      <li key={index}>
+                        <span className="propiq-step-number">{index + 1}</span>
+                        <span>{step}</span>
+                      </li>
+                    ))}
+                  </ol>
                 </div>
               )}
 

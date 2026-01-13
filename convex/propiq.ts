@@ -404,33 +404,86 @@ async function generateAIAnalysis(propertyData: {
     throw new Error("Azure OpenAI credentials not configured");
   }
 
-  // Build the prompt for AI analysis
-  const prompt = `You are an expert real estate investment analyst. Analyze this property and provide investment insights.
+  // Build the prompt for AI analysis (comprehensive version matching FastAPI quality)
+  const prompt = `You are an expert real estate investment analyst. Analyze this property and provide comprehensive investment insights.
 
-Property Details:
+PROPERTY DETAILS:
 - Address: ${propertyData.address}${propertyData.city ? `, ${propertyData.city}` : ""}${propertyData.state ? `, ${propertyData.state}` : ""}${propertyData.zipCode ? ` ${propertyData.zipCode}` : ""}
-${propertyData.purchasePrice ? `- Purchase Price: $${propertyData.purchasePrice.toLocaleString()}` : ""}
+${propertyData.purchasePrice ? `- Purchase Price: $${propertyData.purchasePrice.toLocaleString()}` : "- Purchase Price: Not provided (please estimate based on location)"}
 ${propertyData.downPayment ? `- Down Payment: $${propertyData.downPayment.toLocaleString()}` : ""}
-${propertyData.monthlyRent ? `- Monthly Rent: $${propertyData.monthlyRent.toLocaleString()}` : ""}
+${propertyData.monthlyRent ? `- Monthly Rent: $${propertyData.monthlyRent.toLocaleString()}` : "- Monthly Rent: Not provided (please estimate realistic rent)"}
 
-Please provide:
-1. Investment recommendation (BUY, CONSIDER, or AVOID)
-2. Deal score (0-100, where 100 is excellent)
-3. Key strengths of this investment
-4. Key risks or concerns
-5. Cash flow analysis
-6. ROI projections
+ANALYSIS REQUIREMENTS:
+1. Parse the address to identify neighborhood, city, and state
+2. Estimate realistic property value if not provided
+3. Calculate all key financial metrics:
+   - Cap Rate = Net Operating Income / Purchase Price
+   - ROI = Annual Cash Flow / Total Cash Invested
+   - Cash Flow = Monthly Rent - (Mortgage + Taxes + Insurance + Maintenance + Vacancy)
+4. Provide market context for this specific location
+5. Give actionable investment recommendations
 
-Format your response as JSON with this structure:
+MARKET CONTEXT:
+- Consider local market conditions (supply/demand, price trends, rental demand)
+- Factor in location desirability, school districts, economic indicators
+- Assess appreciation potential and market stability
+
+OUTPUT FORMAT (Must be valid JSON):
 {
+  "summary": "2-3 sentence executive summary with specific numbers and clear recommendation",
   "recommendation": "BUY/CONSIDER/AVOID",
   "dealScore": 0-100,
-  "strengths": ["strength1", "strength2", ...],
-  "risks": ["risk1", "risk2", ...],
-  "cashFlow": {"monthly": number, "annual": number},
-  "roi": {"year1": number, "year5": number},
-  "summary": "Brief 2-3 sentence summary"
-}`;
+  "strengths": ["3-5 specific advantages of this property with details"],
+  "risks": ["3-5 specific risks or concerns with details"],
+  "cashFlow": {
+    "monthly": number (realistic monthly cash flow: rent - all expenses, can be negative),
+    "annual": number (monthly * 12)
+  },
+  "roi": {
+    "year1": number (first year return percentage as decimal, e.g., 8.5 for 8.5%),
+    "year5": number (projected 5-year cumulative return percentage)
+  },
+  "location": {
+    "neighborhood": "Actual neighborhood name",
+    "city": "City name",
+    "state": "State abbreviation",
+    "marketTrend": "up/down/stable",
+    "marketScore": 0-100
+  },
+  "financials": {
+    "estimatedValue": number (use provided or estimate realistic market value),
+    "estimatedRent": number (realistic monthly rent for this property type/location),
+    "cashFlow": number (monthly cash flow),
+    "capRate": number (as decimal, e.g., 5.2 for 5.2%),
+    "roi": number (annual ROI as decimal),
+    "monthlyMortgage": number (P&I payment assuming 30-year fixed at ~7.5%)
+  },
+  "investment": {
+    "recommendation": "strong_buy/buy/hold/avoid",
+    "confidenceScore": 0-100,
+    "riskLevel": "low/medium/high",
+    "timeHorizon": "short/medium/long"
+  },
+  "pros": ["3-5 specific advantages"],
+  "cons": ["3-5 specific disadvantages"],
+  "keyInsights": ["4-6 key insights about this investment opportunity"],
+  "nextSteps": ["3-4 specific action items for the investor"]
+}
+
+VALIDATION RULES:
+- All numeric values must be realistic (no placeholder zeros)
+- Cash flow can be negative (be honest if property won't cash flow)
+- If data is insufficient, make reasonable assumptions based on the location and note them
+- Recommendation must align with the numbers (negative cash flow = hold/avoid)
+- Be honest about risks - don't oversell the property
+- Deal score should reflect: cash flow (40%), location (30%), ROI (20%), risk (10%)
+
+EXAMPLES:
+- "BUY" (80-100): Strong positive cash flow, excellent location, cap rate >6%, low risk
+- "CONSIDER" (50-79): Slight positive/break-even cash flow, decent location, cap rate 4-6%
+- "AVOID" (0-49): Negative cash flow, declining market, high risk, cap rate <4%
+
+Provide your comprehensive analysis now:`;
 
   try {
     // Call Azure OpenAI API
@@ -455,7 +508,7 @@ Format your response as JSON with this structure:
           },
         ],
         temperature: 0.7,
-        max_tokens: 1000,
+        max_tokens: 2000,  // Increased from 1000 to support comprehensive analysis
         response_format: { type: "json_object" },
       }),
     });
