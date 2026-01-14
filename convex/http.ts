@@ -224,7 +224,7 @@ http.route({
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                from: "PropIQ <onboarding@resend.dev>",  // Use Resend's default verified domain
+                from: "PropIQ <bdusape@gmail.com>",  // TESTING MODE: Use your verified email
                 to: result.user.email,  // Fixed: use result.user.email
                 subject: "Verify your PropIQ email address",
                 html: `
@@ -500,7 +500,7 @@ http.route({
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                from: "PropIQ <onboarding@resend.dev>",  // Use Resend's default verified domain
+                from: "PropIQ <bdusape@gmail.com>",  // TESTING MODE: Use your verified email
                 to: [result.email],
                 subject: "Reset Your PropIQ Password",
                 html: `
@@ -1537,7 +1537,7 @@ http.route({
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                from: "PropIQ <onboarding@resend.dev>",  // Use Resend's default verified domain
+                from: "PropIQ <bdusape@gmail.com>",  // TESTING MODE: Use your verified email
                 to: result.email,
                 subject: "Verify your PropIQ email address",
                 html: `
