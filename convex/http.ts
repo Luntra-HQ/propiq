@@ -224,8 +224,8 @@ http.route({
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                from: "PropIQ <noreply@propiq.luntra.one>",
-                to: result.email,  // Use result.email instead of result.user.email
+                from: "PropIQ <onboarding@resend.dev>",  // Use Resend's default verified domain
+                to: result.user.email,  // Fixed: use result.user.email
                 subject: "Verify your PropIQ email address",
                 html: `
                   <!DOCTYPE html>
@@ -291,7 +291,7 @@ http.route({
             });
 
             if (emailResponse.ok) {
-              console.log(`[AUTH] ✅ Verification email sent to ${result.email}`);
+              console.log(`[AUTH] ✅ Verification email sent to ${result.user.email}`);
             } else {
               const errorData = await emailResponse.json();
               console.error("[AUTH] Failed to send verification email:", errorData);
@@ -500,7 +500,7 @@ http.route({
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                from: "PropIQ <noreply@luntra.one>",
+                from: "PropIQ <onboarding@resend.dev>",  // Use Resend's default verified domain
                 to: [result.email],
                 subject: "Reset Your PropIQ Password",
                 html: `
@@ -1537,7 +1537,7 @@ http.route({
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                from: "PropIQ <noreply@propiq.luntra.one>",
+                from: "PropIQ <onboarding@resend.dev>",  // Use Resend's default verified domain
                 to: result.email,
                 subject: "Verify your PropIQ email address",
                 html: `
