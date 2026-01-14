@@ -37,6 +37,8 @@ export const SignupFlow: React.FC<SignupFlowProps> = ({
   const { signup: signupUser } = useAuth();  // Use the auth hook
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -44,6 +46,7 @@ export const SignupFlow: React.FC<SignupFlowProps> = ({
   // Real-time validation states
   const [emailTouched, setEmailTouched] = useState(false);
   const [passwordTouched, setPasswordTouched] = useState(false);
+  const [nameTouched, setNameTouched] = useState(false);
 
   // Email validation
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -74,7 +77,11 @@ export const SignupFlow: React.FC<SignupFlowProps> = ({
   const passwordValid = password.length >= 8;
   const showPasswordError = passwordTouched && password && !passwordValid;
 
-  const canSubmit = emailValid && passwordValid && !isLoading;
+  // Name validation
+  const nameValid = firstName.trim().length > 0 && lastName.trim().length > 0;
+  const showNameError = nameTouched && (!firstName.trim() || !lastName.trim());
+
+  const canSubmit = emailValid && passwordValid && nameValid && !isLoading;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,6 +89,7 @@ export const SignupFlow: React.FC<SignupFlowProps> = ({
     if (!canSubmit) {
       setEmailTouched(true);
       setPasswordTouched(true);
+      setNameTouched(true);
       return;
     }
 
@@ -91,7 +99,9 @@ export const SignupFlow: React.FC<SignupFlowProps> = ({
     try {
       const signupData: SignupData = {
         email: email.toLowerCase().trim(),
-        password
+        password,
+        firstName: firstName.trim(),
+        lastName: lastName.trim()
       };
 
       const result = await signupUser(signupData);  // Use the hook's signup method
@@ -150,6 +160,58 @@ export const SignupFlow: React.FC<SignupFlowProps> = ({
 
       {/* Signup Form */}
       <form onSubmit={handleSubmit} className="signup-form" noValidate>
+        {/* Name Inputs */}
+        <div className="form-group">
+          <label htmlFor="firstName" className="form-label">
+            First Name
+          </label>
+          <div className="input-wrapper">
+            <input
+              id="firstName"
+              type="text"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              onBlur={() => setNameTouched(true)}
+              placeholder="John"
+              className={`form-input ${showNameError && !firstName.trim() ? 'input-error' : ''}`}
+              autoComplete="given-name"
+              autoFocus
+              required
+            />
+            {firstName.trim() && (
+              <Check className="input-icon-right text-green-400" />
+            )}
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="lastName" className="form-label">
+            Last Name
+          </label>
+          <div className="input-wrapper">
+            <input
+              id="lastName"
+              type="text"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              onBlur={() => setNameTouched(true)}
+              placeholder="Doe"
+              className={`form-input ${showNameError && !lastName.trim() ? 'input-error' : ''}`}
+              autoComplete="family-name"
+              required
+            />
+            {lastName.trim() && (
+              <Check className="input-icon-right text-green-400" />
+            )}
+          </div>
+          {showNameError && (
+            <p className="form-error">
+              <X className="h-3 w-3" />
+              Please enter your first and last name
+            </p>
+          )}
+        </div>
+
         {/* Email Input */}
         <div className="form-group">
           <label htmlFor="email" className="form-label">
@@ -166,7 +228,6 @@ export const SignupFlow: React.FC<SignupFlowProps> = ({
               placeholder="you@example.com"
               className={`form-input ${showEmailError ? 'input-error' : ''}`}
               autoComplete="email"
-              autoFocus
               required
             />
             {emailValid && email && (
