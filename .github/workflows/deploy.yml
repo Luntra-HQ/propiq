@@ -246,16 +246,53 @@ jobs:
           echo "Frontend: https://propiq.luntra.one"
           echo "Commit: ${{ github.sha }}"
 
-  # Rollback on failure
-  rollback-on-failure:
-    name: Rollback on Failure
-    needs: [verify-deployment]
-    if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+  # Deploy Backend to AWS (App Runner)
+  deploy-backend-aws:
+    name: Deploy Backend to AWS
+    needs: [test-backend, test-frontend]
+    # Allow manual trigger or run on main if AWS secret is present
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
-
+    environment: production
+    
     steps:
-      - name: Notify about failed deployment
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Docker image
+        working-directory: ./backend
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: propiq-backend
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          echo "❌ Deployment failed!"
-          echo "Consider manual rollback to previous version"
-          echo "Check logs at: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          # Tag as latest as well
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      # Optional: Deploy to App Runner (uncomment once Service ARN is known or create on first run)
+      # - name: Deploy to App Runner
+      #   uses: aws-actions/apprunner-deploy@v2
+      #   with:
+      #     service: propiq-backend-service
+      #     image: ${{ steps.login-ecr.outputs.registry }}/propiq-backend:${{ github.sha }}
+      #     access-role-arn: ${{ secrets.AWS_APP_RUNNER_ROLE_ARN }}
+      #     region: us-east-1
+      #     cpu: 1
+      #     memory: 2
+
+      - name: Verify build (ECHO)
+        run: echo "Image pushed to ECR. App Runner deployment pending service creation."

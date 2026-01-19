@@ -9,18 +9,20 @@ import axios from 'axios';
 
 // Determine API base URL based on environment
 const getApiBaseUrl = (): string => {
-  // Production
+  // VITE_API_URL wins when set (dev or prod). At AWS cutover, set in Netlify build env.
+  // This allows pointing to AWS App Runner or Azure Web App dynamically.
+  const customUrl = import.meta.env.VITE_API_URL;
+  if (customUrl) {
+    const base = customUrl.replace(/\/api\/v1\/?$/, '');
+    return `${base}/api/v1`;
+  }
+
+  // Production default: Azure backend (migrate by setting VITE_API_URL)
   if (import.meta.env.PROD) {
     return 'https://luntra-outreach-app.azurewebsites.net/api/v1';
   }
 
-  // Development - check if custom API URL is set
-  const customUrl = import.meta.env.VITE_API_URL;
-  if (customUrl) {
-    return `${customUrl}/api/v1`;
-  }
-
-  // Default development
+  // Development default
   return 'http://localhost:8000/api/v1';
 };
 
@@ -41,8 +43,8 @@ apiClient.interceptors.request.use(
   (config) => {
     // Check multiple possible token storage keys for backward compatibility
     const token = localStorage.getItem('propiq_token') ||
-                  localStorage.getItem('token') ||
-                  localStorage.getItem('accessToken');
+      localStorage.getItem('token') ||
+      localStorage.getItem('accessToken');
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

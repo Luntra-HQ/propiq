@@ -138,8 +138,13 @@ else:
         },
         {
             "url": "https://luntra-outreach-app.azurewebsites.net",
-            "description": "Production server"
-        }
+            "description": "Azure Production server"
+        },
+        # AWS App Runner URL placeholder - update this after deployment
+        # {
+        #     "url": "https://<app-runner-id>.awsapprunner.com",
+        #     "description": "AWS Production server"
+        # }
     ]
 
 # CORS Configuration - Load from environment for security
