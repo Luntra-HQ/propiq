@@ -157,7 +157,7 @@ export const generatePDF = async (analysis: PropertyAnalysis): Promise<void> => 
           pdf.rect(xPos, yPosition, imageWidth, imageHeight, 'FD');
           pdf.setFontSize(8);
           pdf.setTextColor(150, 150, 150);
-          pdf.text('Image unavailable', xPos + imageWidth/2, yPosition + imageHeight/2, { align: 'center' });
+          pdf.text('Image unavailable', xPos + imageWidth / 2, yPosition + imageHeight / 2, { align: 'center' });
         }
       }
 
@@ -407,49 +407,55 @@ export const generatePDF = async (analysis: PropertyAnalysis): Promise<void> => 
 
     const colWidth = contentWidth / 2 - 5;
 
-    // Strengths/Pros (left column)
     const strengthsList = analysis.strengths || analysis.pros || [];
-    if (strengthsList.length > 0) {
-      pdf.setFontSize(11);
-      pdf.setTextColor(16, 185, 129); // emerald-500
-      pdf.setFont('helvetica', 'bold');
-      pdf.text(analysis.strengths ? 'Strengths' : 'Pros', margin, yPosition);
-      yPosition += 7;
-
-      pdf.setFontSize(9);
-      pdf.setTextColor(55, 65, 81);
-      pdf.setFont('helvetica', 'normal');
-
-      strengthsList.forEach((item, index) => {
-        const lines = pdf.splitTextToSize(`• ${item}`, colWidth);
-        pdf.text(lines, margin + 2, yPosition);
-        yPosition += lines.length * 5;
-      });
-    }
-
-    // Risks/Cons (right column) - reset yPosition
     const risksList = analysis.risks || analysis.cons || [];
-    let risksYPosition = yPosition - (strengthsList.length * 5 + 7);
+    const maxItems = Math.max(strengthsList.length, risksList.length);
 
-    if (risksList.length > 0) {
-      pdf.setFontSize(11);
-      pdf.setTextColor(239, 68, 68); // red-500
-      pdf.setFont('helvetica', 'bold');
-      pdf.text(analysis.risks ? 'Risks' : 'Cons', margin + contentWidth / 2 + 5, risksYPosition);
-      risksYPosition += 7;
+    // Render Headers
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
 
-      pdf.setFontSize(9);
-      pdf.setTextColor(55, 65, 81);
-      pdf.setFont('helvetica', 'normal');
+    // Left Header
+    pdf.setTextColor(16, 185, 129); // emerald-500
+    pdf.text(analysis.strengths ? 'Strengths' : 'Pros', margin, yPosition);
 
-      risksList.forEach((item, index) => {
-        const lines = pdf.splitTextToSize(`• ${item}`, colWidth);
-        pdf.text(lines, margin + contentWidth / 2 + 7, risksYPosition);
-        risksYPosition += lines.length * 5;
-      });
+    // Right Header
+    pdf.setTextColor(239, 68, 68); // red-500
+    pdf.text(analysis.risks ? 'Risks' : 'Cons', margin + contentWidth / 2 + 5, yPosition);
+
+    yPosition += 7;
+
+    // Render Items Row by Row
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(55, 65, 81); // gray-700
+
+    for (let i = 0; i < maxItems; i++) {
+      const sItem = strengthsList[i];
+      const rItem = risksList[i];
+
+      const sLines = sItem ? pdf.splitTextToSize(`• ${sItem}`, colWidth) : [];
+      const rLines = rItem ? pdf.splitTextToSize(`• ${rItem}`, colWidth) : [];
+
+      const rowHeight = Math.max(sLines.length, rLines.length) * 5;
+
+      // Check Page Break
+      if (yPosition + rowHeight > pageHeight - 30) {
+        pdf.addPage();
+        yPosition = margin;
+        // Optionally reprint headers here if desired, simpler to just continue list
+      }
+
+      if (sLines.length > 0) {
+        pdf.text(sLines, margin + 2, yPosition);
+      }
+
+      if (rLines.length > 0) {
+        pdf.text(rLines, margin + contentWidth / 2 + 5, yPosition);
+      }
+
+      yPosition += rowHeight + 2; // spacing
     }
-
-    yPosition = Math.max(yPosition, risksYPosition) + 10;
   }
 
   // Key Insights

@@ -14,9 +14,6 @@ import {
 const PricingPage = lazy(() => import('./components/PricingPage'));
 const SupportChat = lazy(() => import('./components/SupportChat').then(m => ({ default: m.SupportChat })));
 const FeedbackWidget = lazy(() => import('./components/FeedbackWidget').then(m => ({ default: m.FeedbackWidget })));
-// NEW: Convex-based analysis with integrated image upload
-const PropIQAnalysis = lazy(() => import('./components/PropIQAnalysisConvex').then(m => ({ default: m.PropIQAnalysisConvex })));
-// OLD FastAPI version (kept for reference): const PropIQAnalysis = lazy(() => import('./components/PropIQAnalysis').then(m => ({ default: m.PropIQAnalysis })));
 const ProductTour = lazy(() => import('./components/ProductTour').then(m => ({ default: m.ProductTour })));
 const HelpCenter = lazy(() => import('./components/HelpCenter').then(m => ({ default: m.HelpCenter })));
 const OnboardingChecklist = lazy(() => import('./components/OnboardingChecklist').then(m => ({ default: m.OnboardingChecklist })));
@@ -81,61 +78,13 @@ const LoadingScreen = () => (
   </div>
 );
 
-// Paywall Component (The Hard Stop)
-const PaywallModal = ({ isOpen, onUpgradeClick }: { isOpen: boolean; onUpgradeClick: () => void }) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/90 backdrop-blur-sm p-4 transition-opacity duration-300 animate-fadeIn">
-      <div className={`w-full max-w-lg bg-slate-800 rounded-2xl shadow-2xl border border-violet-700 p-8 text-center animate-slideInUp`}>
-        <Lock className={`h-10 w-10 mx-auto mb-4 text-${PRIMARY_ACCENT}-400`} />
-        <h2 className="text-3xl font-extrabold text-gray-50 mb-3">
-          Trial Limit Reached
-        </h2>
-        <p className="text-gray-300 mb-6 text-lg">
-          You have successfully completed your {TOTAL_TRIAL_USES}-use trial! Unlock unlimited access to the LUNTRA Growth Engine.
-        </p>
-
-        <div className="bg-slate-700 p-4 rounded-lg mb-8 shadow-inner">
-          <p className="text-xl font-semibold text-emerald-300 flex items-center justify-center">
-            <DollarSign className="h-5 w-5 mr-2" />
-            Go Pro: Unlock Unlimited Access
-          </p>
-        </div>
-
-        <button
-          onClick={onUpgradeClick}
-          className={`w-full py-3 px-4 rounded-lg font-bold text-white transition-all duration-200
-            bg-${SUCCESS_ACCENT}-600 hover:bg-${SUCCESS_ACCENT}-500 active:scale-[0.98] shadow-lg shadow-${SUCCESS_ACCENT}-500/50 focus:outline-none focus:ring-4 focus:ring-${SUCCESS_ACCENT}-300
-          `}
-        >
-          Upgrade Now to Continue
-        </button>
-        <button
-          onClick={() => {
-            console.log('Closing modal - User declined upgrade');
-            onUpgradeClick();
-          }}
-          className="mt-4 text-sm font-medium text-gray-300 hover:text-gray-200 transition-colors"
-        >
-          Maybe later
-        </button>
-      </div>
-    </div>
-  );
-};
-
 // Header (2025 Glassmorphism Design)
 const Header = ({
-  propIqUsed,
-  propIqLimit,
   currentTier,
   user,
   onLogout,
   onHelpClick
 }: {
-  propIqUsed: number;
-  propIqLimit: number;
   currentTier: string;
   user: any; // User from useAuth
   onLogout: () => void;
@@ -161,7 +110,6 @@ const Header = ({
           <CreditCard className="h-4 w-4 text-violet-400" />
           <span className="text-xs font-medium text-gray-200">{tierConfig.displayName}</span>
         </div>
-        <UsageBadge used={propIqUsed} limit={propIqLimit} />
         <button
           onClick={onHelpClick}
           className="flex items-center space-x-1 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-gray-300 hover:text-white rounded-lg transition-colors"
@@ -186,98 +134,6 @@ const Header = ({
         )}
       </div>
     </header>
-  );
-};
-
-// Usage Badge Component (2025 Design)
-const UsageBadge = ({ used, limit }: { used: number; limit: number }) => {
-  const remaining = getRemainingRuns(used, limit);
-  const percentage = (used / limit) * 100;
-
-  let statusColor = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
-  if (percentage >= 90) {
-    statusColor = 'bg-red-500/20 text-red-300 border-red-500/30';
-  } else if (percentage >= 75) {
-    statusColor = 'bg-amber-500/20 text-amber-300 border-amber-500/30';
-  }
-
-  const text = remaining > 0 ? `${remaining} left` : 'Limit reached';
-
-  return (
-    <div className={`px-3 py-1.5 text-xs font-medium rounded-full ${statusColor} border flex items-center gap-1.5 transition-colors`}>
-      <BarChart className="h-3.5 w-3.5" />
-      <span>{text}</span>
-    </div>
-  );
-};
-
-// Upgrade Prompt Banner Component (90% threshold - 2025 Glassmorphism)
-const UpgradePromptBanner = ({
-  used,
-  limit,
-  currentTier,
-  onUpgrade,
-  onTopUp,
-  onDismiss
-}: {
-  used: number;
-  limit: number;
-  currentTier: string;
-  onUpgrade: () => void;
-  onTopUp: () => void;
-  onDismiss: () => void;
-}) => {
-  const remaining = getRemainingRuns(used, limit);
-  const nextTier = getNextTier(currentTier);
-
-  return (
-    <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-40 w-full max-w-4xl px-4 animate-slideInDown">
-      <div className="bg-gradient-to-r from-violet-900/90 to-purple-900/90 backdrop-blur-glass border border-violet-500/50 rounded-2xl shadow-glow p-5">
-        <div className="flex items-start justify-between">
-          <div className="flex items-start space-x-4 flex-1">
-            <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/30">
-              <Target className="h-6 w-6 text-white" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-bold text-white mb-1">
-                {CONVERSION_COPY.warningBanner.title.replace('{used}', used.toString()).replace('{total}', limit.toString())}
-              </h3>
-              <p className="text-sm text-violet-200/80">
-                {CONVERSION_COPY.warningBanner.description}
-              </p>
-              <div className="flex flex-wrap gap-2 mt-4">
-                <button
-                  onClick={onTopUp}
-                  className="btn-press px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-emerald-500/30"
-                >
-                  Buy 10 More ($5)
-                </button>
-                {nextTier && (
-                  <button
-                    onClick={onUpgrade}
-                    className="btn-press px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-violet-500/30"
-                  >
-                    Upgrade to {nextTier.name} ({formatCurrency(nextTier.price)}/mo)
-                  </button>
-                )}
-                <button
-                  onClick={onDismiss}
-                  className="btn-ghost px-4 py-2 text-violet-200 text-sm font-medium"
-                >
-                  Later
-                </button>
-              </div>
-            </div>
-          </div>
-          <button
-            onClick={onDismiss}
-            className="flex-shrink-0 ml-3 p-1 text-violet-300 hover:text-white hover:bg-white/10 rounded-lg transition-all"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-      </div>
-    </div>
   );
 };
 
@@ -355,16 +211,10 @@ const TopUpModal = ({
 // Main Application Component
 const App = () => {
   // State for usage tracking and subscription
-  const [propIqUsed, setPropIqUsed] = useState(0);
   const [currentTier, setCurrentTier] = useState<string>('free');
-  const [showPaywall, setShowPaywall] = useState(false);
-  const [showUpgradeBanner, setShowUpgradeBanner] = useState(false);
   const [showTopUpModal, setShowTopUpModal] = useState(false);
   const [showPricingPage, setShowPricingPage] = useState(false);
-  const [showPropIQAnalysis, setShowPropIQAnalysis] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  // REMOVED: userId and userEmail local state - use user from useAuth directly
-  // authToken is now provided by useAuth hook as sessionToken
 
   // Help Center state
   const [showHelpCenter, setShowHelpCenter] = useState(false);
@@ -381,16 +231,10 @@ const App = () => {
 
   // Derived state
   const tierConfig = PRICING_TIERS[currentTier] || PRICING_TIERS.free;
-  const propIqLimit = tierConfig.propIqLimit;
-  const propIqRemaining = getRemainingRuns(propIqUsed, propIqLimit);
 
   // Use server-side session auth (httpOnly cookies)
   // Note: App is wrapped in ProtectedRoute, so user is always authenticated here
   const { user, isLoading: authLoading, logout: authLogout, sessionToken } = useAuth();
-
-  console.log('🟠 [10-APP-RENDER] App component rendering');
-  console.log('🟠 [10a-APP-STATE] authLoading:', authLoading, 'has user:', !!user);
-  console.log('🟠 [10b-APP-USER] user:', user);
 
   // Payment checkout action - GROK'S FIX
   // Use string literal instead of generated api object (which is type-only and becomes undefined in browser)
@@ -401,56 +245,13 @@ const App = () => {
   // OPTIMIZED: Removed userId/userEmail duplication, use user directly
   useEffect(() => {
     if (user) {
-      console.log('[APP] User data synced:', user.email);
-      setPropIqUsed(user.analysesUsed || 0);
       setCurrentTier(user.subscriptionTier || 'free');
     }
   }, [user]);
 
-  // Effect to show upgrade prompts based on usage thresholds
-  useEffect(() => {
-    if (authLoading) return;
-
-    // Check if at hard cap (100% usage)
-    if (isAtHardCap(propIqUsed, propIqLimit)) {
-      setShowPaywall(true);
-      setShowUpgradeBanner(false);
-    }
-    // Check if at 90% threshold
-    else if (shouldShowUpgradePrompt(propIqUsed, propIqLimit) && !showUpgradeBanner) {
-      setShowUpgradeBanner(true);
-    }
-  }, [propIqUsed, propIqLimit, authLoading, showUpgradeBanner]);
-
-  // Handler to use PropIQ feature (increments usage)
-  const handleUsePropIq = async () => {
-    if (authLoading || !user) return;
-
-    // Check if at hard cap
-    if (isAtHardCap(propIqUsed, propIqLimit)) {
-      setShowPaywall(true);
-      return;
-    }
-
-    try {
-      // Increment usage locally
-      const newUsageCount = propIqUsed + 1;
-      setPropIqUsed(newUsageCount);
-
-      console.log(`PropIQ used. Total uses: ${newUsageCount}/${propIqLimit}`);
-
-      // Note: Backend will track usage when actual analysis API is called
-    } catch (error) {
-      console.error("Error incrementing PropIQ usage:", error);
-      setShowPaywall(true);
-    }
-  };
-
   const handleUpgradeClick = () => {
     // Show pricing page
     setShowPricingPage(true);
-    setShowPaywall(false);
-    setShowUpgradeBanner(false);
   };
 
   const handleSelectTier = async (tierId: string) => {
@@ -506,7 +307,6 @@ const App = () => {
     const runsText = pkg ? `${pkg.runs} runs` : 'additional runs';
 
     setShowTopUpModal(false);
-    setShowUpgradeBanner(false);
 
     // Show upgrade suggestion
     const shouldUpgrade = window.confirm(
@@ -530,13 +330,6 @@ const App = () => {
     authLogout();
   };
 
-  const handleDismissUpgradeBanner = () => {
-    setShowUpgradeBanner(false);
-    // Store dismissal in localStorage to prevent repeated prompts
-    localStorage.setItem('upgradeBannerDismissed', Date.now().toString());
-  };
-
-  // Removed auto-checkout logic - users now upgrade from dashboard after signup
 
   // Show product tour after user logs in (if they haven't seen it)
   useEffect(() => {
@@ -551,7 +344,7 @@ const App = () => {
 
   // Command palette commands
   const commandPaletteCommands = getDefaultCommands({
-    onAnalyze: () => setShowPropIQAnalysis(true),
+    // onAnalyze removed
     onCalculator: () => {
       // Scroll to calculator section
       document.getElementById('calculator-section')?.scrollIntoView({ behavior: 'smooth' });
@@ -565,16 +358,6 @@ const App = () => {
     },
     currentTheme,
   });
-
-  // REMOVED: Redundant auth guard that caused race condition
-  // ProtectedRoute already validates authentication before App mounts
-  // Double-checking here created a timing race where authLoading could be
-  // true during fetchCurrentUser() refetch, causing infinite LoadingScreen
-  //
-  // Auth is guaranteed valid at this point:
-  // - ProtectedRoute checked isAuthenticated=true before rendering <App />
-  // - If auth fails, ProtectedRoute redirects to /login
-  // - No need to check again here
 
   // Component Test Page (accessible at /test for rapid testing)
   if (window.location.pathname === '/test') {
@@ -594,8 +377,6 @@ const App = () => {
 
       {/* Header with tier and usage info */}
       <Header
-        propIqUsed={propIqUsed}
-        propIqLimit={propIqLimit}
         currentTier={currentTier}
         user={user}
         onLogout={handleLogout}
@@ -610,28 +391,34 @@ const App = () => {
       )}
 
       {/* Onboarding Checklist (shows for first 7 days) */}
-      {user && <OnboardingChecklist userId={user._id} />}
-
-      {/* Upgrade Prompt Banner (90% threshold) */}
-      {showUpgradeBanner && (
-        <UpgradePromptBanner
-          used={propIqUsed}
-          limit={propIqLimit}
-          currentTier={currentTier}
-          onUpgrade={handleUpgradeClick}
-          onTopUp={() => setShowTopUpModal(true)}
-          onDismiss={handleDismissUpgradeBanner}
+      {user && (
+        <OnboardingChecklist
+          userId={user._id}
+          onAction={(action) => {
+            console.log('Onboarding action:', action);
+            if (action === 'analyze-property') {
+              // Redirect to calculator instead since analysis is removed
+              document.getElementById('calculator')?.scrollIntoView({ behavior: 'smooth' });
+            } else if (action === 'calculator') {
+              document.getElementById('calculator')?.scrollIntoView({ behavior: 'smooth' });
+            } else if (action === 'calculator-scenarios') {
+              document.getElementById('calculator')?.scrollIntoView({ behavior: 'smooth' });
+            } else if (action === 'export') {
+              // No-op or toast message
+              console.log("Export feature removed");
+            } else if (action.startsWith('help-center')) {
+              setShowHelpCenter(true);
+            }
+          }}
         />
       )}
 
       {/* Main Dashboard - 2025 Bento Grid Design */}
       <div id="main-content" role="main" tabIndex={-1}>
         <Dashboard
-          propIqUsed={propIqUsed}
-          propIqLimit={propIqLimit}
           currentTier={currentTier}
-          userEmail={user.email}
-          onAnalyzeClick={() => setShowPropIQAnalysis(true)}
+          userEmail={user?.email || null}
+          userId={user?._id || ''}
           onUpgradeClick={handleUpgradeClick}
           onHelpClick={() => setShowHelpCenter(true)}
         />
@@ -666,12 +453,6 @@ const App = () => {
         isOpen={showTopUpModal}
         onClose={() => setShowTopUpModal(false)}
         onPurchase={handleTopUpPurchase}
-      />
-
-      {/* The Persistent Paywall Modal */}
-      <PaywallModal
-        isOpen={showPaywall}
-        onUpgradeClick={handleUpgradeClick}
       />
 
       {/* Lazy-loaded components with Suspense */}
@@ -709,14 +490,6 @@ const App = () => {
             onClose={() => setShowPricingPage(false)}
           />
         )}
-
-        {/* PropIQ Analysis Modal - Convex version with image upload */}
-        {showPropIQAnalysis && user && (
-          <PropIQAnalysis
-            onClose={() => setShowPropIQAnalysis(false)}
-            userId={user._id}
-          />
-        )}
       </Suspense>
 
       {/* Command Palette (Cmd+K / Ctrl+K) */}
@@ -732,13 +505,22 @@ const App = () => {
       {/* Onboarding Checklist - Shows for new users */}
       {user && (
         <Suspense fallback={null}>
-          <OnboardingChecklist userId={user._id} />
+          <OnboardingChecklist
+            userId={user._id}
+            onAction={(action) => {
+              if (action === 'analyze-property') document.getElementById('calculator')?.scrollIntoView({ behavior: 'smooth' });
+              else if (action === 'calculator') document.getElementById('calculator')?.scrollIntoView({ behavior: 'smooth' });
+              else if (action === 'calculator-scenarios') document.getElementById('calculator')?.scrollIntoView({ behavior: 'smooth' });
+              else if (action === 'export') { } // Export removed
+              else if (action.startsWith('help-center')) setShowHelpCenter(true);
+            }}
+          />
         </Suspense>
       )}
 
       {/* Help Center Modal */}
       <Suspense fallback={null}>
-        {showHelpCenter && (
+        {showHelpCenter && user && (
           <HelpCenter
             isOpen={showHelpCenter}
             onClose={() => setShowHelpCenter(false)}

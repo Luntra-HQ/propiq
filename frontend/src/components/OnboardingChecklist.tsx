@@ -7,10 +7,11 @@ import { CheckCircle2, Circle, X, ChevronDown, ChevronUp, Trophy, Sparkles } fro
 import './OnboardingChecklist.css';
 
 interface OnboardingChecklistProps {
-  userId: string; // Changed from Id<"users"> to string
+  userId: string;
+  onAction?: (action: string) => void;
 }
 
-export const OnboardingChecklist = ({ userId }: OnboardingChecklistProps) => {
+export const OnboardingChecklist = ({ userId, onAction }: OnboardingChecklistProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isDismissed, setIsDismissed] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
@@ -21,6 +22,36 @@ export const OnboardingChecklist = ({ userId }: OnboardingChecklistProps) => {
 
   // Mutation - GROK'S FIX: Use string literal
   const dismissChecklist = useMutation("onboarding:dismissChecklist" as any);
+
+  // Helper for navigation
+  const handleNavigation = (link: string) => {
+    // If we have a parent handler, use it first
+    if (onAction && link.startsWith('#')) {
+      const action = link.substring(1);
+
+      // Dispatch known actions to parent
+      if (['analyze-property', 'calculator', 'calculator-scenarios', 'export', 'settings'].includes(action) || action.startsWith('help-center')) {
+        onAction(action);
+        return;
+      }
+    }
+
+    // Fallback to scrolling logic
+    if (link.startsWith('#')) {
+      const id = link.substring(1);
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        window.location.hash = link;
+      }
+    }
+  };
+
+  // Loading state guard (Bug 4 fix)
+  if (progress === undefined || completionPercentage === undefined) {
+    return null;
+  }
 
   // Check if we should show the checklist
   useEffect(() => {
@@ -39,7 +70,8 @@ export const OnboardingChecklist = ({ userId }: OnboardingChecklistProps) => {
     ? Math.floor((Date.now() - progress.createdAt) / (1000 * 60 * 60 * 24))
     : 0;
 
-  const shouldShow = !isDismissed && daysActive <= 7 && completionPercentage !== 100;
+  // Fix Bug 4: Avoid flash of content by checking progress.checklistDismissed directly
+  const shouldShow = !isDismissed && !progress?.checklistDismissed && daysActive <= 7 && completionPercentage !== 100;
 
   const handleDismiss = async () => {
     await dismissChecklist({ userId });
@@ -203,7 +235,7 @@ export const OnboardingChecklist = ({ userId }: OnboardingChecklistProps) => {
                   <p>{task.description}</p>
                 </div>
                 {!task.completed && (
-                  <button className="task-action" onClick={() => console.log('Navigate to:', task.link)}>
+                  <button className="task-action" onClick={() => handleNavigation(task.link)}>
                     Start
                   </button>
                 )}

@@ -30,7 +30,7 @@ const AUTH_ENDPOINTS = {
   refresh: `${CONVEX_HTTP_URL}/auth/refresh`,
 };
 
-console.log('[AUTH] Endpoints configured:', AUTH_ENDPOINTS);
+
 
 // Helper to get/set token from localStorage
 function getStoredToken(): string | null {
@@ -123,7 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const token = getStoredToken();
 
       if (!token) {
-        console.log('🟡 [FETCH-USER-NO-TOKEN] No token stored, not authenticated');
+
         setState(prev => ({
           ...prev,
           user: null,
@@ -135,7 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      console.log('🟡 [FETCH-USER-START] Fetching current user with token:', token);
+
 
       const response = await fetch(AUTH_ENDPOINTS.me, {
         method: 'GET',
@@ -146,11 +146,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       const data = await response.json();
-      console.log('🟡 [FETCH-USER-RESPONSE] /me API response:', data);
-      console.log('🟡 [FETCH-USER-DETAILS] authenticated:', data.authenticated, 'has user:', !!data.user);
 
       if (data.authenticated && data.user) {
-        console.log('🟡 [FETCH-USER-SUCCESS] User authenticated, setting state');
         setState(prev => ({
           ...prev,
           user: data.user,
@@ -159,10 +156,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           error: null,
           sessionToken: token,
         }));
-        console.log('🟡 [FETCH-USER-STATE-SET] State updated with user data');
+
       } else {
         // Token invalid, clear it
-        console.log('🟡 [FETCH-USER-INVALID] Token invalid, clearing');
         clearStoredToken();
         setState(prev => ({
           ...prev,
@@ -193,7 +189,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    */
   const login = useCallback(async (email: string, password: string) => {
     try {
-      console.log('[AUTH] Logging in...');
+
 
       const response = await fetch(AUTH_ENDPOINTS.login, {
         method: 'POST',
@@ -204,12 +200,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       const data = await response.json();
-      console.log('[AUTH] Login response:', data);
 
       if (data.success && data.user && data.sessionToken) {
         // Store token in localStorage
         setStoredToken(data.sessionToken);
-        console.log('[AUTH] Token stored in localStorage');
 
         setState({
           user: data.user,
@@ -242,7 +236,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    */
   const signup = useCallback(async (data: SignupData) => {
     try {
-      console.log('🔵 [1-SIGNUP-START] Beginning signup process');
+
 
       const response = await fetch(AUTH_ENDPOINTS.signup, {
         method: 'POST',
@@ -253,13 +247,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       const result = await response.json();
-      console.log('🔵 [2-BACKEND-RESPONSE] Signup API response:', result);
-      console.log('🔵 [2a-RESPONSE-DETAILS] success:', result.success, 'has user:', !!result.user, 'has token:', !!result.sessionToken);
 
       if (result.success && result.user && result.sessionToken) {
         // Store token in localStorage
         setStoredToken(result.sessionToken);
-        console.log('🔵 [3-TOKEN-STORED] Token saved to localStorage:', result.sessionToken);
 
         const newState = {
           user: result.user,
@@ -269,9 +260,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           sessionToken: result.sessionToken,
         };
 
-        console.log('🔵 [4-STATE-SETTING] About to set state:', newState);
         setState(newState);
-        console.log('🔵 [4a-STATE-SET-COMPLETE] setState called');
 
         // Clear any legacy localStorage
         clearLegacyStorage();
@@ -279,10 +268,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Notify Chrome extension of signup/login
         notifyExtension('login', result.sessionToken, result.user, result.expiresAt);
 
-        console.log('🔵 [5-SIGNUP-SUCCESS] Returning success, navigation should happen next');
+        // Notify Chrome extension of signup/login
+        notifyExtension('login', result.sessionToken, result.user, result.expiresAt);
+
         return { success: true };
       } else {
-        console.log('❌ [SIGNUP-FAILED] Backend returned failure:', result.error);
         return { success: false, error: result.error || 'Signup failed' };
       }
     } catch (error) {
@@ -297,7 +287,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    */
   const logout = useCallback(async () => {
     try {
-      console.log('[AUTH] Logging out...');
+
 
       const token = getStoredToken();
 
@@ -350,7 +340,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    */
   const logoutEverywhere = useCallback(async () => {
     try {
-      console.log('[AUTH] Logging out from all devices...');
+
 
       const token = getStoredToken();
 
@@ -410,14 +400,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Fetch user on mount ONLY if we don't already have valid user data
   // This prevents redundant fetches after signup/login when we already have the user
   useEffect(() => {
-    console.log('🟢 [MOUNT-EFFECT] useAuth mount effect running');
     const token = getStoredToken();
-    console.log('🟢 [MOUNT-EFFECT-TOKEN] Token from localStorage:', token);
-    console.log('🟢 [MOUNT-EFFECT-USER] Current state.user:', state.user);
 
     // Case 1: No token - clear state and mark as not loading
     if (!token) {
-      console.log('🟢 [MOUNT-CASE-1] No token - clearing state');
       setState(prev => ({
         ...prev,
         user: null,
@@ -431,19 +417,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Case 2: Have token but no user - fetch user data
     if (!state.user) {
-      console.log('🟢 [MOUNT-CASE-2] Have token but no user - calling fetchCurrentUser');
       fetchCurrentUser();
       return;
     }
 
     // Case 3: Have both token and user - just ensure loading is false
     // This happens after signup/login when state is already set correctly
-    console.log('🟢 [MOUNT-CASE-3] Have token AND user - just setting isLoading=false');
     setState(prev => ({
       ...prev,
       isLoading: false,
     }));
-    console.log('🟢 [MOUNT-COMPLETE] Mount effect complete');
   }, []); // Empty deps - only run on initial AuthProvider mount
 
   // Refresh user on window focus - THROTTLED to prevent session race conditions

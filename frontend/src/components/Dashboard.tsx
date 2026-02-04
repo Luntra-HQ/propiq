@@ -6,16 +6,9 @@
 
 import React from 'react';
 import {
-  Target,
   Calculator,
-  BarChart,
-  TrendingUp,
-  Zap,
-  ArrowRight,
-  Lock,
-  CreditCard,
   Shield,
-  Clock,
+  ArrowRight,
   HelpCircle,
 } from 'lucide-react';
 import { GlassCard, GlassCardHeader } from './ui/GlassCard';
@@ -23,182 +16,7 @@ import { BentoBackground } from './ui/BentoGrid';
 import { DealCalculator } from './DealCalculator';
 import {
   PRICING_TIERS,
-  getRemainingRuns,
-  isAtHardCap,
 } from '../config/pricing';
-
-// ============================================
-// Stat Card Component (Glassmorphism)
-// ============================================
-
-interface StatCardProps {
-  title: string;
-  value: string;
-  subtitle?: string;
-  icon: React.ElementType;
-  trend?: 'up' | 'down' | 'neutral';
-  trendValue?: string;
-}
-
-export const StatCard: React.FC<StatCardProps> = ({
-  title,
-  value,
-  subtitle,
-  icon: Icon,
-  trend,
-  trendValue,
-}) => {
-  const trendColors = {
-    up: 'text-emerald-400',
-    down: 'text-red-400',
-    neutral: 'text-gray-400',
-  };
-
-  const TrendIcon = trend === 'up' ? TrendingUp : trend === 'down' ? TrendingUp : null;
-
-  return (
-    <GlassCard variant="stat" size="md" hover={true}>
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <p className="text-sm font-medium text-gray-400 mb-1">{title}</p>
-          <p className="text-3xl font-bold text-gray-50 tracking-tight">{value}</p>
-          {subtitle && (
-            <p className="text-xs text-gray-500 mt-1">{subtitle}</p>
-          )}
-          {trend && trendValue && (
-            <div className={`flex items-center gap-1 mt-2 ${trendColors[trend]}`}>
-              {TrendIcon && <TrendIcon className={`h-3 w-3 ${trend === 'down' ? 'rotate-180' : ''}`} />}
-              <span className="text-xs font-medium">{trendValue}</span>
-            </div>
-          )}
-        </div>
-        <div className="w-12 h-12 rounded-xl bg-violet-500/20 flex items-center justify-center">
-          <Icon className="h-6 w-6 text-violet-400" />
-        </div>
-      </div>
-    </GlassCard>
-  );
-};
-
-// ============================================
-// Hero PropIQ Card Component
-// ============================================
-
-interface HeroPropIQCardProps {
-  used: number;
-  limit: number;
-  currentTier: string;
-  onAnalyzeClick: () => void;
-  onUpgradeClick: () => void;
-}
-
-export const HeroPropIQCard: React.FC<HeroPropIQCardProps> = ({
-  used,
-  limit,
-  currentTier,
-  onAnalyzeClick,
-  onUpgradeClick,
-}) => {
-  const isAtLimit = isAtHardCap(used, limit);
-  const remaining = getRemainingRuns(used, limit);
-  const progressPercent = Math.min((used / limit) * 100, 100);
-  const tierConfig = PRICING_TIERS[currentTier] || PRICING_TIERS.free;
-
-  // Progress bar color based on usage
-  let progressColor = 'from-emerald-500 to-emerald-400';
-  let progressGlow = 'shadow-emerald-500/30';
-  if (progressPercent >= 90) {
-    progressColor = 'from-red-500 to-red-400';
-    progressGlow = 'shadow-red-500/30';
-  } else if (progressPercent >= 75) {
-    progressColor = 'from-amber-500 to-amber-400';
-    progressGlow = 'shadow-amber-500/30';
-  }
-
-  return (
-    <GlassCard variant="hero" size="hero" className="h-full" glow={!isAtLimit}>
-      {/* Header */}
-      <div className="flex items-start justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/30 float-soft">
-            <Zap className="h-7 w-7 text-white" />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold text-gray-50">PropIQ AI Analysis</h2>
-            <p className="text-gray-400 text-sm">Instant property insights powered by AI</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/20 border border-violet-500/30">
-          <CreditCard className="h-4 w-4 text-violet-300" />
-          <span className="text-sm font-medium text-violet-200">{tierConfig.displayName}</span>
-        </div>
-      </div>
-
-      {/* Description */}
-      <p className="text-gray-300 mb-6 text-base leading-relaxed">
-        Get comprehensive AI analysis including market insights, investment recommendations,
-        risk assessment, and financial projections in under 30 seconds.
-      </p>
-
-      {/* Usage Progress */}
-      <div className="bg-slate-900/50 rounded-xl p-4 mb-6 border border-slate-700/50">
-        <div className="flex justify-between items-center mb-3">
-          <span className="text-sm font-medium text-gray-300">Monthly Usage</span>
-          <span className={`text-sm font-bold ${remaining > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-            {remaining} of {limit} remaining
-          </span>
-        </div>
-        <div className="relative w-full h-3 bg-slate-700/50 rounded-full overflow-hidden">
-          <div
-            className={`absolute inset-y-0 left-0 bg-gradient-to-r ${progressColor} rounded-full transition-all duration-700 ease-out progress-animate shadow-lg ${progressGlow}`}
-            style={{ width: `${progressPercent}%` }}
-          />
-        </div>
-        <div className="flex justify-between mt-2 text-xs text-gray-500">
-          <span>Used: {used}</span>
-          <span>{progressPercent.toFixed(0)}% of limit</span>
-        </div>
-      </div>
-
-      {/* CTA Button */}
-      <button
-        onClick={isAtLimit ? onUpgradeClick : onAnalyzeClick}
-        disabled={false}
-        className={`
-          w-full py-4 px-6 rounded-xl font-bold text-lg
-          flex items-center justify-center gap-3
-          transition-all duration-300
-          ${isAtLimit
-            ? 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 shadow-lg shadow-amber-500/30'
-            : 'bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 shadow-lg shadow-violet-500/30 hover:shadow-xl hover:shadow-violet-500/40'
-          }
-          text-white
-          hover:translate-y-[-2px] active:translate-y-0 active:scale-[0.99]
-        `}
-      >
-        {isAtLimit ? (
-          <>
-            <Lock className="h-5 w-5" />
-            <span>Upgrade to Continue</span>
-          </>
-        ) : (
-          <>
-            <Target className="h-5 w-5" />
-            <span>Analyze a Property</span>
-            <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-          </>
-        )}
-      </button>
-
-      {/* Quick tip */}
-      {!isAtLimit && (
-        <p className="text-center text-xs text-gray-500 mt-3">
-          Enter any US property address for instant AI analysis
-        </p>
-      )}
-    </GlassCard>
-  );
-};
 
 // ============================================
 // Calculator Card Component
@@ -329,26 +147,20 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({ actions }) =
 // ============================================
 
 interface DashboardProps {
-  propIqUsed: number;
-  propIqLimit: number;
   currentTier: string;
   userEmail: string | null;
-  onAnalyzeClick: () => void;
+  userId: string;
   onUpgradeClick: () => void;
   onHelpClick: () => void;
-  onCalculatorClick?: () => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
-  propIqUsed,
-  propIqLimit,
   currentTier,
   userEmail,
-  onAnalyzeClick,
+  userId,
   onUpgradeClick,
   onHelpClick,
 }) => {
-  const remaining = getRemainingRuns(propIqUsed, propIqLimit);
   const firstName = userEmail?.split('@')[0] || 'there';
 
   // Get time-based greeting
@@ -369,9 +181,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               {getGreeting()}, <span className="text-gradient">{firstName}</span>
             </h1>
             <p className="text-gray-400">
-              {remaining > 0
-                ? `You have ${remaining} AI analyses remaining this month.`
-                : 'Upgrade your plan to continue analyzing properties.'}
+              Welcome to your PropIQ dashboard.
             </p>
           </div>
           {/* Help Button */}
@@ -388,47 +198,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </section>
 
         {/* Main Bento Grid Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-6 mb-8">
-          {/* Hero Card - PropIQ Analysis (2 cols, 2 rows) */}
-          <div className="lg:col-span-2 lg:row-span-2">
-            <HeroPropIQCard
-              used={propIqUsed}
-              limit={propIqLimit}
-              currentTier={currentTier}
-              onAnalyzeClick={onAnalyzeClick}
-              onUpgradeClick={onUpgradeClick}
-            />
-          </div>
-
-          {/* Stats Column */}
-          <div className="space-y-5 md:space-y-6 stagger-fade-in">
-            <StatCard
-              title="Properties Analyzed"
-              value={propIqUsed.toString()}
-              subtitle="This month"
-              icon={Target}
-            />
-            <StatCard
-              title="Analyses Remaining"
-              value={remaining.toString()}
-              subtitle={`of ${propIqLimit} total`}
-              icon={BarChart}
-              trend={remaining < 3 ? 'down' : 'neutral'}
-              trendValue={remaining < 3 ? 'Running low' : undefined}
-            />
-            <StatCard
-              title="Response Time"
-              value="~30s"
-              subtitle="Average analysis"
-              icon={Clock}
-            />
-          </div>
-        </div>
-
-        {/* Second Row - Calculator and Benefits */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-6">
           {/* Calculator - Takes 2 columns */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2" id="calculator">
             <CalculatorCard />
           </div>
 

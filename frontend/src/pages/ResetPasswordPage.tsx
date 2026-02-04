@@ -70,7 +70,7 @@ const ResetPasswordPage: React.FC = () => {
       const baseUrl = convexUrl.replace('/api', '');
       const endpoint = `${baseUrl}/auth/request-password-reset`;
 
-      console.log('[Reset Password] Requesting password reset for:', email);
+      // console.log('[Reset Password] Requesting password reset for:', email);
       console.log('[Reset Password] Endpoint:', endpoint);
 
       const response = await fetch(endpoint, {

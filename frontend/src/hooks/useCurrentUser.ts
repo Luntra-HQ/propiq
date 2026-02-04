@@ -62,7 +62,7 @@ export function useCurrentUser(): ConvexUser | null | undefined {
   // Debug logging (remove in production)
   if (process.env.NODE_ENV === 'development') {
     console.log('[useCurrentUser] storedUserId:', storedUserId);
-    console.log('[useCurrentUser] query result:', user);
+    // console.log('[useCurrentUser] query result:', user);
   }
 
   return user as ConvexUser | null | undefined;
