@@ -48,11 +48,6 @@ export const OnboardingChecklist = ({ userId, onAction }: OnboardingChecklistPro
     }
   };
 
-  // Loading state guard (Bug 4 fix)
-  if (progress === undefined || completionPercentage === undefined) {
-    return null;
-  }
-
   // Check if we should show the checklist
   useEffect(() => {
     if (progress?.checklistDismissed) {
@@ -64,6 +59,11 @@ export const OnboardingChecklist = ({ userId, onAction }: OnboardingChecklistPro
       setShowCompletionModal(true);
     }
   }, [progress, completionPercentage]);
+
+  // Loading state guard (Bug 4 fix)
+  if (progress === undefined || completionPercentage === undefined) {
+    return null;
+  }
 
   // Check if within first 7 days
   const daysActive = progress?.createdAt
