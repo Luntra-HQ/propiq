@@ -46,11 +46,18 @@ except:
 router = APIRouter(prefix="/support", tags=["support"])
 
 # Azure OpenAI client
-client = AzureOpenAI(
-    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-    api_key=os.getenv("AZURE_OPENAI_KEY"),
-    api_version="2024-02-15-preview"
-)
+# Azure OpenAI client
+try:
+    if os.getenv("AZURE_OPENAI_ENDPOINT") and os.getenv("AZURE_OPENAI_KEY"):
+        client = AzureOpenAI(
+            azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+            api_key=os.getenv("AZURE_OPENAI_KEY"),
+            api_version="2024-02-15-preview"
+        )
+    else:
+        client = None
+except Exception:
+    client = None
 
 # ============================================================================
 # MODELS
@@ -616,6 +623,15 @@ async def send_support_message_enhanced(
     user_id = token_payload.get("sub", "guest")
     user_email = token_payload.get("email", "guest@propiq.com")
     start_time = datetime.utcnow()
+
+    if not client:
+        return ChatResponse(
+            success=False,
+            conversation_id=request.conversation_id or "maintenance",
+            message=request.message,
+            response="I apologize, but our AI support system is currently undergoing maintenance. Please try again later.",
+            timestamp=start_time
+        )
 
     try:
         # STEP 1: Load user context (session state)

@@ -103,4 +103,23 @@ crons.daily(
   internal.sessions.cleanupExpiredSessions
 );
 
+
+// ============================================
+// ANALYTICS & REPORTING
+// ============================================
+
+/**
+ * Weekly Intelligence Dashboard - Mondays at 8:00 AM EST (1:00 PM UTC)
+ * Sends summary of MRR, Churn, and User Funnel to admin
+ */
+crons.weekly(
+  "send-weekly-dashboard",
+  {
+    dayOfWeek: "monday",
+    hourUTC: 13, // 8 AM EST = 1 PM UTC
+    minuteUTC: 0,
+  },
+  internal.analytics.sendWeeklyEmail
+);
+
 export default crons;

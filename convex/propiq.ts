@@ -394,7 +394,11 @@ async function generateAIAnalysis(propertyData: {
   dealScore: number;
   tokensUsed: number;
 }> {
-  // Get Azure OpenAI credentials from environment
+  const LLM_PROVIDER = (process.env.LLM_PROVIDER || "azure").toLowerCase();
+  if (LLM_PROVIDER === "bedrock") {
+    throw new Error("Bedrock not yet implemented. Set LLM_PROVIDER=azure or unset.");
+  }
+
   const azureEndpoint = process.env.AZURE_OPENAI_ENDPOINT;
   const azureKey = process.env.AZURE_OPENAI_KEY;
   const azureApiVersion = process.env.AZURE_OPENAI_API_VERSION || "2025-01-01-preview";

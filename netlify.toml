@@ -1,5 +1,5 @@
 # Netlify Configuration for PropIQ Frontend
-# Fast deployment alternative to Azure Static Web Apps
+# Deployed via Netlify (see AZURE_TO_AWS_MIGRATION_GUIDE.md for cloud migration)
 
 [build]
   # NOTE: NO base directory set - build from project root

@@ -369,4 +369,37 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_captured_date", ["capturedAt"])
     .index("by_status_and_date", ["status", "capturedAt"]),
+
+  // Analytics Snapshots - Weekly intelligence data storage
+  analyticsSnapshots: defineTable({
+    weekStarting: v.number(), // Timestamp of the start of the week
+
+    // User Funnel
+    totalUsers: v.number(),
+    newUsers: v.number(), // New this week
+
+    // Subscription Breakdown
+    freeUsers: v.number(),
+    proUsers: v.number(),
+    eliteUsers: v.number(),
+
+    // Revenue
+    mrr: v.number(),
+    payingUserCount: v.number(),
+    arpu: v.number(),
+
+    // Churn & Conversion (Last 7 Days)
+    churnedUsers: v.number(),
+    downgradedUsers: v.number(),
+    conversionRate: v.number(), // Free -> Paid %
+
+    // B2B Signal
+    b2bUserCount: v.number(),
+    b2bPercent: v.number(),
+
+    // Metadata
+    createdAt: v.number(),
+  })
+    .index("by_date", ["createdAt"])
+    .index("by_week", ["weekStarting"]),
 });

@@ -9,6 +9,7 @@
  */
 
 import type * as adminCleanup from "../adminCleanup.js";
+import type * as analytics from "../analytics.js";
 import type * as articles from "../articles.js";
 import type * as auth from "../auth.js";
 import type * as crons from "../crons.js";
@@ -16,6 +17,7 @@ import type * as emailScheduler from "../emailScheduler.js";
 import type * as http from "../http.js";
 import type * as leads from "../leads.js";
 import type * as logger from "../logger.js";
+import type * as manual_admin from "../manual_admin.js";
 import type * as migrateLeadCaptures from "../migrateLeadCaptures.js";
 import type * as onboarding from "../onboarding.js";
 import type * as onboardingEmailScheduler from "../onboardingEmailScheduler.js";
@@ -34,6 +36,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   adminCleanup: typeof adminCleanup;
+  analytics: typeof analytics;
   articles: typeof articles;
   auth: typeof auth;
   crons: typeof crons;
@@ -41,6 +44,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   leads: typeof leads;
   logger: typeof logger;
+  manual_admin: typeof manual_admin;
   migrateLeadCaptures: typeof migrateLeadCaptures;
   onboarding: typeof onboarding;
   onboardingEmailScheduler: typeof onboardingEmailScheduler;

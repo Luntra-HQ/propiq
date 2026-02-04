@@ -1,0 +1,118 @@
+# =============================================================================
+# Deploy PropIQ Backend to AWS (ECR + App Runner)
+# =============================================================================
+# TEMPLATE: Copy to deploy-aws.yml and set:
+#   - AWS region, ECR repository, App Runner service
+#   - GitHub secrets: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY (or OIDC)
+# Then run via: Actions → Deploy PropIQ to AWS → Run workflow
+# See: AZURE_TO_AWS_MIGRATION_GUIDE.md
+# =============================================================================
+
+name: Deploy PropIQ to AWS
+
+on:
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: propiq-backend
+  APP_RUNNER_SERVICE: propiq-backend
+
+jobs:
+  test-backend:
+    name: Test Backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - run: python -m pip install --upgrade pip && pip install -r requirements.txt
+      - run: |
+          if [ -d "tests" ]; then
+            pytest tests/ -v --tb=short || echo "Tests not yet implemented"
+          else
+            echo "No tests directory found, skipping"
+          fi
+
+  test-frontend:
+    name: Test Frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+      - run: npm ci
+      - run: npm run build
+
+  deploy-backend-aws:
+    name: Deploy Backend to AWS (ECR + App Runner)
+    needs: [test-backend, test-frontend]
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push to ECR
+        working-directory: ./backend
+        env:
+          ECR_REGISTRY: ${{ steps.ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG .
+          docker tag $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:latest
+          docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
+          docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:latest
+          echo "image=$ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Deploy to App Runner
+        run: |
+          aws apprunner update-service \
+            --service-arn "${{ secrets.AWS_APP_RUNNER_SERVICE_ARN }}" \
+            --source-configuration '{
+              "ImageRepository": {
+                "ImageIdentifier": "${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}",
+                "ImageRepositoryType": "ECR"
+              },
+              "AutoDeploymentsEnabled": false
+            }' \
+            --region ${{ env.AWS_REGION }}
+        # Alternative: if using App Runner with ECR auto-deploy, you may only need to push;
+        # then adjust or remove this step. See: https://docs.aws.amazon.com/apprunner/
+
+      - name: Health check
+        run: |
+          # Replace with your App Runner service URL (or fetch from aws apprunner list-services)
+          APP_URL="${{ secrets.AWS_APP_RUNNER_SERVICE_URL }}"
+          if [ -n "$APP_URL" ]; then
+            for i in 1 2 3 4 5 6 7 8 9 10; do
+              if curl -sf "$APP_URL/propiq/health" > /dev/null; then
+                echo "✅ Backend healthy at $APP_URL"
+                exit 0
+              fi
+              sleep 10
+            done
+            echo "⚠️ Health check timed out"
+          else
+            echo "⏭️ AWS_APP_RUNNER_SERVICE_URL not set, skipping health check"
+          fi

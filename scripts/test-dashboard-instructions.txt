@@ -1,0 +1,5 @@
+
+import { convex } from "./convex-client"; // Pseudo-code assumption, need to use npx convex run
+
+console.log("To test the dashboard, please run the following command in your terminal:");
+console.log("npx convex run analytics:sendWeeklyEmail");

@@ -28,9 +28,9 @@ const http = httpRouter();
 const IS_PRODUCTION =
   process.env.IS_PRODUCTION_ENV !== "false" &&
   (process.env.IS_PRODUCTION_ENV === "true" ||
-   process.env.CONVEX_ENV === "production" ||
-   process.env.NODE_ENV === "production" ||
-   !process.env.IS_PRODUCTION_ENV); // Default to production if not explicitly set
+    process.env.CONVEX_ENV === "production" ||
+    process.env.NODE_ENV === "production" ||
+    !process.env.IS_PRODUCTION_ENV); // Default to production if not explicitly set
 
 // CORS headers for cross-origin requests from frontend
 // No credentials needed since we use Bearer tokens (not cookies)
@@ -291,7 +291,7 @@ http.route({
             });
 
             if (emailResponse.ok) {
-              console.log(`[AUTH] ✅ Verification email sent to ${result.user.email}`);
+              // console.log(`[AUTH] ✅ Verification email sent to ${result.user.email}`);
             } else {
               const errorData = await emailResponse.json();
               console.error("[AUTH] Failed to send verification email:", errorData);
@@ -550,7 +550,7 @@ http.route({
             if (!emailResponse.ok) {
               console.error("[AUTH] Failed to send password reset email:", await emailResponse.text());
             } else {
-              console.log("[AUTH] Password reset email sent to:", result.email);
+              // console.log("[AUTH] Password reset email sent to:", result.email);
             }
           } catch (emailError) {
             console.error("[AUTH] Error sending password reset email:", emailError);
@@ -674,7 +674,7 @@ http.route({
         userId: sessionData.user._id,
       });
 
-      console.log("[AUTH] Logged out from all devices for user:", sessionData.user.email);
+      // console.log("[AUTH] Logged out from all devices for user:", sessionData.user.email);
 
       return new Response(
         JSON.stringify({
@@ -778,7 +778,7 @@ async function verifyStripeSignature(
 
 // Stripe webhook handler
 http.route({
-  path: "/stripe-webhook",
+  path: "/stripe/webhook",
   method: "POST",
   handler: httpAction(async (ctx, request) => {
     try {

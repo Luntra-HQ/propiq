@@ -88,68 +88,72 @@ jobs:
       #     fi
 
   # Deploy Backend to Azure
-  deploy-backend:
-    name: Deploy Backend to Azure
-    needs: [test-backend, test-frontend]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    environment: production
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Login to Azure Container Registry
-        uses: azure/docker-login@v1
-        with:
-          login-server: ${{ env.AZURE_REGISTRY }}
-          username: ${{ secrets.AZURE_ACR_USERNAME }}
-          password: ${{ secrets.AZURE_ACR_PASSWORD }}
-
-      - name: Build and push Docker image
-        working-directory: ./backend
-        run: |
-          docker build -t ${{ env.AZURE_REGISTRY }}/propiq-backend:${{ github.sha }} .
-          docker tag ${{ env.AZURE_REGISTRY }}/propiq-backend:${{ github.sha }} ${{ env.AZURE_REGISTRY }}/propiq-backend:latest
-          docker push ${{ env.AZURE_REGISTRY }}/propiq-backend:${{ github.sha }}
-          docker push ${{ env.AZURE_REGISTRY }}/propiq-backend:latest
-
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          images: ${{ env.AZURE_REGISTRY }}/propiq-backend:${{ github.sha }}
-
-      - name: Wait for deployment
-        run: sleep 60
-
-      - name: Health check
-        run: |
-          max_attempts=10
-          attempt=0
-          while [ $attempt -lt $max_attempts ]; do
-            echo "Health check attempt $((attempt + 1))/$max_attempts..."
-            response=$(curl -s -o /dev/null -w "%{http_code}" https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net/propiq/health || echo "000")
-            if [ "$response" = "200" ]; then
-              echo "✅ Backend health check passed!"
-              exit 0
-            fi
-            echo "⏳ Waiting for backend to be ready (got HTTP $response)..."
-            sleep 10
-            attempt=$((attempt + 1))
-          done
-          echo "❌ Backend health check failed after $max_attempts attempts"
-          exit 1
+  # Deploy Backend to Azure
+  # deploy-backend:
+  #   name: Deploy Backend to Azure
+  #   needs: [test-backend, test-frontend]
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  #   runs-on: ubuntu-latest
+  #   environment: production
+  #
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Azure Login
+  #       uses: azure/login@v1
+  #       with:
+  #         creds: ${{ secrets.AZURE_CREDENTIALS }}
+  #
+  #     - name: Login to Azure Container Registry
+  #       uses: azure/docker-login@v1
+  #       with:
+  #         login-server: ${{ env.AZURE_REGISTRY }}
+  #         username: ${{ secrets.AZURE_ACR_USERNAME }}
+  #         password: ${{ secrets.AZURE_ACR_PASSWORD }}
+  #
+  #     - name: Build and push Docker image
+  #       working-directory: ./backend
+  #       run: |
+  #         docker build -t ${{ env.AZURE_REGISTRY }}/propiq-backend:${{ github.sha }} .
+  #         docker tag ${{ env.AZURE_REGISTRY }}/propiq-backend:${{ github.sha }} ${{ env.AZURE_REGISTRY }}/propiq-backend:latest
+  #         docker push ${{ env.AZURE_REGISTRY }}/propiq-backend:${{ github.sha }}
+  #         docker push ${{ env.AZURE_REGISTRY }}/propiq-backend:latest
+  #
+  #     - name: Deploy to Azure Web App
+  #       uses: azure/webapps-deploy@v2
+  #       with:
+  #         app-name: ${{ env.AZURE_WEBAPP_NAME }}
+  #         images: ${{ env.AZURE_REGISTRY }}/propiq-backend:${{ github.sha }}
+  #
+  #     - name: Wait for deployment
+  #       run: sleep 60
+  #
+  #     - name: Health check
+  #       run: |
+  #         max_attempts=10
+  #         attempt=0
+  #         while [ $attempt -lt $max_attempts ]; do
+  #           echo "Health check attempt $((attempt + 1))/$max_attempts..."
+  #           response=$(curl -s -o /dev/null -w "%{http_code}" https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net/propiq/health || echo "000")
+  #           if [ "$response" = "200" ]; then
+  #             echo "✅ Backend health check passed!"
+  #             exit 0
+  #           fi
+  #           echo "⏳ Waiting for backend to be ready (got HTTP $response)..."
+  #           sleep 10
+  #           attempt=$((attempt + 1))
+  #         done
+  #         echo "❌ Backend health check failed after $max_attempts attempts"
+  #         exit 1
 
   # Deploy Frontend to Netlify
   deploy-frontend:
     name: Deploy Frontend to Netlify
+  deploy-frontend:
+    name: Deploy Frontend to Netlify
     needs: [test-backend, test-frontend]
+    # needs: [test-backend, test-frontend] # Removed deploy-backend dependency
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: production
@@ -207,26 +211,12 @@ jobs:
   # Post-deployment verification
   verify-deployment:
     name: Verify Deployment
-    needs: [deploy-backend, deploy-frontend]
+    needs: [deploy-frontend]
+    # needs: [deploy-backend, deploy-frontend]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Verify backend endpoints
-        run: |
-          echo "🔍 Verifying backend endpoints..."
-
-          # Health check
-          curl -f https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net/propiq/health || exit 1
-
-          # Support chat health
-          curl -f https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net/support/health || exit 1
-
-          # Stripe health
-          curl -f https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net/stripe/health || exit 1
-
-          echo "✅ All backend endpoints healthy!"
-
       - name: Verify frontend
         run: |
           echo "🔍 Verifying frontend..."
@@ -242,57 +232,71 @@ jobs:
         if: success()
         run: |
           echo "🚀 PropIQ successfully deployed!"
-          echo "Backend: https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net"
           echo "Frontend: https://propiq.luntra.one"
           echo "Commit: ${{ github.sha }}"
 
+      # - name: Verify backend endpoints
+      #   run: |
+      #     echo "🔍 Verifying backend endpoints..."
+      #
+      #     # Health check
+      #     curl -f https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net/propiq/health || exit 1
+      #
+      #     # Support chat health
+      #     curl -f https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net/support/health || exit 1
+      #
+      #     # Stripe health
+      #     curl -f https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net/stripe/health || exit 1
+      #
+      #     echo "✅ All backend endpoints healthy!"
+
   # Deploy Backend to AWS (App Runner)
-  deploy-backend-aws:
-    name: Deploy Backend to AWS
-    needs: [test-backend, test-frontend]
-    # Allow manual trigger or run on main if AWS secret is present
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
-    runs-on: ubuntu-latest
-    environment: production
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Build and push Docker image
-        working-directory: ./backend
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: propiq-backend
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          # Tag as latest as well
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-
-      # Optional: Deploy to App Runner (uncomment once Service ARN is known or create on first run)
-      # - name: Deploy to App Runner
-      #   uses: aws-actions/apprunner-deploy@v2
-      #   with:
-      #     service: propiq-backend-service
-      #     image: ${{ steps.login-ecr.outputs.registry }}/propiq-backend:${{ github.sha }}
-      #     access-role-arn: ${{ secrets.AWS_APP_RUNNER_ROLE_ARN }}
-      #     region: us-east-1
-      #     cpu: 1
-      #     memory: 2
-
-      - name: Verify build (ECHO)
-        run: echo "Image pushed to ECR. App Runner deployment pending service creation."
+  # deploy-backend-aws:
+  #   name: Deploy Backend to AWS
+  #   needs: [test-backend, test-frontend]
+  #   # Allow manual trigger or run on main if AWS secret is present
+  #   if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+  #   runs-on: ubuntu-latest
+  #   environment: production
+  #   
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: us-east-1
+  #
+  #     - name: Login to Amazon ECR
+  #       id: login-ecr
+  #       uses: aws-actions/amazon-ecr-login@v2
+  #
+  #     - name: Build and push Docker image
+  #       working-directory: ./backend
+  #       env:
+  #         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+  #         ECR_REPOSITORY: propiq-backend
+  #         IMAGE_TAG: ${{ github.sha }}
+  #       run: |
+  #         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+  #         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+  #         # Tag as latest as well
+  #         docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+  #         docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+  #
+  #     # Optional: Deploy to App Runner (uncomment once Service ARN is known or create on first run)
+  #     # - name: Deploy to App Runner
+  #     #   uses: aws-actions/apprunner-deploy@v2
+  #     #   with:
+  #     #     service: propiq-backend-service
+  #     #     image: ${{ steps.login-ecr.outputs.registry }}/propiq-backend:${{ github.sha }}
+  #     #     access-role-arn: ${{ secrets.AWS_APP_RUNNER_ROLE_ARN }}
+  #     #     region: us-east-1
+  #     #     cpu: 1
+  #     #     memory: 2
+  #
+  #     - name: Verify build (ECHO)
+  #       run: echo "Image pushed to ECR. App Runner deployment pending service creation."

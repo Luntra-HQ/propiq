@@ -77,12 +77,12 @@ class EnvironmentValidator:
         azure_rules = [
             EnvVarRule(
                 name="AZURE_OPENAI_ENDPOINT",
-                required=True,
+                required=False,
                 description="Azure OpenAI service endpoint URL"
             ),
             EnvVarRule(
                 name="AZURE_OPENAI_KEY",
-                required=True,
+                required=False,
                 min_length=20,
                 description="Azure OpenAI API key"
             ),
@@ -124,6 +124,27 @@ class EnvironmentValidator:
                 name="SENTRY_DSN",
                 required=False,
                 description="Sentry DSN for error tracking"
+            ),
+            # AWS Bedrock (when migrating from Azure OpenAI; see AZURE_TO_AWS_MIGRATION_GUIDE.md)
+            EnvVarRule(
+                name="LLM_PROVIDER",
+                required=False,
+                description="LLM provider: azure (default) or bedrock"
+            ),
+            EnvVarRule(
+                name="BEDROCK_GATEWAY_URL",
+                required=False,
+                description="URL of Lambda/API Gateway that proxies to AWS Bedrock"
+            ),
+            EnvVarRule(
+                name="BEDROCK_MODEL_ID",
+                required=False,
+                description="Bedrock model id (e.g. anthropic.claude-3-haiku-20240307-v1:0)"
+            ),
+            EnvVarRule(
+                name="AWS_REGION",
+                required=False,
+                description="AWS region for Bedrock (if calling Bedrock directly)"
             ),
         ]
 

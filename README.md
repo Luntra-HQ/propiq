@@ -51,6 +51,7 @@ Visit:
 
 - [Features](#features)
 - [Architecture](#architecture)
+- [Migration (Azure → AWS)](#migration-azure--aws)
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
 - [Development](#development)
@@ -111,6 +112,10 @@ Visit:
   MongoDB    Azure      Stripe    SendGrid
   Atlas      OpenAI
 ```
+
+### Migration (Azure → AWS)
+
+Planned replacement of Azure services with AWS: **Azure OpenAI → AWS Bedrock**, **Azure Web App → AWS App Runner or ECS**, **ACR → ECR**. See **[AZURE_TO_AWS_MIGRATION_GUIDE.md](./AZURE_TO_AWS_MIGRATION_GUIDE.md)** for the full inventory, replacement table, and migration order.
 
 ---
 

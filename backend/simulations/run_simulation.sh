@@ -50,7 +50,7 @@ fi
 echo ""
 echo -e "${BLUE}Checking backend connection...${NC}"
 
-BACKEND_URL="https://luntra.onrender.com"
+BACKEND_URL="https://luntra-outreach-app.azurewebsites.net"
 
 if curl -s -f "${BACKEND_URL}/health" > /dev/null; then
     echo -e "${GREEN}✅ Backend is accessible: ${BACKEND_URL}${NC}"

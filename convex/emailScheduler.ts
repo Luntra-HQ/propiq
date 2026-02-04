@@ -25,7 +25,7 @@ export const checkLeadsForDay3Nurture = internalAction({
     // Get leads eligible for Day 3 email
     const leads = await ctx.runQuery(internal.leads.getLeadsForDay3Nurture);
 
-    console.log(`[EMAIL SCHEDULER] Found ${leads.length} leads for Day 3 nurture`);
+    // console.log(`[EMAIL SCHEDULER] Found ${leads.length} leads for Day 3 nurture`);
 
     if (leads.length === 0) {
       return { sent: 0, message: "No leads eligible for Day 3 nurture" };
@@ -45,7 +45,7 @@ export const checkLeadsForDay3Nurture = internalAction({
         });
 
         sent++;
-        console.log(`[EMAIL SCHEDULER] Day 3 email sent to: ${lead.email}`);
+        // console.log(`[EMAIL SCHEDULER] Day 3 email sent to: ${lead.email}`);
       } catch (error) {
         failed++;
         console.error(`[EMAIL SCHEDULER] Failed to send Day 3 email to ${lead.email}:`, error);
@@ -74,7 +74,7 @@ export const checkLeadsForDay7Nurture = internalAction({
     // Get leads eligible for Day 7 email
     const leads = await ctx.runQuery(internal.leads.getLeadsForDay7Nurture);
 
-    console.log(`[EMAIL SCHEDULER] Found ${leads.length} leads for Day 7 nurture`);
+    // console.log(`[EMAIL SCHEDULER] Found ${leads.length} leads for Day 7 nurture`);
 
     if (leads.length === 0) {
       return { sent: 0, message: "No leads eligible for Day 7 nurture" };
@@ -94,7 +94,7 @@ export const checkLeadsForDay7Nurture = internalAction({
         });
 
         sent++;
-        console.log(`[EMAIL SCHEDULER] Day 7 email sent to: ${lead.email}`);
+        // console.log(`[EMAIL SCHEDULER] Day 7 email sent to: ${lead.email}`);
       } catch (error) {
         failed++;
         console.error(`[EMAIL SCHEDULER] Failed to send Day 7 email to ${lead.email}:`, error);

@@ -232,12 +232,7 @@ except ImportError as e:
     logger.warning(f"Marketing router not available: {e}")
 
 # Import and include PropIQ router (Property analysis)
-try:
-    from routers.propiq import router as propiq_router
-    app.include_router(propiq_router)
-    logger.info("PropIQ router registered")
-except ImportError as e:
-    logger.warning(f"PropIQ router not available: {e}")
+
 
 # Import and include Stripe payment router
 try:

@@ -36,11 +36,18 @@ except:
 router = APIRouter(prefix="/support", tags=["support"])
 
 # Azure OpenAI client (reuse existing configuration)
-client = AzureOpenAI(
-    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-    api_key=os.getenv("AZURE_OPENAI_KEY"),
-    api_version="2024-02-15-preview"
-)
+# Azure OpenAI client (reuse existing configuration)
+try:
+    if os.getenv("AZURE_OPENAI_ENDPOINT") and os.getenv("AZURE_OPENAI_KEY"):
+        client = AzureOpenAI(
+            azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+            api_key=os.getenv("AZURE_OPENAI_KEY"),
+            api_version="2024-02-15-preview"
+        )
+    else:
+        client = None
+except Exception:
+    client = None
 
 # Models
 class ChatMessage(BaseModel):
@@ -124,6 +131,15 @@ async def send_support_message(
     """
     user_id = token_payload.get("sub", "guest")
     user_email = token_payload.get("email", "guest@propiq.com")
+
+    if not client:
+        return ChatResponse(
+            success=False,
+            conversation_id=request.conversation_id or "maintenance",
+            message=request.message,
+            response="I apologize, but our AI support system is currently undergoing maintenance. Please try again later or contact human support at support@propiq.com.",
+            timestamp=datetime.utcnow()
+        )
 
     try:
         # Load conversation history if continuing
@@ -336,7 +352,7 @@ async def list_user_conversations(
 @router.get("/health")
 async def health_check():
     """Health check for support chat system"""
-    has_openai = bool(os.getenv("AZURE_OPENAI_KEY"))
+    has_openai = client is not None
 
     return {
         "status": "healthy" if has_openai else "degraded",

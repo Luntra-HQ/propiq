@@ -106,7 +106,7 @@ export const signup = mutation({
       createdAt: Date.now(),
     });
 
-    console.log(`[AUTH] Created new user account: ${email} (ID: ${userId})`);
+    console.log(`[AUTH] Created new user account (ID: ${userId})`);
 
     // Create email verification token
     // Note: Token creation is non-blocking - if it fails, user can still login
@@ -119,10 +119,10 @@ export const signup = mutation({
 
       if (tokenResult.success) {
         verificationToken = tokenResult.token;
-        console.log(`[AUTH] Email verification token created for ${email}`);
+        console.log(`[AUTH] Email verification token created`);
       }
     } catch (error) {
-      console.error(`[AUTH] Failed to create verification token for ${email}:`, error);
+      console.error(`[AUTH] Failed to create verification token:`, error);
       // Non-blocking: Continue with signup even if token creation fails
     }
 
@@ -175,7 +175,7 @@ export const login = mutation({
 
     // MIGRATION: If user has legacy SHA-256 hash, upgrade to PBKDF2
     if (isLegacyHash(user.passwordHash)) {
-      console.log("[AUTH] Migrating password hash for user:", email);
+      console.log("[AUTH] Migrating password hash for user ID:", user._id);
       const newHash = await rehashPassword(args.password);
       await ctx.db.patch(user._id, {
         passwordHash: newHash,
@@ -561,7 +561,7 @@ export const requestPasswordReset = mutation({
       createdAt: now,
     });
 
-    console.log("[AUTH] Password reset requested for:", email);
+    console.log("[AUTH] Password reset requested");
 
     return {
       success: true,
@@ -642,7 +642,7 @@ export const resetPassword = mutation({
       await ctx.db.delete(session._id);
     }
 
-    console.log("[AUTH] Password reset successful for:", user.email);
+    console.log("[AUTH] Password reset successful for user ID:", user._id);
 
     return {
       success: true,
@@ -767,7 +767,7 @@ export const loginWithSession = mutation({
       updatedAt: now,
     });
 
-    console.log("[AUTH] Login with session for user:", user.email, "token:", sessionToken);
+    console.log("[AUTH] Login with session for user:", user._id);
 
     return {
       success: true,
@@ -854,7 +854,7 @@ export const signupWithSession = mutation({
     // The session _id IS the token - this is what validateSession expects
     const sessionToken = sessionId.toString();
 
-    console.log("[AUTH] Signup with session for user:", email, "token:", sessionToken);
+    console.log("[AUTH] Signup with session");
 
     // Create email verification token (non-blocking)
     let verificationToken = null;
@@ -865,10 +865,10 @@ export const signupWithSession = mutation({
 
       if (tokenResult.success) {
         verificationToken = tokenResult.token;
-        console.log(`[AUTH] Email verification token created for ${email}`);
+        console.log(`[AUTH] Email verification token created`);
       }
     } catch (error) {
-      console.error(`[AUTH] Failed to create verification token for ${email}:`, error);
+      console.error(`[AUTH] Failed to create verification token:`, error);
       // Non-blocking: Continue with signup even if token creation fails
     }
 
@@ -918,12 +918,12 @@ export const getUserByEmail = query({
   },
   handler: async (ctx, args) => {
     const email = args.email.toLowerCase().trim();
-    
+
     const user = await ctx.db
       .query("users")
       .withIndex("by_email", (q) => q.eq("email", email))
       .first();
-    
+
     return user;
   },
 });
@@ -941,13 +941,13 @@ export const updateSubscription = mutation({
   },
   handler: async (ctx, args) => {
     const { userId, tier, stripeCustomerId, stripeSubscriptionId } = args;
-    
+
     // Get current user to determine new limits
     const user = await ctx.db.get(userId);
     if (!user) {
       throw new Error("User not found");
     }
-    
+
     // Set analyses limit based on tier (UNLIMITED for all paid tiers)
     const tierLimits: Record<string, number> = {
       free: 3,
@@ -957,7 +957,7 @@ export const updateSubscription = mutation({
     };
 
     const analysesLimit = tierLimits[tier] || 3;
-    
+
     // Update user with new subscription
     await ctx.db.patch(userId, {
       subscriptionTier: tier,
@@ -965,9 +965,9 @@ export const updateSubscription = mutation({
       stripeCustomerId,
       stripeSubscriptionId,
     });
-    
+
     console.log(`[AUTH] Updated subscription for user ${user.email} to ${tier} (limit: ${analysesLimit})`);
-    
+
     return {
       success: true,
       user: {
@@ -1199,7 +1199,7 @@ export const verifyEmail = mutation({
       verifiedAt: Date.now(),
     });
 
-    console.log(`[AUTH] ✅ Email verified successfully for user: ${user.email}`);
+    console.log(`[AUTH] ✅ Email verified successfully`);
 
     return {
       success: true,

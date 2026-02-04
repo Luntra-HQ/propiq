@@ -45,11 +45,17 @@ except:
 
 router = APIRouter(prefix="/advisor", tags=["property_advisor"])
 
-client = AzureOpenAI(
-    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-    api_key=os.getenv("AZURE_OPENAI_KEY"),
-    api_version="2024-02-15-preview"
-)
+try:
+    if os.getenv("AZURE_OPENAI_ENDPOINT") and os.getenv("AZURE_OPENAI_KEY"):
+        client = AzureOpenAI(
+            azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+            api_key=os.getenv("AZURE_OPENAI_KEY"),
+            api_version="2024-02-15-preview"
+        )
+    else:
+        client = None
+except Exception:
+    client = None
 
 # ============================================================================
 # MODELS
@@ -427,11 +433,11 @@ async def run_property_advisor(
         user = users.find_one({"_id": user_id})
         tier = user.get("subscription", {}).get("tier", "free") if user else "free"
 
-        if tier not in ["pro", "elite"]:
-            raise HTTPException(
-                status_code=403,
-                detail="Property Advisor is a premium feature. Upgrade to Pro or Elite to access."
-            )
+    if not client:
+        raise HTTPException(
+            status_code=503,
+            detail="Property Advisor temporarily unavailable due to AI system maintenance."
+        )
 
     try:
         # Create or load session
