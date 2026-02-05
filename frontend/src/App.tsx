@@ -391,27 +391,7 @@ const App = () => {
       )}
 
       {/* Onboarding Checklist (shows for first 7 days) */}
-      {user && (
-        <OnboardingChecklist
-          userId={user._id}
-          onAction={(action) => {
-            console.log('Onboarding action:', action);
-            if (action === 'analyze-property') {
-              // Redirect to calculator instead since analysis is removed
-              document.getElementById('calculator')?.scrollIntoView({ behavior: 'smooth' });
-            } else if (action === 'calculator') {
-              document.getElementById('calculator')?.scrollIntoView({ behavior: 'smooth' });
-            } else if (action === 'calculator-scenarios') {
-              document.getElementById('calculator')?.scrollIntoView({ behavior: 'smooth' });
-            } else if (action === 'export') {
-              // No-op or toast message
-              console.log("Export feature removed");
-            } else if (action.startsWith('help-center')) {
-              setShowHelpCenter(true);
-            }
-          }}
-        />
-      )}
+      {/* Onboarding Checklist moved to bottom with Suspense */}
 
       {/* Main Dashboard - 2025 Bento Grid Design */}
       <div id="main-content" role="main" tabIndex={-1}>
