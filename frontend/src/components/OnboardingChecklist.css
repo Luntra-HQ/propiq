@@ -178,6 +178,15 @@
   padding-top: 0.125rem;
 }
 
+.task-icon.clickable {
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.task-icon.clickable:hover {
+  transform: scale(1.1);
+}
+
 .task-content {
   flex: 1;
 }

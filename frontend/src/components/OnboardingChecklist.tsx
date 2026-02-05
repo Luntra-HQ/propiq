@@ -22,6 +22,7 @@ export const OnboardingChecklist = ({ userId, onAction }: OnboardingChecklistPro
 
   // Mutation - GROK'S FIX: Use string literal
   const dismissChecklist = useMutation("onboarding:dismissChecklist" as any);
+  const updateTask = useMutation("onboarding:updateTask" as any);
 
   // Helper for navigation
   const handleNavigation = (link: string) => {
@@ -66,6 +67,7 @@ export const OnboardingChecklist = ({ userId, onAction }: OnboardingChecklistPro
   }
 
   // Check if within first 7 days
+  // Check if within first 7 days
   const daysActive = progress?.createdAt
     ? Math.floor((Date.now() - progress.createdAt) / (1000 * 60 * 60 * 24))
     : 0;
@@ -76,6 +78,15 @@ export const OnboardingChecklist = ({ userId, onAction }: OnboardingChecklistPro
   const handleDismiss = async () => {
     await dismissChecklist({ userId });
     setIsDismissed(true);
+  };
+
+  const handleToggleTask = async (taskKey: string, currentStatus: boolean, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent expanding/collapsing the list
+    await updateTask({
+      userId,
+      task: taskKey,
+      completed: !currentStatus
+    });
   };
 
   const tasks = [
@@ -223,11 +234,17 @@ export const OnboardingChecklist = ({ userId, onAction }: OnboardingChecklistPro
                 key={task.key}
                 className={`task-item ${task.completed ? 'completed' : 'pending'}`}
               >
-                <div className="task-icon">
+                <div
+                  className="task-icon clickable"
+                  onClick={(e) => handleToggleTask(task.key, task.completed, e)}
+                  role="button"
+                  tabIndex={0}
+                  title={task.completed ? "Mark as incomplete" : "Mark as complete"}
+                >
                   {task.completed ? (
                     <CheckCircle2 className="h-5 w-5 text-emerald-400" />
                   ) : (
-                    <Circle className="h-5 w-5 text-gray-500" />
+                    <Circle className="h-5 w-5 text-gray-500 hover:text-violet-400" />
                   )}
                 </div>
                 <div className="task-content">
