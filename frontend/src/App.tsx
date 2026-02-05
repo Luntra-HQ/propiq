@@ -16,7 +16,8 @@ const SupportChat = lazy(() => import('./components/SupportChat').then(m => ({ d
 const FeedbackWidget = lazy(() => import('./components/FeedbackWidget').then(m => ({ default: m.FeedbackWidget })));
 const ProductTour = lazy(() => import('./components/ProductTour').then(m => ({ default: m.ProductTour })));
 const HelpCenter = lazy(() => import('./components/HelpCenter').then(m => ({ default: m.HelpCenter })));
-const OnboardingChecklist = lazy(() => import('./components/OnboardingChecklist').then(m => ({ default: m.OnboardingChecklist })));
+// const OnboardingChecklist = lazy(() => import('./components/OnboardingChecklist').then(m => ({ default: m.OnboardingChecklist })));
+import { OnboardingChecklist } from './components/OnboardingChecklist';
 const ComponentTestPage = lazy(() => import('./pages/ComponentTestPage'));
 const ResendVerificationBanner = lazy(() => import('./components/ResendVerification').then(m => ({ default: m.ResendVerificationBanner })));
 
@@ -484,18 +485,16 @@ const App = () => {
 
       {/* Onboarding Checklist - Shows for new users */}
       {user && (
-        <Suspense fallback={null}>
-          <OnboardingChecklist
-            userId={user._id}
-            onAction={(action) => {
-              if (action === 'analyze-property') document.getElementById('calculator')?.scrollIntoView({ behavior: 'smooth' });
-              else if (action === 'calculator') document.getElementById('calculator')?.scrollIntoView({ behavior: 'smooth' });
-              else if (action === 'calculator-scenarios') document.getElementById('calculator')?.scrollIntoView({ behavior: 'smooth' });
-              else if (action === 'export') { } // Export removed
-              else if (action.startsWith('help-center')) setShowHelpCenter(true);
-            }}
-          />
-        </Suspense>
+        <OnboardingChecklist
+          userId={user._id}
+          onAction={(action) => {
+            if (action === 'analyze-property') document.getElementById('calculator')?.scrollIntoView({ behavior: 'smooth' });
+            else if (action === 'calculator') document.getElementById('calculator')?.scrollIntoView({ behavior: 'smooth' });
+            else if (action === 'calculator-scenarios') document.getElementById('calculator')?.scrollIntoView({ behavior: 'smooth' });
+            else if (action === 'export') { } // Export removed
+            else if (action.startsWith('help-center')) setShowHelpCenter(true);
+          }}
+        />
       )}
 
       {/* Help Center Modal */}
