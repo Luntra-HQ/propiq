@@ -73,7 +73,9 @@ export const OnboardingChecklist = ({ userId, onAction }: OnboardingChecklistPro
     : 0;
 
   // Fix Bug 4: Avoid flash of content by checking progress.checklistDismissed directly
-  const shouldShow = !isDismissed && !progress?.checklistDismissed && daysActive <= 7 && completionPercentage !== 100;
+  // DEBUG: Force show for testing
+  // const shouldShow = !isDismissed && !progress?.checklistDismissed && daysActive <= 7 && completionPercentage !== 100;
+  const shouldShow = true;
 
   const handleDismiss = async () => {
     await dismissChecklist({ userId });
