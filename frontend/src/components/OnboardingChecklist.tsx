@@ -77,17 +77,28 @@ export const OnboardingChecklist = ({ userId, onAction }: OnboardingChecklistPro
   const shouldShow = !isDismissed; // && !progress?.checklistDismissed && daysActive <= 7 && completionPercentage !== 100;
 
   const handleDismiss = async () => {
-    await dismissChecklist({ userId });
-    setIsDismissed(true);
+    console.log('[Onboarding] Dismiss clicked');
+    setIsDismissed(true); // Optimistic update
+    try {
+      await dismissChecklist({ userId });
+      console.log('[Onboarding] Dismiss mutation success');
+    } catch (err) {
+      console.error('[Onboarding] Dismiss mutation failed', err);
+    }
   };
 
   const handleToggleTask = async (taskKey: string, currentStatus: boolean, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent expanding/collapsing the list
-    await updateTask({
-      userId,
-      task: taskKey,
-      completed: !currentStatus
-    });
+    console.log('[Onboarding] Toggle task:', taskKey);
+    e.stopPropagation();
+    try {
+      await updateTask({
+        userId,
+        task: taskKey,
+        completed: !currentStatus
+      });
+    } catch (err) {
+      console.error('[Onboarding] Update task mutation failed', err);
+    }
   };
 
   const tasks = [
@@ -181,7 +192,15 @@ export const OnboardingChecklist = ({ userId, onAction }: OnboardingChecklistPro
 
   return (
     <div className={`onboarding-checklist ${isExpanded ? 'expanded' : 'collapsed'}`}>
-      <div className="checklist-header" onClick={() => setIsExpanded(!isExpanded)}>
+      <div
+        className="checklist-header"
+        onClick={() => {
+          console.log('[Onboarding] Header clicked, toggling expand:', !isExpanded);
+          setIsExpanded(!isExpanded);
+        }}
+        role="button"
+        tabIndex={0}
+      >
         <div className="header-left">
           <div className="progress-circle">
             <svg className="progress-ring" width="40" height="40">
