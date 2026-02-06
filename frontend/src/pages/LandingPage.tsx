@@ -46,7 +46,7 @@ const LandingPage: React.FC = () => {
     annualPropertyTax: 3600,
     annualInsurance: 1200,
     monthlyMaintenance: 200,
-    monthlyVacancy: 125,
+    monthlyVacancy: 125 as string | number,
   });
 
   // Calculated metrics
@@ -62,22 +62,38 @@ const LandingPage: React.FC = () => {
     }
   }, []);
 
+  // Helper to convert input to number for calculations
+  const getNumber = (val: string | number): number => {
+    if (typeof val === 'string') {
+      return val === '' ? 0 : Number(val);
+    }
+    return val;
+  };
+
   // Calculate metrics when inputs change
   useEffect(() => {
     const calculated = calculateAllMetrics({
       ...inputs,
+      purchasePrice: getNumber(inputs.purchasePrice),
+      downPaymentPercent: getNumber(inputs.downPaymentPercent),
+      interestRate: getNumber(inputs.interestRate),
+      monthlyRent: getNumber(inputs.monthlyRent),
+      annualPropertyTax: getNumber(inputs.annualPropertyTax),
+      annualInsurance: getNumber(inputs.annualInsurance),
+      monthlyMaintenance: getNumber(inputs.monthlyMaintenance),
+      monthlyVacancy: getNumber(inputs.monthlyVacancy),
       loanTerm: 30,
       monthlyHOA: 0,
       monthlyUtilities: 0,
       monthlyPropertyManagement: 0,
-      closingCosts: inputs.purchasePrice * 0.03,
+      closingCosts: getNumber(inputs.purchasePrice) * 0.03,
       rehabCosts: 0,
       strategy: 'rental' as const,
     });
     setMetrics(calculated);
   }, [inputs]);
 
-  const handleInputChange = (field: string, value: number) => {
+  const handleInputChange = (field: string, value: string | number) => {
     if (isLimited) return;
     setInputs(prev => ({ ...prev, [field]: value }));
   };
@@ -298,7 +314,7 @@ const LandingPage: React.FC = () => {
                       <input
                         type="number"
                         value={inputs.purchasePrice}
-                        onChange={(e) => handleInputChange('purchasePrice', Number(e.target.value))}
+                        onChange={(e) => handleInputChange('purchasePrice', e.target.value)}
                         disabled={isLimited}
                         className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded text-white text-xl font-bold focus:border-violet-500 focus:outline-none disabled:opacity-50"
                       />
@@ -308,7 +324,7 @@ const LandingPage: React.FC = () => {
                       <input
                         type="number"
                         value={inputs.monthlyRent}
-                        onChange={(e) => handleInputChange('monthlyRent', Number(e.target.value))}
+                        onChange={(e) => handleInputChange('monthlyRent', e.target.value)}
                         disabled={isLimited}
                         className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded text-green-400 text-xl font-bold focus:border-violet-500 focus:outline-none disabled:opacity-50"
                       />
@@ -320,7 +336,7 @@ const LandingPage: React.FC = () => {
                       <input
                         type="number"
                         value={inputs.downPaymentPercent}
-                        onChange={(e) => handleInputChange('downPaymentPercent', Number(e.target.value))}
+                        onChange={(e) => handleInputChange('downPaymentPercent', e.target.value)}
                         disabled={isLimited}
                         className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded text-white font-semibold focus:border-violet-500 focus:outline-none disabled:opacity-50"
                       />
@@ -331,7 +347,7 @@ const LandingPage: React.FC = () => {
                         type="number"
                         step="0.1"
                         value={inputs.interestRate}
-                        onChange={(e) => handleInputChange('interestRate', Number(e.target.value))}
+                        onChange={(e) => handleInputChange('interestRate', e.target.value)}
                         disabled={isLimited}
                         className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded text-white font-semibold focus:border-violet-500 focus:outline-none disabled:opacity-50"
                       />
@@ -342,23 +358,23 @@ const LandingPage: React.FC = () => {
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-gray-400">Mortgage</span>
-                        <span>$1,597</span>
+                        <span>{metrics ? formatCurrency(metrics.monthlyPI) : '-'}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Property Tax</span>
-                        <span>$300</span>
+                        <span>{formatCurrency(inputs.annualPropertyTax / 12)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Insurance</span>
-                        <span>$100</span>
+                        <span>{formatCurrency(inputs.annualInsurance / 12)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Maintenance</span>
-                        <span>$200</span>
+                        <span>{formatCurrency(inputs.monthlyMaintenance)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Vacancy Reserve</span>
-                        <span>$125</span>
+                        <span>{formatCurrency(inputs.monthlyVacancy)}</span>
                       </div>
                     </div>
                   </div>
