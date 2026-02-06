@@ -23,10 +23,8 @@ import {
 import { calculateAllMetrics, formatCurrency, formatPercent } from '../utils/calculatorUtils';
 
 const LandingPage: React.FC = () => {
-  // Usage tracking
-  const [usageCount, setUsageCount] = useState(0);
-  const [isLimited, setIsLimited] = useState(false);
-  const USAGE_LIMIT = 3;
+  // Detailed analysis preview state
+  const [showPreview, setShowPreview] = useState(false);
 
   // Lead magnet form state
   const [leadFormData, setLeadFormData] = useState({
@@ -51,16 +49,6 @@ const LandingPage: React.FC = () => {
 
   // Calculated metrics
   const [metrics, setMetrics] = useState<any>(null);
-
-  // Load usage count from localStorage
-  useEffect(() => {
-    const stored = localStorage.getItem('propiq_demo_usage');
-    if (stored) {
-      const count = parseInt(stored, 10);
-      setUsageCount(count);
-      setIsLimited(count >= USAGE_LIMIT);
-    }
-  }, []);
 
   // Helper to convert input to number for calculations
   const getNumber = (val: string | number): number => {
@@ -94,23 +82,15 @@ const LandingPage: React.FC = () => {
   }, [inputs]);
 
   const handleInputChange = (field: string, value: string | number) => {
-    if (isLimited) return;
     setInputs(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleCalculate = () => {
-    if (isLimited) {
-      window.location.href = '#lead-magnet';
-      return;
-    }
-
-    const newCount = usageCount + 1;
-    setUsageCount(newCount);
-    localStorage.setItem('propiq_demo_usage', newCount.toString());
-
-    if (newCount >= USAGE_LIMIT) {
-      setIsLimited(true);
-    }
+  const handleViewAnalysis = () => {
+    setShowPreview(true);
+    // Smooth scroll to preview section
+    setTimeout(() => {
+      document.getElementById('analysis-preview')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   };
 
   // Handle lead magnet form submission
@@ -281,22 +261,13 @@ const LandingPage: React.FC = () => {
             <div className="text-center mb-12">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-full text-green-400 text-sm mb-4">
                 <Zap className="h-4 w-4" />
-                {isLimited ? (
-                  <>
-                    <Lock className="h-4 w-4" />
-                    3 Free Analyses Used - Join Waitlist for Unlimited
-                  </>
-                ) : (
-                  `Try It Live - ${USAGE_LIMIT - usageCount} Free Analyses Left`
-                )}
+                Try Interactive Demo
               </div>
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                {isLimited ? 'Want Unlimited Analyses?' : 'See PropIQ in Action'}
+                See PropIQ in Action
               </h2>
               <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-                {isLimited
-                  ? 'Download our free checklist or sign up for unlimited property analyses'
-                  : 'Adjust the numbers below and see instant calculations. No signup required!'}
+                Adjust the numbers below and see instant calculations. No signup required!
               </p>
             </div>
 
@@ -315,7 +286,7 @@ const LandingPage: React.FC = () => {
                         type="number"
                         value={inputs.purchasePrice}
                         onChange={(e) => handleInputChange('purchasePrice', e.target.value)}
-                        disabled={isLimited}
+                        disabled={false}
                         className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded text-white text-xl font-bold focus:border-violet-500 focus:outline-none disabled:opacity-50"
                       />
                     </div>
@@ -325,7 +296,7 @@ const LandingPage: React.FC = () => {
                         type="number"
                         value={inputs.monthlyRent}
                         onChange={(e) => handleInputChange('monthlyRent', e.target.value)}
-                        disabled={isLimited}
+                        disabled={false}
                         className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded text-green-400 text-xl font-bold focus:border-violet-500 focus:outline-none disabled:opacity-50"
                       />
                     </div>
@@ -337,7 +308,7 @@ const LandingPage: React.FC = () => {
                         type="number"
                         value={inputs.downPaymentPercent}
                         onChange={(e) => handleInputChange('downPaymentPercent', e.target.value)}
-                        disabled={isLimited}
+                        disabled={false}
                         className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded text-white font-semibold focus:border-violet-500 focus:outline-none disabled:opacity-50"
                       />
                     </div>
@@ -348,7 +319,7 @@ const LandingPage: React.FC = () => {
                         step="0.1"
                         value={inputs.interestRate}
                         onChange={(e) => handleInputChange('interestRate', e.target.value)}
-                        disabled={isLimited}
+                        disabled={false}
                         className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded text-white font-semibold focus:border-violet-500 focus:outline-none disabled:opacity-50"
                       />
                     </div>
@@ -439,25 +410,83 @@ const LandingPage: React.FC = () => {
                 )}
 
                 {/* CTA */}
-                {isLimited ? (
-                  <a
-                    href="#lead-magnet"
-                    className="w-full mt-6 px-6 py-3 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 rounded-lg font-semibold transition flex items-center justify-center gap-2"
-                  >
-                    <Download className="h-5 w-5" />
-                    Get Free Checklist
-                  </a>
-                ) : (
-                  <button
-                    onClick={handleCalculate}
-                    className="w-full mt-6 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-lg font-semibold transition flex items-center justify-center gap-2"
-                  >
-                    <Calculator className="h-5 w-5" />
-                    Calculate ({USAGE_LIMIT - usageCount} left)
-                  </button>
-                )}
+                <button
+                  onClick={handleViewAnalysis}
+                  className="w-full mt-6 px-6 py-3 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 rounded-lg font-semibold transition flex items-center justify-center gap-2"
+                >
+                  <BarChart className="h-5 w-5" />
+                  View Detailed Analysis
+                </button>
               </div>
             </div>
+
+            {/* Detailed Analysis Preview */}
+            {showPreview && (
+              <div id="analysis-preview" className="mt-8 transition-all duration-500 ease-in-out">
+                <div className="relative bg-slate-800/50 border border-slate-700 rounded-xl p-8 backdrop-blur overflow-hidden">
+                  {/* Blurred Content */}
+                  <div className="filter blur-sm opacity-50 select-none pointer-events-none">
+                    <h3 className="text-2xl font-bold mb-6">5-Year Financial Projections</h3>
+                    <div className="grid grid-cols-6 gap-4 mb-8 text-sm">
+                      <div className="font-semibold text-gray-400">Year</div>
+                      <div className="font-semibold text-gray-400">1</div>
+                      <div className="font-semibold text-gray-400">2</div>
+                      <div className="font-semibold text-gray-400">3</div>
+                      <div className="font-semibold text-gray-400">4</div>
+                      <div className="font-semibold text-gray-400">5</div>
+
+                      <div className="text-gray-300">Income</div>
+                      <div>$30,000</div>
+                      <div>$30,900</div>
+                      <div>$31,827</div>
+                      <div>$32,782</div>
+                      <div>$33,765</div>
+
+                      <div className="text-gray-300">Expenses</div>
+                      <div>$18,000</div>
+                      <div>$18,360</div>
+                      <div>$18,727</div>
+                      <div>$19,102</div>
+                      <div>$19,484</div>
+
+                      <div className="text-gray-300">NOI</div>
+                      <div>$12,000</div>
+                      <div>$12,540</div>
+                      <div>$13,100</div>
+                      <div>$13,680</div>
+                      <div>$14,281</div>
+
+                      <div className="text-gray-300">Cash Flow</div>
+                      <div>$2,000</div>
+                      <div>$2,540</div>
+                      <div>$3,100</div>
+                      <div>$3,680</div>
+                      <div>$4,281</div>
+                    </div>
+
+                    <h3 className="text-2xl font-bold mb-6">Tax Benefits & Appreciation</h3>
+                    <div className="h-48 bg-slate-700/30 rounded-lg animate-pulse"></div>
+                  </div>
+
+                  {/* Unlock Overlay */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-gradient-to-t from-slate-900 via-slate-900/80 to-transparent">
+                    <Lock className="h-12 w-12 text-violet-400 mb-4" />
+                    <h3 className="text-2xl md:text-3xl font-bold mb-2">Unlock Full Analysis</h3>
+                    <p className="text-gray-300 mb-8 text-center max-w-md">
+                      Sign up for free to see complete 5-year projections, tax savings, and appreciation equity curves.
+                    </p>
+                    <Link
+                      to="/signup"
+                      className="px-8 py-4 bg-violet-600 hover:bg-violet-700 rounded-lg font-semibold text-lg transition flex items-center justify-center gap-2 shadow-lg shadow-violet-500/20"
+                    >
+                      Sign Up for Free
+                      <ArrowRight className="h-5 w-5" />
+                    </Link>
+                    <p className="text-gray-500 text-sm mt-4">No credit card required</p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Feature Highlights */}
             <div className="mt-12 grid md:grid-cols-3 gap-6">
@@ -831,7 +860,7 @@ const LandingPage: React.FC = () => {
           </div>
         </div>
       </footer>
-    </div>
+    </div >
   );
 };
 

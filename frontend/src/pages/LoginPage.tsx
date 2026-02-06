@@ -22,14 +22,16 @@ import {
 } from 'lucide-react';
 
 const LoginPage: React.FC = () => {
-  const [mode, setMode] = useState<'login' | 'signup'>('login');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-
   const { login, signup } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const [mode, setMode] = useState<'login' | 'signup'>(
+    location.pathname === '/signup' ? 'signup' : 'login'
+  );
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   // Form fields
   const [email, setEmail] = useState('');
