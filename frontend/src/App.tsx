@@ -85,7 +85,8 @@ const Header = ({
   currentTier,
   user,
   onLogout,
-  onHelpClick
+  onHelpClick,
+  onSettingsClick
 }: {
   currentTier: string;
   user: any; // User from useAuth
