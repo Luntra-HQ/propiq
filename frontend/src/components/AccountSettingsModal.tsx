@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, User, Building, Loader2, Save, CheckCircle, AlertCircle } from 'lucide-react';
 import { useMutation } from 'convex/react';
-import { api } from '../convex/_generated/api';
 import { User as UserType } from '../hooks/useAuth';
 
 interface AccountSettingsModalProps {
@@ -23,7 +22,8 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
 
-    const updateProfile = useMutation(api.auth.updateProfile);
+    // Use string literal to avoid "api is undefined" error
+    const updateProfile = useMutation("auth:updateProfile" as any);
 
     // Reset form when user changes or modal opens
     useEffect(() => {
