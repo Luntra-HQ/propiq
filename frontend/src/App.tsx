@@ -1,7 +1,8 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { Zap, Target, Lock, CreditCard, X, DollarSign, Loader2, BarChart, HelpCircle } from 'lucide-react';
+import { Zap, Target, Lock, CreditCard, X, DollarSign, Loader2, BarChart, HelpCircle, Settings } from 'lucide-react';
 import { CookieConsent } from './components/CookieConsent';
 import { Dashboard } from './components/Dashboard';
+import { AccountSettingsModal } from './components/AccountSettingsModal';
 import {
   SkipLink,
   CommandPalette,
@@ -90,6 +91,7 @@ const Header = ({
   user: any; // User from useAuth
   onLogout: () => void;
   onHelpClick: () => void;
+  onSettingsClick: () => void;
 }) => {
   const tierConfig = PRICING_TIERS[currentTier] || PRICING_TIERS.free;
 
@@ -124,6 +126,13 @@ const Header = ({
             <div className="hidden lg:block text-xs text-gray-400 truncate max-w-[120px]" title={user.email || user._id}>
               {user.email || 'Logged In'}
             </div>
+            <button
+              onClick={onSettingsClick}
+              className="p-1.5 hover:bg-slate-700 rounded-lg text-gray-400 hover:text-white transition-colors"
+              title="Account Settings"
+            >
+              <Settings className="h-4 w-4" />
+            </button>
             <button
               onClick={onLogout}
               className="btn-ghost text-xs"
@@ -216,6 +225,7 @@ const App = () => {
   const [showTopUpModal, setShowTopUpModal] = useState(false);
   const [showPricingPage, setShowPricingPage] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showAccountSettings, setShowAccountSettings] = useState(false);
 
   // Help Center state
   const [showHelpCenter, setShowHelpCenter] = useState(false);
@@ -382,6 +392,7 @@ const App = () => {
         user={user}
         onLogout={handleLogout}
         onHelpClick={() => setShowHelpCenter(true)}
+        onSettingsClick={() => setShowAccountSettings(true)}
       />
 
       {/* Email Verification Banner (shows if email not verified) */}
@@ -435,6 +446,15 @@ const App = () => {
         onClose={() => setShowTopUpModal(false)}
         onPurchase={handleTopUpPurchase}
       />
+
+      {/* Account Settings Modal */}
+      {user && (
+        <AccountSettingsModal
+          isOpen={showAccountSettings}
+          onClose={() => setShowAccountSettings(false)}
+          user={user}
+        />
+      )}
 
       {/* Lazy-loaded components with Suspense */}
       <Suspense fallback={null}>
