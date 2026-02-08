@@ -128,7 +128,10 @@ const Header = ({
               {user.email || 'Logged In'}
             </div>
             <button
-              onClick={onSettingsClick}
+              onClick={() => {
+                console.log('🔴 Settings button clicked in Header');
+                onSettingsClick();
+              }}
               className="p-1.5 hover:bg-slate-700 rounded-lg text-gray-400 hover:text-white transition-colors"
               title="Account Settings"
             >
@@ -393,7 +396,10 @@ const App = () => {
         user={user}
         onLogout={handleLogout}
         onHelpClick={() => setShowHelpCenter(true)}
-        onSettingsClick={() => setShowAccountSettings(true)}
+        onSettingsClick={() => {
+          console.log('🔴 onSettingsClick handler in App triggered');
+          setShowAccountSettings(true);
+        }}
       />
 
       {/* Email Verification Banner (shows if email not verified) */}

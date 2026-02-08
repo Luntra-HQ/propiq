@@ -25,9 +25,13 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
     // Use string literal to avoid "api is undefined" error
     const updateProfile = useMutation("auth:updateProfile" as any);
 
+    // Log props for debugging
+    console.log('🔴 AccountSettingsModal render:', { isOpen, userId: user?._id });
+
     // Reset form when user changes or modal opens
     useEffect(() => {
         if (isOpen && user) {
+            console.log('🔴 AccountSettingsModal OPENING with user:', user);
             setFirstName(user.firstName || '');
             setLastName(user.lastName || '');
             setCompany(user.company || '');
