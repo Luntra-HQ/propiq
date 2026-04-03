@@ -154,7 +154,7 @@ export const saveAnalysis = mutation({
       analysisResult: args.analysisResult,
       aiRecommendation: args.aiRecommendation,
       dealScore: args.dealScore,
-      model: "gpt-4o-mini",
+      model: "claude-opus-4-5",
       tokensUsed: args.tokensUsed,
       images: args.images || [],  // Save images with analysis
       createdAt: Date.now(),
@@ -394,18 +394,9 @@ async function generateAIAnalysis(propertyData: {
   dealScore: number;
   tokensUsed: number;
 }> {
-  const LLM_PROVIDER = (process.env.LLM_PROVIDER || "azure").toLowerCase();
-  if (LLM_PROVIDER === "bedrock") {
-    throw new Error("Bedrock not yet implemented. Set LLM_PROVIDER=azure or unset.");
-  }
-
-  const azureEndpoint = process.env.AZURE_OPENAI_ENDPOINT;
-  const azureKey = process.env.AZURE_OPENAI_KEY;
-  const azureApiVersion = process.env.AZURE_OPENAI_API_VERSION || "2025-01-01-preview";
-  const azureDeployment = process.env.AZURE_OPENAI_DEPLOYMENT || "gpt-4o-mini";
-
-  if (!azureEndpoint || !azureKey) {
-    throw new Error("Azure OpenAI credentials not configured");
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
+  if (!anthropicKey) {
+    throw new Error("Anthropic API key not configured");
   }
 
   // Build the prompt for AI analysis (comprehensive version matching FastAPI quality)
@@ -490,46 +481,34 @@ EXAMPLES:
 Provide your comprehensive analysis now:`;
 
   try {
-    // Call Azure OpenAI API
-    const azureUrl = `${azureEndpoint}openai/deployments/${azureDeployment}/chat/completions?api-version=${azureApiVersion}`;
-
-    const response = await fetch(azureUrl, {
+    // Call Anthropic API
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "api-key": azureKey,
+        "x-api-key": anthropicKey,
+        "anthropic-version": "2023-06-01"
       },
       body: JSON.stringify({
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are an expert real estate investment analyst. Provide detailed, data-driven investment analysis.",
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        temperature: 0.7,
-        max_tokens: 2000,  // Increased from 1000 to support comprehensive analysis
-        response_format: { type: "json_object" },
-      }),
+        model: "claude-opus-4-5",
+        max_tokens: 1500,
+        messages: [{ role: "user", content: prompt }]
+      })
     });
 
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.statusText}`);
+      throw new Error(`Anthropic API error: ${response.statusText}`);
     }
 
     const data = await response.json();
-    const analysisText = data.choices[0].message.content;
-    const analysis = JSON.parse(analysisText);
+    const content = data.content?.[0]?.text || "";
+    const analysis = JSON.parse(content);
 
     return {
       analysis,
       recommendation: analysis.recommendation || "CONSIDER",
       dealScore: analysis.dealScore || 50,
-      tokensUsed: data.usage?.total_tokens || 0,
+      tokensUsed: (data.usage?.input_tokens || 0) + (data.usage?.output_tokens || 0),
     };
   } catch (error) {
     console.error("AI analysis error:", error);

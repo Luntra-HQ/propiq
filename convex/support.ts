@@ -158,13 +158,9 @@ export const getUserConversations = query({
 async function generateSupportResponse(
   messages: Array<{ role: string; content: string; timestamp: number }>
 ): Promise<string> {
-  // Get Azure OpenAI credentials from environment
-  const azureEndpoint = process.env.AZURE_OPENAI_ENDPOINT;
-  const azureKey = process.env.AZURE_OPENAI_KEY;
-  const azureApiVersion = process.env.AZURE_OPENAI_API_VERSION || "2025-01-01-preview";
-  const azureDeployment = process.env.AZURE_OPENAI_DEPLOYMENT || "gpt-4o-mini";
-
-  if (!azureEndpoint || !azureKey) {
+  // Get Anthropic API credentials from environment
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
+  if (!anthropicKey) {
     return "I'm sorry, but the support chat is temporarily unavailable. Please email support@luntra.one for assistance.";
   }
 
@@ -186,37 +182,34 @@ Your role:
 Keep responses under 150 words.`;
 
   try {
-    // Call Azure OpenAI API
-    const azureUrl = `${azureEndpoint}openai/deployments/${azureDeployment}/chat/completions?api-version=${azureApiVersion}`;
+    // Call Anthropic API
+    const userMessage = messages[messages.length - 1]?.content || "";
 
-    const response = await fetch(azureUrl, {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "api-key": azureKey,
+        "x-api-key": anthropicKey,
+        "anthropic-version": "2023-06-01"
       },
       body: JSON.stringify({
-        messages: [
-          {
-            role: "system",
-            content: systemPrompt,
-          },
-          ...messages.map((msg) => ({
-            role: msg.role,
-            content: msg.content,
-          })),
-        ],
-        temperature: 0.7,
+        model: "claude-haiku-4-5",
         max_tokens: 300,
-      }),
+        system: systemPrompt,
+        messages: messages.map((msg) => ({
+          role: msg.role === "assistant" ? "assistant" : "user",
+          content: msg.content,
+        })),
+      })
     });
 
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.statusText}`);
+      throw new Error(`Anthropic API error: ${response.statusText}`);
     }
 
     const data = await response.json();
-    return data.choices[0].message.content;
+    const reply = data.content?.[0]?.text || "I'm sorry, I couldn't process that. Please email support@luntra.one";
+    return reply;
   } catch (error) {
     console.error("Support chat AI error:", error);
     return "I apologize, but I'm having trouble connecting right now. Please email support@luntra.one and we'll help you as soon as possible.";

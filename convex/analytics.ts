@@ -165,17 +165,13 @@ export const sendWeeklyEmail = internalAction({
         const churnFlag = getStatus(stats.churnedUsers, 1, 3, true);
         const b2bFlag = getStatus(stats.b2bPercent, 0.20, 0.10);
 
-        // 4. Generate AI Insights via Azure OpenAI (or Bedrock when LLM_PROVIDER=bedrock)
-        let aiInsights = "<p><em>AI Analysis unavailable (Check Azure credentials or LLM_PROVIDER).</em></p>";
+        // 4. Generate AI Insights via Anthropic API
+        let aiInsights = "<p><em>AI Analysis unavailable (Check Anthropic API key).</em></p>";
         let aiSubject = `PropIQ Weekly Intel: $${stats.mrr.toLocaleString()} MRR`;
 
-        const LLM_PROVIDER = (process.env.LLM_PROVIDER || "azure").toLowerCase();
-        const OPENAI_ENDPOINT = process.env.AZURE_OPENAI_ENDPOINT;
-        const OPENAI_KEY = process.env.AZURE_OPENAI_KEY;
-        const OPENAI_DEPLOYMENT = process.env.AZURE_OPENAI_DEPLOYMENT || "gpt-4o-mini";
-        const API_VERSION = process.env.AZURE_OPENAI_API_VERSION || "2024-02-15-preview";
+        const anthropicKey = process.env.ANTHROPIC_API_KEY;
 
-        if (LLM_PROVIDER !== "bedrock" && OPENAI_ENDPOINT && OPENAI_KEY) {
+        if (anthropicKey) {
             try {
                 // Construct prompt with data
                 const prompt = `
@@ -199,23 +195,25 @@ export const sendWeeklyEmail = internalAction({
                 Return JSON: { "html": "<HTML string for the body (use <h3>, <ul>, <li>)>", "subject": "<Subject Line>" }
                 `;
 
-                // Call Azure OpenAI
-                const url = `${OPENAI_ENDPOINT}openai/deployments/${OPENAI_DEPLOYMENT}/chat/completions?api-version=${API_VERSION}`;
-                const aiRes = await fetch(url, {
+                // Call Anthropic API
+                const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json", "api-key": OPENAI_KEY },
+                    headers: {
+                        "Content-Type": "application/json",
+                        "x-api-key": anthropicKey,
+                        "anthropic-version": "2023-06-01"
+                    },
                     body: JSON.stringify({
-                        messages: [
-                            { role: "system", content: "You are a helpful data analyst. Output perfectly valid JSON only." },
-                            { role: "user", content: prompt }
-                        ],
-                        response_format: { type: "json_object" }
+                        model: "claude-haiku-4-5",
+                        max_tokens: 500,
+                        messages: [{ role: "user", content: prompt }]
                     })
                 });
 
                 if (aiRes.ok) {
                     const data = await aiRes.json();
-                    const content = JSON.parse(data.choices[0].message.content);
+                    const contentText = data.content?.[0]?.text || "";
+                    const content = JSON.parse(contentText);
                     aiInsights = content.html;
                     aiSubject = content.subject;
                 } else {
