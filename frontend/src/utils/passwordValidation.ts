@@ -1,12 +1,11 @@
 /**
  * Password Validation Utilities
  *
- * OWASP Password Requirements:
- * - Minimum 8 characters (we use 12 for better security)
+ * Password Requirements:
+ * - Minimum 8 characters
  * - At least one uppercase letter
  * - At least one lowercase letter
  * - At least one number
- * - At least one special character
  * - No common passwords
  */
 
@@ -19,7 +18,6 @@ export interface PasswordStrength {
     uppercase: boolean;
     lowercase: boolean;
     number: boolean;
-    special: boolean;
     notCommon: boolean;
   };
 }
@@ -39,11 +37,10 @@ const COMMON_PASSWORDS = [
  */
 export function validatePassword(password: string): PasswordStrength {
   const checks = {
-    length: password.length >= 12,
+    length: password.length >= 8,
     uppercase: /[A-Z]/.test(password),
     lowercase: /[a-z]/.test(password),
     number: /[0-9]/.test(password),
-    special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
     notCommon: !COMMON_PASSWORDS.includes(password.toLowerCase()),
   };
 
@@ -52,13 +49,13 @@ export function validatePassword(password: string): PasswordStrength {
 
   // Determine score (0-4)
   let score: 0 | 1 | 2 | 3 | 4;
-  if (passedChecks <= 2) {
+  if (passedChecks <= 1) {
     score = 0; // Very weak
-  } else if (passedChecks === 3) {
+  } else if (passedChecks === 2) {
     score = 1; // Weak
-  } else if (passedChecks === 4) {
+  } else if (passedChecks === 3) {
     score = 2; // Fair
-  } else if (passedChecks === 5) {
+  } else if (passedChecks === 4) {
     score = 3; // Good
   } else {
     score = 4; // Strong
@@ -70,15 +67,13 @@ export function validatePassword(password: string): PasswordStrength {
   // Generate feedback
   let feedback = '';
   if (!checks.length) {
-    feedback = 'Password must be at least 12 characters long';
+    feedback = 'Password must be at least 8 characters long';
   } else if (!checks.uppercase) {
     feedback = 'Password must contain at least one uppercase letter';
   } else if (!checks.lowercase) {
     feedback = 'Password must contain at least one lowercase letter';
   } else if (!checks.number) {
     feedback = 'Password must contain at least one number';
-  } else if (!checks.special) {
-    feedback = 'Password must contain at least one special character (!@#$%^&*...)';
   } else if (!checks.notCommon) {
     feedback = 'This password is too common. Please choose a stronger password';
   } else {

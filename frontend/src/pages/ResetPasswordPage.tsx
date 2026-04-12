@@ -9,7 +9,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from 'convex/react';
-import { api } from '../../convex/_generated/api';
 import { validatePassword } from '../utils/passwordValidation';
 import { PasswordStrengthIndicator } from '../components/PasswordStrengthIndicator';
 import {
@@ -66,8 +65,7 @@ const ResetPasswordPage: React.FC = () => {
     setRequestLoading(true);
 
     try {
-      const convexUrl = import.meta.env.VITE_CONVEX_URL as string;
-      const baseUrl = convexUrl.replace('/api', '');
+      const baseUrl = import.meta.env.VITE_CONVEX_SITE_URL as string;
       const endpoint = `${baseUrl}/auth/request-password-reset`;
 
       // console.log('[Reset Password] Requesting password reset for:', email);
@@ -128,8 +126,7 @@ const ResetPasswordPage: React.FC = () => {
     setResetLoading(true);
 
     try {
-      const convexUrl = import.meta.env.VITE_CONVEX_URL as string;
-      const baseUrl = convexUrl.replace('/api', '');
+      const baseUrl = import.meta.env.VITE_CONVEX_SITE_URL as string;
       const endpoint = `${baseUrl}/auth/reset-password`;
 
       console.log('[Reset Password] Endpoint:', endpoint);

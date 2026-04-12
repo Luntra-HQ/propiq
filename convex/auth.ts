@@ -22,19 +22,20 @@ const COMMON_PASSWORDS = [
 /**
  * Validate password strength (backend validation)
  * Throws error if password doesn't meet requirements
+ *
+ * Requirements: 8+ chars, 1 uppercase, 1 lowercase, 1 number
  */
 function validatePasswordStrength(password: string): void {
   const checks = {
-    length: password.length >= 12,
+    length: password.length >= 8,
     uppercase: /[A-Z]/.test(password),
     lowercase: /[a-z]/.test(password),
     number: /[0-9]/.test(password),
-    special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
     notCommon: !COMMON_PASSWORDS.includes(password.toLowerCase()),
   };
 
   if (!checks.length) {
-    throw new Error("Password must be at least 12 characters long");
+    throw new Error("Password must be at least 8 characters long");
   }
   if (!checks.uppercase) {
     throw new Error("Password must contain at least one uppercase letter");
@@ -44,9 +45,6 @@ function validatePasswordStrength(password: string): void {
   }
   if (!checks.number) {
     throw new Error("Password must contain at least one number");
-  }
-  if (!checks.special) {
-    throw new Error("Password must contain at least one special character (!@#$%^&*...)");
   }
   if (!checks.notCommon) {
     throw new Error("This password is too common. Please choose a stronger password");
