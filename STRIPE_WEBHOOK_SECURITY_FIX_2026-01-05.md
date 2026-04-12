@@ -298,15 +298,15 @@ npx convex deploy
 
 ### Environment Variables Required:
 ```bash
-STRIPE_WEBHOOK_SECRET=whsec_...  # From Stripe Dashboard → Webhooks
+STRIPE_WEBHOOK_SECRET=whsec_REDACTED...  # From Stripe Dashboard → Webhooks
 ```
 
 **How to Get Webhook Secret:**
 1. Go to [Stripe Dashboard](https://dashboard.stripe.com/test/webhooks)
 2. Click on your webhook endpoint
 3. Click "Reveal" next to "Signing secret"
-4. Copy `whsec_...` value
-5. Add to Convex environment: `npx convex env set STRIPE_WEBHOOK_SECRET whsec_...`
+4. Copy `whsec_REDACTED...` value
+5. Add to Convex environment: `npx convex env set STRIPE_WEBHOOK_SECRET whsec_REDACTED...`
 
 ---
 

@@ -76,7 +76,7 @@ N8N needs API credentials for each service. Here's how to add them:
 
 **Where to get Stripe key:**
 - Stripe Dashboard → Developers → API Keys → Secret Key
-- Should start with `sk_live_` (production) or `sk_test_` (testing)
+- Should start with `sk_live_REDACTED` (production) or `sk_test_` (testing)
 
 ---
 
@@ -87,7 +87,7 @@ N8N needs API credentials for each service. Here's how to add them:
 3. Enter:
    - **Credential Name:** PropIQ MongoDB
    - **Connection String:** (From your `.env` - `MONGODB_URI`)
-   - Format: `mongodb+srv://username:password@cluster.mongodb.net/database`
+   - Format: `mongodb+srv://REDACTED
 4. Save
 5. Repeat for "Query MongoDB - Property Analyses" node (select same credential)
 

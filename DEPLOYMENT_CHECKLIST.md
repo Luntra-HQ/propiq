@@ -37,11 +37,11 @@ Check these are set in your deployment environment:
 ```bash
 # Azure OpenAI
 AZURE_OPENAI_ENDPOINT=https://YOUR-RESOURCE.openai.azure.com/
-AZURE_OPENAI_KEY=your-api-key-here
+AZURE_OPENAI_KEY=REDACTED-api-key-here
 AZURE_OPENAI_API_VERSION=2024-02-15-preview
 
 # MongoDB
-MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/propiq
+MONGODB_URI=mongodb+srv://REDACTED
 
 # JWT Authentication
 JWT_SECRET=your-secret-key-here
@@ -104,7 +104,7 @@ pip install -r requirements.txt
 
 # Set environment variables
 export AZURE_OPENAI_ENDPOINT="your-endpoint"
-export AZURE_OPENAI_KEY="your-key"
+export AZURE_OPENAI_KEY=REDACTED"your-key"
 export MONGODB_URI="your-mongodb-uri"
 
 # Start server

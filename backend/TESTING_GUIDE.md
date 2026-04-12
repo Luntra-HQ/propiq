@@ -194,7 +194,7 @@ cat expensive_sf_property.json | python3 -m json.tool | less
 ```bash
 # Set environment variables in Railway
 railway variables set AZURE_OPENAI_ENDPOINT="https://luntra-openai-service.cognitiveservices.azure.com/"
-railway variables set AZURE_OPENAI_KEY="your-key"
+railway variables set AZURE_OPENAI_KEY=REDACTED"your-key"
 railway variables set AZURE_OPENAI_API_VERSION="2024-02-15-preview"
 
 # Restart service

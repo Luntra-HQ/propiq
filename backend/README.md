@@ -54,7 +54,7 @@ Create a `.env` file with:
 ENVIRONMENT=development
 
 # Database
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/database
+MONGODB_URI=mongodb+srv://REDACTED
 
 # Authentication
 JWT_SECRET=your-secret-key-change-in-production
@@ -63,12 +63,12 @@ JWT_SECRET=your-secret-key-change-in-production
 OPENAI_API_KEY=sk-proj-...
 
 # Stripe
-STRIPE_SECRET_KEY=sk_test_... or sk_live_...
+STRIPE_SECRET_KEY=sk_test_... or sk_live_REDACTED...
 STRIPE_PRICE_ID=price_...
-STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_WEBHOOK_SECRET=whsec_REDACTED...
 
 # Email
-SENDGRID_API_KEY=SG....
+SENDGRID_API_KEY=REDACTED
 FROM_EMAIL=your-email@domain.com
 
 # CORS
@@ -214,7 +214,7 @@ python-dotenv==1.1.1
 **MongoDB Connection Failed:**
 ```bash
 # Check MONGODB_URI format
-# mongodb+srv://username:password@cluster.mongodb.net/database?retryWrites=true&w=majority
+# mongodb+srv://REDACTED
 ```
 
 **CORS Errors:**

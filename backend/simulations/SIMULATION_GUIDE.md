@@ -489,7 +489,7 @@ Edit YAML:
 STRIPE_SECRET_KEY=sk_test_...
 STRIPE_PUBLISHABLE_KEY=pk_test_...
 
-# NOT production keys (sk_live_, pk_live_)
+# NOT production keys (sk_live_REDACTED, pk_live_)
 ```
 
 ---

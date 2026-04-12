@@ -386,12 +386,12 @@ RESEND_API_KEY=re_gYqsNdmm_J28LGczXvRscJDEwUb61AitP
 ```bash
 # Azure OpenAI
 AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com/
-AZURE_OPENAI_KEY=<your-azure-openai-key>
+AZURE_OPENAI_KEY=REDACTED<your-azure-openai-key>
 AZURE_OPENAI_API_VERSION=2025-01-01-preview
 
 # Stripe
-STRIPE_SECRET_KEY=sk_live_<your-stripe-secret-key>
-STRIPE_WEBHOOK_SECRET=whsec_<your-webhook-secret>
+STRIPE_SECRET_KEY=sk_live_REDACTED<your-stripe-secret-key>
+STRIPE_WEBHOOK_SECRET=whsec_REDACTED<your-webhook-secret>
 
 # Resend Email
 RESEND_API_KEY=re_gYqsNdmm_J28LGczXvRscJDEwUb61AitP

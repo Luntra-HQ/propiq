@@ -303,7 +303,7 @@ DELETE FROM support_chats WHERE user_id IN (
 2. **Verify Stripe test mode:**
    ```bash
    grep "STRIPE_SECRET_KEY" /Users/briandusape/Projects/LUNTRA/LUNTRA\ MVPS/propiq/backend/.env
-   # Should show: sk_test_... (NOT sk_live_...)
+   # Should show: sk_test_... (NOT sk_live_REDACTED...)
    ```
 
 3. **Check backend health:**

@@ -101,8 +101,8 @@ propiq/vibe-marketing/
 
 3. **Set Environment Variables**
    ```bash
-   export STRIPE_SECRET_KEY="sk_live_xxx"
-   export MONGODB_URI="mongodb+srv://xxx"
+   export STRIPE_SECRET_KEY="sk_live_REDACTED"
+   export MONGODB_URI="mongodb+srv://REDACTED
    export WANDB_API_KEY="xxx"
    export SLACK_WEBHOOK_URL="https://hooks.slack.com/xxx"
    export ANTHROPIC_API_KEY="your_claude_api_key"
@@ -238,7 +238,7 @@ You also have **30+ ready-to-use prompts** in `PROMPT_TEMPLATES.md`:
 ### "Stripe API error: Invalid API key"
 **Solution:**
 1. Stripe Dashboard → Developers → API Keys
-2. Copy "Secret key" (starts with `sk_live_`)
+2. Copy "Secret key" (starts with `sk_live_REDACTED`)
 3. Make sure you're using LIVE keys (not test keys)
 
 ### "No data showing in report"

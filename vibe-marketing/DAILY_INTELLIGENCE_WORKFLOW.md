@@ -113,8 +113,8 @@ In String.com, add these environment variables:
 
 | Variable | Value | Where to Get It |
 |----------|-------|----------------|
-| `STRIPE_SECRET_KEY` | sk_live_xxx | Stripe Dashboard → Developers → API Keys |
-| `MONGODB_URI` | mongodb+srv://xxx | MongoDB Atlas → Connect → Connection String |
+| `STRIPE_SECRET_KEY` | sk_live_REDACTED | Stripe Dashboard → Developers → API Keys |
+| `MONGODB_URI` | mongodb+srv://REDACTED | MongoDB Atlas → Connect → Connection String |
 | `WANDB_API_KEY` | xxx | wandb.ai → Settings → API Keys |
 | `WANDB_PROJECT` | propiq-analysis | Your W&B project name |
 | `SLACK_WEBHOOK_URL` | https://hooks.slack.com/xxx | Slack → Apps → Incoming Webhooks |

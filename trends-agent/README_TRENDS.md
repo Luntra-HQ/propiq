@@ -94,7 +94,7 @@ SLACK_WEBHOOK_URL="https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
 # ../backend/.env
 
 # Or manually set in .env:
-SENDGRID_API_KEY="your-sendgrid-api-key"
+SENDGRID_API_KEY=REDACTED"your-sendgrid-api-key"
 ALERT_EMAIL="your-email@example.com"
 ```
 
@@ -318,7 +318,7 @@ GOOGLE_CLOUD_LOCATION="us-central1"
 SLACK_WEBHOOK_URL="https://hooks.slack.com/services/..."
 
 # SendGrid (auto-detected from backend)
-SENDGRID_API_KEY="SG.xxxxx"
+SENDGRID_API_KEY=REDACTED"SG.xxxxx"
 ALERT_EMAIL="your-email@example.com"
 
 # Monitoring settings

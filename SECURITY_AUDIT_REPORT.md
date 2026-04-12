@@ -31,9 +31,9 @@ A comprehensive security audit was conducted on the PropIQ codebase. **Critical 
 **Location:** `backend/.env` file (NOT in git, but unprotected)
 
 **Exposed Secrets:**
-- ✗ **Stripe LIVE secret key** (`sk_live_51RdHuvJogOchEFxv...`)
+- ✗ **Stripe LIVE secret key** (`sk_live_REDACTED...`)
 - ✗ **Stripe LIVE publishable key** (`pk_live_51RdHuvJogOchEFxv...`)
-- ✗ **Stripe webhook secret** (`whsec_JsPEBTHdhRwYD5ODBGNn7tznGxXLQlad`)
+- ✗ **Stripe webhook secret** (`whsec_REDACTED`)
 - ✗ **MongoDB connection string** with password (`nahpyr-dyPhy3-xoqwat`)
 - ✗ **Azure OpenAI API key** (`938KkvrloTxNKLBPytAuZm2OKQtQOcY1v2DB1bx3isMZ...`)
 - ✗ **Supabase service key** (admin access)
@@ -95,7 +95,7 @@ A comprehensive security audit was conducted on the PropIQ codebase. **Critical 
 **Example fix (set_render_env.sh):**
 ```bash
 # BEFORE (INSECURE):
-MONGODB_URI='mongodb+srv://user:password@cluster...'
+MONGODB_URI='mongodb+srv://REDACTED
 
 # AFTER (SECURE):
 if [ -z "$MONGODB_URI" ]; then
@@ -273,7 +273,7 @@ fi
 ```bash
 # Azure OpenAI
 AZURE_OPENAI_ENDPOINT=https://YOUR-RESOURCE.openai.azure.com/
-AZURE_OPENAI_KEY=YOUR_AZURE_OPENAI_KEY_HERE
+AZURE_OPENAI_KEY=REDACTED_AZURE_OPENAI_KEY_HERE
 ...
 ```
 

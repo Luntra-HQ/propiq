@@ -707,19 +707,19 @@ VITE_CONVEX_URL=https://your-project.convex.cloud
 
 # Azure OpenAI
 AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
-AZURE_OPENAI_KEY=your-key-here
+AZURE_OPENAI_KEY=REDACTED-key-here
 AZURE_OPENAI_API_VERSION=2025-01-01-preview
 AZURE_OPENAI_DEPLOYMENT=gpt-4o-mini
 
 # Stripe (Live Mode)
-STRIPE_SECRET_KEY=sk_live_...
+STRIPE_SECRET_KEY=sk_live_REDACTED...
 STRIPE_STARTER_PRICE_ID=price_1SXQEsJogOchEFxvG8fT5B0b
 STRIPE_PRO_PRICE_ID=price_1SL51sJogOchEFxvVounuNcK
 STRIPE_ELITE_PRICE_ID=price_1SXQF2JogOchEFxvRpZ0GGuf
-STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_WEBHOOK_SECRET=whsec_REDACTED...
 
 # Email Service (SendGrid or Mailgun)
-SENDGRID_API_KEY=SG....
+SENDGRID_API_KEY=REDACTED
 SENDGRID_FROM_EMAIL=noreply@propiq.luntra.one
 
 # Sentry (Optional)

@@ -217,7 +217,7 @@ propiq/
 **Backend `.env`:**
 ```bash
 # Database
-MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/propiq
+MONGODB_URI=mongodb+srv://REDACTED
 # OR
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_KEY=your-key
@@ -227,16 +227,16 @@ JWT_SECRET=your-32-char-random-secret
 
 # Azure OpenAI
 AZURE_OPENAI_ENDPOINT=https://your-service.openai.azure.com/
-AZURE_OPENAI_KEY=your-key
+AZURE_OPENAI_KEY=REDACTED-key
 AZURE_OPENAI_API_VERSION=2025-01-01-preview
 
 # Stripe
-STRIPE_SECRET_KEY=sk_live_...
+STRIPE_SECRET_KEY=sk_live_REDACTED...
 STRIPE_PRICE_ID=price_...
-STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_WEBHOOK_SECRET=whsec_REDACTED...
 
 # Email
-SENDGRID_API_KEY=SG...
+SENDGRID_API_KEY=REDACTED
 FROM_EMAIL=support@luntra.one
 
 # Weights & Biases

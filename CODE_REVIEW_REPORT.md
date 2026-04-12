@@ -433,11 +433,11 @@ W&B is optional - gracefully degraded if unavailable
 ```bash
 # Azure OpenAI (Required)
 AZURE_OPENAI_ENDPOINT=https://xxx.openai.azure.com/
-AZURE_OPENAI_KEY=your-key
+AZURE_OPENAI_KEY=REDACTED-key
 AZURE_OPENAI_API_VERSION=2024-02-15-preview
 
 # MongoDB (Required)
-MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/propiq
+MONGODB_URI=mongodb+srv://REDACTED
 
 # W&B (Optional)
 WANDB_API_KEY=your-key

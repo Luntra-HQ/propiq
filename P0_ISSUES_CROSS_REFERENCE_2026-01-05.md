@@ -395,13 +395,13 @@ VITE_CONVEX_URL=https://your-project.convex.cloud
 
 # Azure OpenAI
 AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
-AZURE_OPENAI_KEY=your-key-here
+AZURE_OPENAI_KEY=REDACTED-key-here
 AZURE_OPENAI_API_VERSION=2025-01-01-preview
 AZURE_OPENAI_DEPLOYMENT=gpt-4o-mini
 
 # Stripe
-STRIPE_SECRET_KEY=sk_live_...
-STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_SECRET_KEY=sk_live_REDACTED...
+STRIPE_WEBHOOK_SECRET=whsec_REDACTED...
 
 # Email (Resend)
 RESEND_API_KEY=re_...

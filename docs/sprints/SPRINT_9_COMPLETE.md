@@ -444,13 +444,13 @@ gtag('config', 'G-XXXXXXXXXX', {
 Add to backend `.env`:
 ```bash
 # SendGrid (for email campaign)
-SENDGRID_API_KEY=SG.xxxxx
+SENDGRID_API_KEY=REDACTED
 FROM_EMAIL=team@propiq.ai
 SUPPORT_EMAIL=support@propiq.ai
 APP_URL=https://propiq.luntra.one
 
 # MongoDB (for onboarding tracking)
-MONGODB_URI=mongodb+srv://...
+MONGODB_URI=mongodb+srv://REDACTED
 ```
 
 ### 2. Google Analytics 4

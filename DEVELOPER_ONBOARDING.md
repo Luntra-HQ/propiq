@@ -104,7 +104,7 @@ JWT_SECRET=[ask team lead]
 
 # Azure OpenAI
 AZURE_OPENAI_ENDPOINT=[ask team lead]
-AZURE_OPENAI_KEY=[ask team lead]
+AZURE_OPENAI_KEY=REDACTED[ask team lead]
 AZURE_OPENAI_API_VERSION=2025-01-01-preview
 
 # Stripe
@@ -112,7 +112,7 @@ STRIPE_SECRET_KEY=[ask team lead - use test key for dev]
 STRIPE_WEBHOOK_SECRET=[ask team lead]
 
 # Email
-SENDGRID_API_KEY=[ask team lead]
+SENDGRID_API_KEY=REDACTED[ask team lead]
 FROM_EMAIL=support@luntra.one
 
 # Weights & Biases

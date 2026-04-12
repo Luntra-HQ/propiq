@@ -143,20 +143,20 @@ MONGODB_URI=  # Leave empty (deprecated, kept for backwards compatibility)
 
 # Azure OpenAI
 AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
-AZURE_OPENAI_KEY=your-azure-openai-api-key
+AZURE_OPENAI_KEY=REDACTED-azure-openai-api-key
 AZURE_OPENAI_API_VERSION=2025-01-01-preview
 AZURE_OPENAI_DEPLOYMENT=gpt-4o-mini  # Your deployment name
 
 # Stripe Payments
-STRIPE_SECRET_KEY=sk_live_your-stripe-secret-key
+STRIPE_SECRET_KEY=sk_live_REDACTED-stripe-secret-key
 STRIPE_PUBLISHABLE_KEY=pk_live_your-stripe-publishable-key
-STRIPE_WEBHOOK_SECRET=whsec_your-webhook-secret
+STRIPE_WEBHOOK_SECRET=whsec_REDACTED-webhook-secret
 STRIPE_PRICE_ID_STARTER=price_starter_id
 STRIPE_PRICE_ID_PRO=price_pro_id
 STRIPE_PRICE_ID_ELITE=price_elite_id
 
 # SendGrid Email
-SENDGRID_API_KEY=SG.your-sendgrid-api-key
+SENDGRID_API_KEY=REDACTED
 SENDGRID_FROM_EMAIL=noreply@propiq.luntra.one
 
 # Weights & Biases (ML Tracking)
@@ -241,12 +241,12 @@ az webapp config appsettings set \
     SUPABASE_URL="https://your-project.supabase.co" \
     SUPABASE_KEY="your-key" \
     AZURE_OPENAI_ENDPOINT="https://your-resource.openai.azure.com/" \
-    AZURE_OPENAI_KEY="your-key" \
+    AZURE_OPENAI_KEY=REDACTED"your-key" \
     AZURE_OPENAI_API_VERSION="2025-01-01-preview" \
     AZURE_OPENAI_DEPLOYMENT="gpt-4o-mini" \
-    STRIPE_SECRET_KEY="sk_live_..." \
-    STRIPE_WEBHOOK_SECRET="whsec_..." \
-    SENDGRID_API_KEY="SG...." \
+    STRIPE_SECRET_KEY="sk_live_REDACTED..." \
+    STRIPE_WEBHOOK_SECRET="whsec_REDACTED..." \
+    SENDGRID_API_KEY=REDACTED"SG...." \
     WANDB_API_KEY="your-key" \
     WANDB_MODE="online" \
     LOG_LEVEL="INFO"

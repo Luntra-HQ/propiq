@@ -156,7 +156,7 @@ Location: `backend/.env` and `frontend/.env`
 **Update these variables:**
 ```bash
 # Change database name
-MONGODB_URI="mongodb+srv://...../propiq"  # was: /propiq
+MONGODB_URI="mongodb+srv://REDACTED  # was: /propiq
 
 # Change W&B project
 WANDB_PROJECT="propiq-analysis"  # was: propiq-analysis

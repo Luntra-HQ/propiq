@@ -36,7 +36,7 @@
 # 1. Update backend .env
 cd backend
 vim .env  # Update these:
-# MONGODB_URI="mongodb+srv://.../propiq"
+# MONGODB_URI="mongodb+srv://REDACTED
 # WANDB_PROJECT="propiq-analysis"
 
 # 2. Update frontend .env (if exists)

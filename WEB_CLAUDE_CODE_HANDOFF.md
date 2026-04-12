@@ -268,15 +268,15 @@ JWT_SECRET=[32+ char random string]
 
 # Azure OpenAI
 AZURE_OPENAI_ENDPOINT=https://[service].openai.azure.com/
-AZURE_OPENAI_KEY=[key]
+AZURE_OPENAI_KEY=REDACTED[key]
 AZURE_OPENAI_API_VERSION=2025-01-01-preview
 
 # Stripe
-STRIPE_SECRET_KEY=sk_live_[key]
-STRIPE_WEBHOOK_SECRET=whsec_[key]
+STRIPE_SECRET_KEY=sk_live_REDACTED[key]
+STRIPE_WEBHOOK_SECRET=whsec_REDACTED[key]
 
 # Email
-SENDGRID_API_KEY=SG.[key]
+SENDGRID_API_KEY=REDACTED[key]
 FROM_EMAIL=support@luntra.one
 
 # CORS

@@ -47,16 +47,16 @@ Add the following:
 ```bash
 # Azure OpenAI (Required for property analysis)
 AZURE_OPENAI_ENDPOINT=https://YOUR-RESOURCE.openai.azure.com/
-AZURE_OPENAI_KEY=your_azure_openai_key
+AZURE_OPENAI_KEY=REDACTED_azure_openai_key
 AZURE_OPENAI_API_VERSION=2025-01-01-preview
 AZURE_OPENAI_DEPLOYMENT=gpt-4o-mini
 
 # Stripe (Required for payments)
-STRIPE_SECRET_KEY=sk_live_... # or sk_test_... for testing
+STRIPE_SECRET_KEY=sk_live_REDACTED... # or sk_test_... for testing
 STRIPE_STARTER_PRICE_ID=price_...
 STRIPE_PRO_PRICE_ID=price_...
 STRIPE_ELITE_PRICE_ID=price_...
-STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_WEBHOOK_SECRET=whsec_REDACTED...
 ```
 
 **Where to find these values:**

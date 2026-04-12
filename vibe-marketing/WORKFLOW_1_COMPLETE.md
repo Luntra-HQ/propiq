@@ -151,7 +151,7 @@ Just run `./run_daily_intelligence.sh` whenever you want a fresh report!
 ### "MongoDB connection failed"
 **Fix:** Verify `MONGODB_URI` format:
 ```
-mongodb+srv://username:password@cluster.mongodb.net/database?retryWrites=true&w=majority
+mongodb+srv://REDACTED
 ```
 
 ### "Claude API error"

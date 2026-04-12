@@ -138,14 +138,14 @@ JWT_EXPIRATION_DAYS=7
 
 # Other services (mock or test accounts)
 AZURE_OPENAI_ENDPOINT=https://test.openai.azure.com/
-AZURE_OPENAI_KEY=test-key
+AZURE_OPENAI_KEY=REDACTED-key
 AZURE_OPENAI_API_VERSION=2025-01-01-preview
 AZURE_OPENAI_DEPLOYMENT=gpt-4o-mini
 
 STRIPE_SECRET_KEY=sk_test_your-test-key
-STRIPE_WEBHOOK_SECRET=whsec_test_secret
+STRIPE_WEBHOOK_SECRET=whsec_REDACTED_secret
 
-SENDGRID_API_KEY=test-key-or-mock
+SENDGRID_API_KEY=REDACTED
 WANDB_MODE=disabled
 
 # Logging

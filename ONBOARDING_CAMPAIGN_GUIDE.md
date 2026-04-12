@@ -362,7 +362,7 @@ scheduler.start()
 
 ```bash
 # SendGrid API Key (required for sending emails)
-SENDGRID_API_KEY=SG.xxx...
+SENDGRID_API_KEY=REDACTED
 
 # Email addresses
 FROM_EMAIL=team@propiq.ai
@@ -372,7 +372,7 @@ SUPPORT_EMAIL=support@propiq.ai
 APP_URL=https://propiq.luntra.one
 
 # MongoDB (for tracking)
-MONGODB_URI=mongodb+srv://...
+MONGODB_URI=mongodb+srv://REDACTED
 ```
 
 ---
@@ -386,7 +386,7 @@ MONGODB_URI=mongodb+srv://...
 ```bash
 cd propiq/backend
 source venv/bin/activate
-export SENDGRID_API_KEY=SG.xxx...
+export SENDGRID_API_KEY=REDACTED
 export FROM_EMAIL=team@propiq.ai
 export APP_URL=http://localhost:5173
 ```

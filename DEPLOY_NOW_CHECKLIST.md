@@ -59,11 +59,11 @@
    **REQUIRED (Must have these)**:
    ```
    AZURE_OPENAI_ENDPOINT=https://luntra-openai-service.cognitiveservices.azure.com/
-   AZURE_OPENAI_KEY=938KkvrloTxNKLBPytAuZm2OKQtQOcY1v2DB1bx3isMZ2ewUjYLAJQQJ99BJACYeBjFXJ3w3AAABACOGEx8u
+   AZURE_OPENAI_KEY=REDACTED
    AZURE_OPENAI_API_VERSION=2025-01-01-preview
    AZURE_OPENAI_DEPLOYMENT=gpt-4o-mini
 
-   MONGODB_URI=mongodb+srv://dealIQ_backend_user:nahpyr-dyPhy3-xoqwat@propiq-production-clust.q4050y.mongodb.net/propiq?retryWrites=true&w=majority&appName=PropIQ-Production-Cluster
+   MONGODB_URI=mongodb+srv://REDACTED
 
    JWT_SECRET=luntra-propiq-secret-key-2025-change-in-production
 
@@ -73,9 +73,9 @@
 
    **Stripe (Payments)**:
    ```
-   STRIPE_SECRET_KEY=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
+   STRIPE_SECRET_KEY=sk_live_REDACTED
    STRIPE_PRICE_ID=price_1RqHkREtJUE5bLBgPGCA4EOz
-   STRIPE_WEBHOOK_SECRET=whsec_05faf4882ab063e18686d4088b8ee2d6293095a5ce5f74805cbf701bb45745d4
+   STRIPE_WEBHOOK_SECRET=whsec_REDACTED
    ```
 
    **Email Services** (Add all 3 for flexibility):
@@ -85,12 +85,12 @@
 
    RESEND_API_KEY=re_H7EmkHzY_35Evxg2J4cG7Qfp5eMT2BkGk
 
-   SENDGRID_API_KEY=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
+   SENDGRID_API_KEY=REDACTED
    ```
 
    **SerpAPI** (Market research):
    ```
-   SERPAPI_KEY=a2ee0e238d20d72e98000b7fb156bb50ebfccbda09a847133ccb2545fe2957d3
+   SERPAPI_KEY=REDACTED
    ```
 
    **W&B Analytics**:

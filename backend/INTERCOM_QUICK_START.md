@@ -40,13 +40,13 @@ App ID: hvhctgls
 5. Click **"Create webhook"**
 
 6. **COPY THE WEBHOOK SECRET** (shown only once!)
-   - Looks like: `whsec_abc123...`
+   - Looks like: `whsec_REDACTED...`
 
 ### Step 2: Add Webhook Secret to Backend
 
 Open `.env` and add this line:
 ```bash
-INTERCOM_WEBHOOK_SECRET=whsec_YOUR_SECRET_FROM_STEP_1
+INTERCOM_WEBHOOK_SECRET=whsec_REDACTED_SECRET_FROM_STEP_1
 ```
 
 ### Step 3: Deploy Backend

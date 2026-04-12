@@ -12,7 +12,7 @@ The current restricted key (`rk_live_...`) cannot create prices. You need to:
 
 1. Go to: https://dashboard.stripe.com/apikeys
 2. Create a new **Secret key** (not restricted)
-3. Set it temporarily: `export STRIPE_API_KEY="sk_live_..."`
+3. Set it temporarily: `export STRIPE_API_KEY="sk_live_REDACTED..."`
 4. Run the commands below
 5. Delete the secret key after setup
 

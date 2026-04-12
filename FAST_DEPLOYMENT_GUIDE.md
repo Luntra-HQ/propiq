@@ -115,19 +115,19 @@ VITE_API_URL=https://your-backend.onrender.com
 ```bash
 # Azure OpenAI
 AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
-AZURE_OPENAI_KEY=your-key-here
+AZURE_OPENAI_KEY=REDACTED-key-here
 AZURE_OPENAI_API_VERSION=2024-02-15-preview
 
 # MongoDB
-MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/propiq
+MONGODB_URI=mongodb+srv://REDACTED
 
 # JWT
 JWT_SECRET=your-secret-key-here
 
 # Stripe (if using payments)
-STRIPE_SECRET_KEY=sk_live_...
+STRIPE_SECRET_KEY=sk_live_REDACTED...
 STRIPE_PRICE_ID=price_...
-STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_WEBHOOK_SECRET=whsec_REDACTED...
 
 # Weights & Biases (optional)
 WANDB_API_KEY=your-wandb-key
