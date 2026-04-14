@@ -212,8 +212,9 @@ export const sendWeeklyEmail = internalAction({
 
                 if (aiRes.ok) {
                     const data = await aiRes.json();
-                    const contentText = data.content?.[0]?.text || "";
-                    const content = JSON.parse(contentText);
+                    const rawText = data.content?.[0]?.text || "";
+                    const cleaned = rawText.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim();
+                    const content = JSON.parse(cleaned);
                     aiInsights = content.html;
                     aiSubject = content.subject;
                 } else {

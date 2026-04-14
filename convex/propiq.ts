@@ -501,8 +501,9 @@ Provide your comprehensive analysis now:`;
     }
 
     const data = await response.json();
-    const content = data.content?.[0]?.text || "";
-    const analysis = JSON.parse(content);
+    const rawText = data.content?.[0]?.text || "";
+    const cleaned = rawText.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim();
+    const analysis = JSON.parse(cleaned);
 
     return {
       analysis,
