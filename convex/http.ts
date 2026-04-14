@@ -224,7 +224,7 @@ http.route({
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                from: "PropIQ <bdusape@propiq.luntra.one>",  // Use verified propiq.luntra.one domain
+                from: "PropIQ <bdusape@luntra.one>",  // Use verified luntra.one domain
                 to: result.user.email,  // Fixed: use result.user.email
                 subject: "Verify your PropIQ email address",
                 html: `
@@ -500,7 +500,7 @@ http.route({
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                from: "PropIQ <bdusape@propiq.luntra.one>",  // Use verified propiq.luntra.one domain
+                from: "PropIQ <bdusape@luntra.one>",  // Use verified luntra.one domain
                 to: [result.email],
                 subject: "Reset Your PropIQ Password",
                 html: `
@@ -1545,7 +1545,7 @@ http.route({
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                from: "PropIQ <bdusape@propiq.luntra.one>",  // Use verified propiq.luntra.one domain
+                from: "PropIQ <bdusape@luntra.one>",  // Use verified luntra.one domain
                 to: result.email,
                 subject: "Verify your PropIQ email address",
                 html: `
