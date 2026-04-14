@@ -21,6 +21,10 @@ export const DealCalculator = () => {
 
   // Property inputs state
   const [inputs, setInputs] = useState<PropertyInputs>({
+    address: '',
+    city: '',
+    state: '',
+    zipCode: '',
     purchasePrice: 300000,
     downPaymentPercent: 20,
     interestRate: 7.0,
@@ -37,6 +41,12 @@ export const DealCalculator = () => {
     rehabCosts: 0,
     strategy: 'rental'
   });
+
+  // AI Analysis state
+  const [aiAnalysis, setAiAnalysis] = useState<any>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [analysesRemaining, setAnalysesRemaining] = useState<number | null>(null);
 
   // Projection assumptions
   const [projectionInputs, setProjectionInputs] = useState({
@@ -74,6 +84,65 @@ export const DealCalculator = () => {
 
   const updateProjectionInput = (field: string, value: number) => {
     setProjectionInputs(prev => ({ ...prev, [field]: value }));
+  };
+
+  const getAIAnalysis = async () => {
+    // Validate required fields
+    if (!inputs.address || !inputs.city || !inputs.state || !inputs.zipCode) {
+      setAiError('Please fill in property address, city, state, and ZIP code to get AI analysis.');
+      return;
+    }
+
+    setAiLoading(true);
+    setAiError(null);
+
+    try {
+      const sessionToken = localStorage.getItem('sessionToken');
+      if (!sessionToken) {
+        throw new Error('No session token found. Please log in again.');
+      }
+
+      const convexSiteUrl = import.meta.env.VITE_CONVEX_SITE_URL;
+      if (!convexSiteUrl) {
+        throw new Error('VITE_CONVEX_SITE_URL not configured');
+      }
+
+      const response = await fetch(`${convexSiteUrl}/propiq/analyze`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sessionToken}`
+        },
+        body: JSON.stringify({
+          address: inputs.address,
+          city: inputs.city,
+          state: inputs.state,
+          zipCode: inputs.zipCode,
+          purchasePrice: inputs.purchasePrice,
+          downPayment: (inputs.purchasePrice * inputs.downPaymentPercent) / 100,
+          monthlyRent: inputs.monthlyRent
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.error || 'Analysis failed');
+      }
+
+      setAiAnalysis(data.analysis);
+      setAnalysesRemaining(data.analysesRemaining);
+    } catch (error: any) {
+      console.error('AI Analysis error:', error);
+      setAiError(error.message || 'Failed to get AI analysis. Please try again.');
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   if (!metrics) return null;
@@ -125,6 +194,11 @@ export const DealCalculator = () => {
             inputs={inputs}
             metrics={metrics}
             updateInput={updateInput}
+            aiAnalysis={aiAnalysis}
+            aiLoading={aiLoading}
+            aiError={aiError}
+            analysesRemaining={analysesRemaining}
+            getAIAnalysis={getAIAnalysis}
           />
         )}
         {activeTab === 'advanced' && (
@@ -151,9 +225,23 @@ interface BasicAnalysisTabProps {
   inputs: PropertyInputs;
   metrics: CalculatedMetrics;
   updateInput: (field: keyof PropertyInputs, value: number | string) => void;
+  aiAnalysis: any;
+  aiLoading: boolean;
+  aiError: string | null;
+  analysesRemaining: number | null;
+  getAIAnalysis: () => void;
 }
 
-const BasicAnalysisTab = ({ inputs, metrics, updateInput }: BasicAnalysisTabProps) => {
+const BasicAnalysisTab = ({
+  inputs,
+  metrics,
+  updateInput,
+  aiAnalysis,
+  aiLoading,
+  aiError,
+  analysesRemaining,
+  getAIAnalysis
+}: BasicAnalysisTabProps) => {
   return (
     <div className="tab-content">
       <div className="calculator-grid">
@@ -162,6 +250,56 @@ const BasicAnalysisTab = ({ inputs, metrics, updateInput }: BasicAnalysisTabProp
           {/* Property Information */}
           <div className="input-group">
             <h3>Property Information</h3>
+
+            <div className="input-field">
+              <label htmlFor="address">Street Address</label>
+              <input
+                id="address"
+                type="text"
+                value={inputs.address || ''}
+                placeholder="123 Main St"
+                onChange={(e) => updateInput('address', e.target.value)}
+                aria-label="Street Address"
+              />
+            </div>
+
+            <div className="input-field">
+              <label htmlFor="city">City</label>
+              <input
+                id="city"
+                type="text"
+                value={inputs.city || ''}
+                placeholder="Austin"
+                onChange={(e) => updateInput('city', e.target.value)}
+                aria-label="City"
+              />
+            </div>
+
+            <div className="input-field">
+              <label htmlFor="state">State</label>
+              <input
+                id="state"
+                type="text"
+                value={inputs.state || ''}
+                placeholder="TX"
+                onChange={(e) => updateInput('state', e.target.value)}
+                maxLength={2}
+                aria-label="State"
+              />
+            </div>
+
+            <div className="input-field">
+              <label htmlFor="zipCode">ZIP Code</label>
+              <input
+                id="zipCode"
+                type="text"
+                value={inputs.zipCode || ''}
+                placeholder="78701"
+                onChange={(e) => updateInput('zipCode', e.target.value)}
+                maxLength={10}
+                aria-label="ZIP Code"
+              />
+            </div>
 
             <div className="input-field">
               <label htmlFor="purchasePrice">Purchase Price</label>
@@ -495,6 +633,101 @@ const BasicAnalysisTab = ({ inputs, metrics, updateInput }: BasicAnalysisTabProp
               <span className="metric-value">{formatPercent(metrics.onePercentRule)}</span>
             </div>
           </div>
+
+          {/* AI Analysis Button */}
+          <div className="ai-analysis-section">
+            <button
+              className="ai-analysis-button"
+              onClick={getAIAnalysis}
+              disabled={aiLoading || !inputs.address || !inputs.city || !inputs.state || !inputs.zipCode}
+            >
+              {aiLoading ? (
+                <>
+                  <span className="spinner"></span>
+                  <span>Analyzing...</span>
+                </>
+              ) : (
+                <>
+                  <span>🤖</span>
+                  <span>Get AI Analysis</span>
+                </>
+              )}
+            </button>
+
+            {analysesRemaining !== null && (
+              <p className="analyses-remaining">
+                {analysesRemaining} {analysesRemaining === 1 ? 'analysis' : 'analyses'} remaining
+              </p>
+            )}
+
+            {aiError && (
+              <div className="ai-error">
+                <p>{aiError}</p>
+                <button className="retry-button" onClick={getAIAnalysis}>
+                  Retry
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* AI Analysis Results */}
+          {aiAnalysis && (
+            <div className="ai-results">
+              <h3>AI Investment Analysis</h3>
+
+              {/* Deal Score */}
+              <div className="ai-deal-score">
+                <div className="score-circle-ai" data-score={aiAnalysis.dealScore}>
+                  <span className="score-value">{aiAnalysis.dealScore}</span>
+                  <span className="score-max">/100</span>
+                </div>
+                <div className="score-info">
+                  <div className="recommendation-badge">
+                    {aiAnalysis.recommendation}
+                  </div>
+                  {aiAnalysis.cashFlow && (
+                    <p className="cash-flow-summary">
+                      Monthly Cash Flow: <strong className={aiAnalysis.cashFlow.monthly >= 0 ? 'positive' : 'negative'}>
+                        {formatCurrency(aiAnalysis.cashFlow.monthly)}
+                      </strong>
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Key Risks */}
+              {aiAnalysis.risks && aiAnalysis.risks.length > 0 && (
+                <div className="ai-section">
+                  <h4>⚠️ Key Risks</h4>
+                  <ul className="ai-list">
+                    {aiAnalysis.risks.slice(0, 3).map((risk: string, index: number) => (
+                      <li key={index}>{risk}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Strengths */}
+              {aiAnalysis.strengths && aiAnalysis.strengths.length > 0 && (
+                <div className="ai-section">
+                  <h4>✓ Strengths</h4>
+                  <ul className="ai-list">
+                    {aiAnalysis.strengths.slice(0, 3).map((strength: string, index: number) => (
+                      <li key={index}>{strength}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Summary */}
+              {aiAnalysis.summary && (
+                <div className="ai-section">
+                  <h4>Summary</h4>
+                  <p className="ai-summary">{aiAnalysis.summary}</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

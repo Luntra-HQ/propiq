@@ -671,3 +671,243 @@
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
+
+/* ============================================
+   AI ANALYSIS SECTION
+   ============================================ */
+
+.ai-analysis-section {
+  margin-top: 24px;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.ai-analysis-button {
+  width: 100%;
+  padding: 16px 24px;
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.ai-analysis-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.ai-analysis-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ai-analysis-button .spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.analyses-remaining {
+  color: white;
+  font-size: 14px;
+  margin-top: 12px;
+  opacity: 0.9;
+}
+
+.ai-error {
+  margin-top: 16px;
+  padding: 12px;
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 8px;
+  color: white;
+}
+
+.ai-error p {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+}
+
+.retry-button {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  background: rgba(239, 68, 68, 0.8);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.retry-button:hover {
+  background: rgba(239, 68, 68, 1);
+}
+
+/* AI Results */
+.ai-results {
+  margin-top: 24px;
+  padding: 24px;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  border-radius: 12px;
+  color: white;
+}
+
+.ai-results h3 {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 20px 0;
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ai-deal-score {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 24px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.score-circle-ai {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.score-circle-ai .score-value {
+  font-size: 36px;
+  font-weight: 700;
+  color: #667eea;
+}
+
+.score-circle-ai .score-max {
+  font-size: 14px;
+  color: #666;
+}
+
+.score-info {
+  flex: 1;
+  text-align: left;
+}
+
+.recommendation-badge {
+  display: inline-block;
+  padding: 8px 16px;
+  font-size: 18px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  backdrop-filter: blur(5px);
+}
+
+.cash-flow-summary {
+  font-size: 16px;
+  margin: 0;
+}
+
+.cash-flow-summary strong.positive {
+  color: #10b981;
+}
+
+.cash-flow-summary strong.negative {
+  color: #ef4444;
+}
+
+.ai-section {
+  margin-top: 20px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  backdrop-filter: blur(5px);
+}
+
+.ai-section h4 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+}
+
+.ai-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ai-list li {
+  padding: 8px 0;
+  padding-left: 24px;
+  position: relative;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.ai-list li::before {
+  content: "•";
+  position: absolute;
+  left: 8px;
+  font-size: 18px;
+}
+
+.ai-summary {
+  font-size: 15px;
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* Mobile Responsiveness for AI Components */
+@media (max-width: 768px) {
+  .ai-analysis-button {
+    font-size: 16px;
+    padding: 14px 20px;
+  }
+
+  .ai-deal-score {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .score-info {
+    text-align: center;
+  }
+
+  .ai-section {
+    padding: 12px;
+  }
+
+  .ai-list li {
+    font-size: 13px;
+  }
+}

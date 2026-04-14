@@ -6,6 +6,12 @@
  */
 
 export interface PropertyInputs {
+  // Property address (for AI analysis)
+  address?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+
   purchasePrice: number;
   downPaymentPercent: number;
   interestRate: number;
