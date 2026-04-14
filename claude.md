@@ -1,786 +1,151 @@
-# PropIQ - AI-Powered Property Investment Analysis Platform
-
-**Project Memory File for Claude Code**
-
-This document contains all essential context, rules, and workflows for PropIQ development. It is automatically loaded into every Claude Code session.
-
----
-
-## ⚠️ MANDATORY RULES - READ FIRST
-
-**You are forbidden from:**
-1. ❌ Using `--no-verify` or bypassing git hooks
-2. ❌ Deploying without running tests first
-3. ❌ Modifying auth/payments/core features without explicit approval
-4. ❌ Creating new "enforcement" infrastructure without checking if it already exists
-5. ❌ Claiming "tests passed" without pasting terminal output
-
-**You are required to:**
-1. ✅ Read `SESSION_LOG.md` at the start of EVERY session
-2. ✅ Follow `SESSION_START_PROTOCOL.md` before any code changes
-3. ✅ Follow `PRE_DEPLOYMENT_CHECKLIST.md` before any deployment
-4. ✅ Update `SESSION_LOG.md` at end of session with proof of work
-5. ✅ Wait for user approval before deploying or modifying critical features
-
-**Critical Features (Require Approval):**
-- Authentication (login, signup, password reset)
-- Payments (Stripe checkout, subscriptions)
-- PropIQ Analysis (core AI functionality)
-
-**If you violate these rules, you must:**
-1. Stop immediately
-2. Explain why you bypassed the protocol
-3. Follow the protocol now and show evidence
-
----
-
-## Table of Contents
-
-1. [Project Overview](#project-overview)
-2. [Architecture](#architecture)
-3. [Tech Stack](#tech-stack)
-4. [**🚨 TEST ENFORCEMENT POLICY**](#test-enforcement-policy)
-5. [Git Workflow](#git-workflow)
-6. [Development Commands](#development-commands)
-7. [Design Principles](#design-principles)
-8. [Integration Rules](#integration-rules)
-9. [Testing Strategy](#testing-strategy)
-10. [Deployment](#deployment)
-11. [Code Standards](#code-standards)
-
----
+# PropIQ — Claude Project Memory
 
 ## Project Overview
-
-**PropIQ** is a SaaS platform that provides AI-powered real estate investment analysis, combining property analysis, deal calculators, and customer support chat.
-
-**Core Features:**
-- 🏡 **Property Analysis** - AI-powered investment analysis using GPT-4o-mini
-- 🧮 **Deal Calculator** - Comprehensive financial calculator with 3-tab interface
-- 💬 **Support Chat** - Custom AI support assistant (saves $888/year vs Intercom)
-- 💳 **Stripe Payments** - Subscription management with 4 tiers
-- 📊 **Analytics** - Weights & Biases AI tracking + Microsoft Clarity user analytics
-
-**Business Model:**
-- Free: 3 trial analyses
-- Starter ($29/mo): 20 analyses/month
-- Pro ($79/mo): 100 analyses/month
-- Elite ($199/mo): Unlimited analyses
-
-**Current Status:**
-- ✅ Backend deployed to Azure (luntra-outreach-app.azurewebsites.net)
-- ✅ Support chat backend ready
-- ✅ Deal calculator fully implemented
-- 🔄 Frontend deployment pending
-- 🔄 Full integration testing pending
-
----
-
-## Architecture
-
-### Frontend Structure
-```
-propiq/frontend/
-├── src/
-│   ├── components/
-│   │   ├── DealCalculator.tsx       # 3-tab calculator (Basic, Advanced, Scenarios)
-│   │   ├── DealCalculator.css       # Calculator styles
-│   │   ├── SupportChat.tsx          # AI support chat widget
-│   │   ├── SupportChat.css          # Chat styles
-│   │   └── PricingPage.tsx          # Subscription pricing UI
-│   ├── utils/
-│   │   ├── calculatorUtils.ts       # All financial calculations
-│   │   └── supportChat.ts           # Chat API integration
-│   ├── config/
-│   │   └── pricing.ts               # Pricing tiers & thresholds
-│   ├── App.tsx                      # Main application
-│   └── main.tsx                     # Entry point
-├── index.html                       # HTML + Microsoft Clarity script
-├── vite.config.ts                   # Vite configuration
-└── package.json                     # Dependencies
-```
-
-### Backend Structure
-```
-propiq/backend/
-├── routers/
-│   ├── auth.py                      # JWT authentication
-│   ├── propiq.py                    # Property analysis (Azure OpenAI)
-│   ├── payment.py                   # Stripe integration
-│   ├── support_chat.py              # Custom AI support chat
-│   ├── marketing.py                 # SendGrid email capture
-│   └── intercom.py                  # Intercom (optional)
-├── api.py                           # FastAPI main app
-├── database_mongodb.py              # MongoDB connection
-├── requirements.txt                 # Python dependencies
-├── Dockerfile                       # Docker build config
-└── deploy-azure.sh                  # Azure deployment script
-```
-
-### Database Collections (MongoDB Atlas)
-- `users` - User accounts, authentication, subscription info
-- `property_analyses` - Analysis history with W&B tracking
-- `support_chats` - Support conversation history
-
----
-
-## 🚨 TEST ENFORCEMENT POLICY
-
-**CRITICAL: Read this before making ANY code changes or deployments**
-
-### The Rule
-
-**NEVER deploy code without running tests first. NO EXCEPTIONS.**
-
-### Why This Exists
-
-After weeks of work, critical features (like login) broke because changes were deployed without testing. This policy prevents that from happening again.
-
-### Enforcement Layers
-
-#### 1. **GitHub Actions (Automatic)**
-- Location: `.github/workflows/ci.yml`
-- Runs on every push to `main`
-- Tests: Auth (signup, login, password reset)
-- **Blocks merge if tests fail**
-
-#### 2. **Netlify Build Checks (Automatic)**
-- Location: `frontend/netlify.toml`
-- Runs tests before every deployment
-- **Blocks deployment if tests fail**
-- No way to bypass this - deploy simply fails
-
-#### 3. **Pre-commit Hook (Optional, Manual Setup)**
-- Location: `.git/hooks/pre-commit-tests`
-- Run locally before commits
-- To enable: `ln -sf ../../.git/hooks/pre-commit-tests .git/hooks/pre-commit`
-- Can bypass with `--no-verify` if needed
-
-### What Tests Are Required
-
-**Before ANY deployment, these must pass:**
-
-```bash
-# Critical auth tests (REQUIRED)
-npx playwright test tests/user-signup-integration.spec.ts --project=chromium
-npx playwright test tests/password-reset.spec.ts --project=chromium
-
-# Build must succeed
-npm run build
-```
-
-**If these fail, DO NOT DEPLOY. Fix the tests or fix the code.**
-
-### For Claude Code Sessions
-
-**Every time you make changes to:**
-- Authentication (login, signup, password reset)
-- Pricing/payments (Stripe checkout)
-- Core features (PropIQ analysis, calculator)
-
-**You MUST:**
-1. Run the relevant tests BEFORE building
-2. Only build if tests pass
-3. Only deploy if build succeeds
-4. Document what tests were run in commit message
-
-### Emergency Override
-
-If tests are failing but you need to deploy urgently:
-1. **Document why in commit message**
-2. **Create GitHub issue to fix tests**
-3. **Fix within 24 hours**
-
-### Test Files Location
-
-All tests are in: `frontend/tests/`
-
-Key test files:
-- `user-signup-integration.spec.ts` - Auth flows
-- `password-reset.spec.ts` - Password reset
-- `full-user-journey.spec.ts` - End-to-end user flows
-
-### Checking Test Status
-
-```bash
-# Run all critical tests
-npm run test
-
-# Run specific test
-npx playwright test tests/user-signup-integration.spec.ts
-
-# See test results
-npx playwright show-report
-```
+PropIQ is an AI-powered real estate investment analysis SaaS platform.
+Live URL: propiq.luntra.one (migrating to propiqhq.com)
 
 ---
 
 ## Tech Stack
 
 ### Frontend
-- **Framework:** React 18.3.1 with TypeScript
-- **Build Tool:** Vite 6.0.11
-- **Styling:** Tailwind CSS (utility-first)
-- **Icons:** Lucide React
-- **HTTP Client:** Axios
-- **State:** React hooks (useState, useEffect, useRef)
+- React + TypeScript
+- Hosted on Netlify
+- Vite build system
 
 ### Backend
-- **Framework:** FastAPI 0.115.0
-- **Runtime:** Python 3.11
-- **Database:** MongoDB Atlas (cloud-hosted)
-- **Auth:** PyJWT 2.10.1 with bcrypt
-- **AI:** Azure OpenAI (GPT-4o-mini)
-- **Payments:** Stripe 12.4.0
-- **Email:** SendGrid 6.11.0
-- **Tracking:** Weights & Biases 0.22.2
+- Convex (deployment: mild-tern-361)
+- All mutations, queries, and HTTP actions live in convex/
+- Key files: convex/auth.ts, convex/http.ts, convex/schema.ts
 
-### Infrastructure
-- **Hosting:** Azure Web App (Linux container)
-- **Registry:** Azure Container Registry
-- **Analytics:** Microsoft Clarity (tts5hc8zf8)
-- **Monitoring:** Weights & Biases (propiq-analysis)
+### Transactional Email
+- Resend API
+- Verified sending domain: propiq.luntra.one
+- From address: PropIQ <noreply@propiq.luntra.one>
+- RESEND_API_KEY must be set in Convex production environment variables
 
 ---
 
-## Git Workflow
+## Critical Environment Variables
 
-### Branch Strategy
-- `main` - Production branch (protected)
-- Feature branches: `feature/calculator-ui`, `feature/support-chat`, etc.
-- Bugfix branches: `fix/stripe-webhook`, `fix/calculator-math`, etc.
+| Variable | Value | Purpose |
+|---|---|---|
+| VITE_CONVEX_URL | https://mild-tern-361.convex.cloud | Convex client hooks only |
+| VITE_CONVEX_SITE_URL | https://mild-tern-361.convex.site | All HTTP action endpoints |
 
-### Commit Message Format
+### ⚠️ Rule: Never use VITE_CONVEX_URL for fetch() calls
+All HTTP fetch calls in the frontend must use VITE_CONVEX_SITE_URL.
+Using VITE_CONVEX_URL for HTTP routes returns empty responses and causes JSON parse errors.
 
-**Standard commits:**
-```bash
-git commit -m "Add comprehensive deal calculator with 3-tab interface
-
-- Created calculatorUtils.ts with all financial calculations
-- Built DealCalculator component with Basic/Advanced/Scenarios tabs
-- Added 5-year projections and deal scoring (0-100)
-- Integrated into App.tsx
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>"
-```
-
-**Rules:**
-1. **First line:** Brief summary (50-72 chars)
-2. **Body:** Bullet points with details
-3. **Footer:** Always include Claude Code attribution
-4. **Never commit to main directly** - always use PRs
-5. **Always run tests** before committing
-6. **Never force push to main**
-
-### Git Hooks
-- Pre-commit: Run linters, type checks
-- Pre-push: Run tests
-- **Never skip hooks** (no --no-verify)
+Both variables must be set in:
+- frontend/.env.local (local development)
+- Netlify dashboard (production builds)
 
 ---
 
-## Development Commands
+## Auth System
 
-### Frontend Development
+### Working Flows
+- Signup with email verification
+- Email verification via token
+- Login / logout
+- Password reset (request + confirm)
 
-**Install dependencies:**
-```bash
-cd propiq/frontend
-npm install
-```
+### Auth Architecture
+- Custom auth in convex/auth.ts (PBKDF2-SHA256 password hashing, 600k iterations)
+- Session management in convex/sessions.ts
+- HTTP endpoints in convex/http.ts
+- Password requirements: 8+ chars, 1 uppercase, 1 number
 
-**Run dev server:**
-```bash
-npm run dev
-# Opens at http://localhost:5173
-```
+### HTTP Endpoints (all on .convex.site)
+- POST /auth/signup
+- POST /auth/login
+- POST /auth/logout
+- POST /auth/verify-email
+- POST /auth/request-password-reset
+- POST /auth/reset-password
+- GET /auth/me
 
-**Build for production:**
-```bash
-npm run build
-# Output: dist/
-```
-
-**Type checking:**
-```bash
-npm run type-check
-```
-
-**Run tests:**
-```bash
-npm test
-```
-
-### Backend Development
-
-**Setup virtual environment:**
-```bash
-cd propiq/backend
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-**Install dependencies:**
-```bash
-pip install -r requirements.txt
-```
-
-**Run local server:**
-```bash
-uvicorn api:app --reload --port 8000
-# API docs at http://localhost:8000/docs
-```
-
-**Test endpoints:**
-```bash
-# Health check
-curl http://localhost:8000/propiq/health
-
-# Support chat health
-curl http://localhost:8000/support/health
-```
+### ⚠️ Rule: Every HTTP route needs an OPTIONS handler
+Every POST route in convex/http.ts must have a matching OPTIONS handler for CORS preflight.
+Missing OPTIONS handlers cause 404 preflight errors in the browser.
 
 ---
 
-## Design Principles
+## Email Delivery
 
-### Calculator UI Design
+### Current Status
+- Resend API key: configured in Convex production env vars
+- SPF/DKIM/DMARC: configured on propiq.luntra.one
+- Gmail delivery: confirmed working
+- Outlook/Microsoft delivery: SPF+DKIM fix applied, unconfirmed
 
-**Visual Hierarchy:**
-1. Deal Score badge is the primary focus (0-100 with color-coded rating)
-2. Monthly cash flow is secondary (positive = green, negative = red)
-3. Supporting metrics follow in organized cards
-
-**Color Coding:**
-- **Excellent (80-100):** Green (#28a745)
-- **Good (65-79):** Blue (#17a2b8)
-- **Fair (50-64):** Yellow (#ffc107)
-- **Poor (35-49):** Orange (#fd7e14)
-- **Avoid (0-34):** Red (#dc3545)
-
-**Responsive Design:**
-- Desktop: 2-column layout (inputs left, results right)
-- Tablet: Single column with cards
-- Mobile: Full-width stacked layout
-
-**Typography:**
-- Headings: System font, 600-700 weight
-- Body: 14-16px, line-height 1.5
-- Monospace: Financial values (SF Mono, Monaco, Courier New)
-
-### Component Structure
-
-**Pattern for primary components:**
-```tsx
-import { useState, useEffect } from 'react';
-import './Component.css';
-
-export const Component = () => {
-  // State and effects
-
-  return (
-    <div className="component-container">
-      {/* JSX */}
-    </div>
-  );
-};
-```
-
-**Avoid:**
-- ❌ Inline styles (use CSS classes)
-- ❌ Magic numbers (use constants)
-- ❌ Any type (use proper TypeScript)
-- ❌ console.log in production (use proper logging)
+### Known Issue
+- luntra.one (parent domain) is NOT verified in Resend
+- Only propiq.luntra.one is verified
+- All from addresses must use @propiq.luntra.one, not @luntra.one
 
 ---
 
-## Integration Rules
-
-### Microsoft Clarity Analytics
-
-**Location:** `frontend/index.html`
-**Project ID:** `tts5hc8zf8`
-
-**Rule:** Never remove or modify the Clarity script tag.
-
-```html
-<!-- Microsoft Clarity - User Analytics -->
-<script type="text/javascript">
-  (function(c,l,a,r,i,t,y){
-    c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-  })(window, document, "clarity", "script", "tts5hc8zf8");
-</script>
-```
-
-### Weights & Biases AI Tracking
-
-**Location:** `backend/routers/propiq.py`
-**Project:** `propiq-analysis`
-
-**What to log:**
-- Every property analysis request
-- Model usage (tokens, cost)
-- Analysis results (recommendations, scores, ROI)
-- User metadata (subscription tier)
-
-**Rule:** Always wrap W&B calls in try-except to gracefully handle offline mode.
-
-### Stripe Payments
-
-**Live API Keys (in .env):**
-- `STRIPE_SECRET_KEY` - Live secret key
-- `STRIPE_PRICE_ID` - Live price ID for subscriptions
-- `STRIPE_WEBHOOK_SECRET` - Webhook signature verification
-
-**Endpoints:**
-- `POST /stripe/create-checkout-session` - Create checkout
-- `POST /stripe/webhook` - Handle webhooks (signature verification required)
-- `GET /stripe/health` - Status check
-
-**Rule:** Never log full API keys, never commit keys to git.
-
-### Support Chat API
-
-**Backend:** `backend/routers/support_chat.py`
-**Frontend:** `frontend/src/components/SupportChat.tsx`
-
-**Endpoints:**
-- `POST /support/chat` - Send message, get AI response
-- `GET /support/history/{conversation_id}` - Get conversation history
-- `GET /support/conversations` - List all user conversations
-- `GET /support/health` - Health check
-
-**Rule:** Support chat only shows for logged-in users (`userId && <SupportChat />`).
-
----
-
-## Testing Strategy
-
-### Calculator Testing
-
-**Unit Tests (calculatorUtils.ts):**
-- ✅ Test mortgage payment calculation
-- ✅ Test cap rate formula
-- ✅ Test cash-on-cash return
-- ✅ Test 1% rule compliance
-- ✅ Test deal scoring algorithm
-- ✅ Test edge cases (zero values, negative numbers)
-
-**Integration Tests (DealCalculator.tsx):**
-- ✅ Verify all tabs render correctly
-- ✅ Verify calculations update in real-time
-- ✅ Verify scenario analysis (best/worst case)
-- ✅ Verify 5-year projections
-- ✅ Test responsive layouts (desktop, tablet, mobile)
-
-**Manual Testing Checklist:**
-- [ ] Enter test property data
-- [ ] Verify monthly cash flow is correct
-- [ ] Verify deal score makes sense
-- [ ] Switch between tabs (Basic, Advanced, Scenarios)
-- [ ] Adjust inputs and watch live updates
-- [ ] Test on mobile device
-- [ ] Check console for errors
-
-### Support Chat Testing
-
-**Test Flow:**
-1. Login as test user
-2. Click "Need Help?" button
-3. Send test message: "How do I analyze a property?"
-4. Verify AI response is relevant
-5. Send follow-up message
-6. Verify conversation history persists
-7. Close and reopen chat
-8. Verify conversation continues
-
-### Backend Testing
-
-**Health Checks:**
-```bash
-# PropIQ analysis health
-curl https://luntra-outreach-app.azurewebsites.net/propiq/health
-
-# Support chat health
-curl https://luntra-outreach-app.azurewebsites.net/support/health
-
-# Stripe health
-curl https://luntra-outreach-app.azurewebsites.net/stripe/health
-```
-
-**Expected responses:** All should return `status: "healthy"`.
+## Domain Migration
+- Current: propiq.luntra.one
+- Target: propiqhq.com
+- Status: Domain purchased, migration pending
+- Blocker: DNS propagation time needed for SPF/DKIM/DMARC setup on propiqhq.com
+- Do not migrate until propiqhq.com is fully verified in Resend
 
 ---
 
 ## Deployment
 
-### Backend Deployment (Azure)
+### Frontend (Netlify)
+- Auto-deploys on git push to main
+- Environment variables must be set in Netlify dashboard — .env.local is never deployed
+- After any new env variable is added locally, it must also be added to Netlify dashboard
 
-**Script:** `backend/deploy-azure.sh`
+### Backend (Convex)
+- Deploy with: npx convex deploy --prod
+- Environment variables set at: dashboard.convex.dev/deployment/mild-tern-361/settings/environment-variables
+- Changes to env vars take effect immediately — no redeploy needed
 
-**Steps:**
-1. Login to Azure Container Registry
-2. Build Docker image
-3. Push to registry
-4. Deploy to Azure Web App
-5. Wait for container restart (2-3 minutes)
-
-**Command:**
-```bash
-cd propiq/backend
-./deploy-azure.sh
-```
-
-**Environment Variables (Azure App Settings):**
-- `AZURE_OPENAI_ENDPOINT`
-- `AZURE_OPENAI_KEY`
-- `AZURE_OPENAI_API_VERSION`
-- `MONGODB_URI`
-- `STRIPE_SECRET_KEY`
-- `STRIPE_PRICE_ID`
-- `STRIPE_WEBHOOK_SECRET`
-- `WANDB_API_KEY`
-- `WANDB_MODE`
-- `SENDGRID_API_KEY`
-
-**Verify deployment:**
-```bash
-curl https://luntra-outreach-app.azurewebsites.net/propiq/health
-```
-
-### Frontend Deployment
-
-**Build:**
-```bash
-cd propiq/frontend
-npm run build
-```
-
-**Output:** `dist/` folder ready for static hosting
-
-**TODO:** Configure Azure Static Web Apps or equivalent hosting.
+### Smoke Test After Every Deploy
+1. curl POST /auth/request-password-reset → confirm 200 + JSON response
+2. Check Resend dashboard → confirm email appears
+3. Click reset link → confirm no JS errors
+4. Complete reset → confirm redirect to login
 
 ---
 
-## Code Standards
+## Development Rules
 
-### TypeScript
+### Before Every Fix
+1. Check Convex logs first: dashboard.convex.dev/deployment/mild-tern-361/logs
+2. Reproduce with curl before touching code
+3. Identify exact root cause before delegating to Claude Code
 
-**Rules:**
-- Always define interfaces for props and state
-- Use `const` for all variables unless reassignment needed
-- Prefer `type` over `interface` for simple types
-- Use proper return types for functions
-- Avoid `any` - use `unknown` if truly dynamic
+### Claude Code Rules
+- Never let Claude Code push a fix without reviewing the diagnosis first
+- Claude Code will pattern-match on code style — always validate against actual error symptoms
+- Confirm changes with git diff before committing
 
-**Example:**
-```typescript
-interface CalculatorInputs {
-  purchasePrice: number;
-  downPaymentPercent: number;
-  interestRate: number;
-}
-
-const calculateMetrics = (inputs: CalculatorInputs): CalculatedMetrics => {
-  // Implementation
-};
-```
-
-### React
-
-**Rules:**
-- Use functional components (no class components)
-- Use hooks (useState, useEffect, useRef, etc.)
-- Extract reusable logic into custom hooks
-- Keep components under 300 lines (split if larger)
-- One component per file
-
-**State management:**
-- Local state: `useState`
-- Complex state: `useReducer`
-- Global state: Context API (for small apps)
-
-### CSS
-
-**Rules:**
-- Use CSS modules or separate `.css` files
-- Mobile-first responsive design
-- Use Tailwind utility classes when possible
-- Keep specificity low (avoid deep nesting)
-- Use CSS variables for colors and spacing
-
-**Example:**
-```css
-.calculator-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px;
-}
-
-@media (max-width: 768px) {
-  .calculator-grid {
-    grid-template-columns: 1fr;
-  }
-}
-```
-
-### Python (FastAPI)
-
-**Rules:**
-- Use type hints for all function parameters and returns
-- Use Pydantic models for request/response validation
-- Always use async/await for database operations
-- Handle errors with try-except and return proper HTTP status codes
-- Log important events (don't use print() in production)
-
-**Example:**
-```python
-from pydantic import BaseModel
-from fastapi import HTTPException
-
-class AnalysisRequest(BaseModel):
-    address: str
-    purchase_price: Optional[float] = None
-
-@router.post("/analyze")
-async def analyze_property(
-    request: AnalysisRequest,
-    token_payload: dict = Depends(verify_token)
-) -> Dict[str, Any]:
-    try:
-        # Implementation
-        return {"success": True, "data": analysis}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-```
+### Credentials
+- Never hardcode secrets in markdown files
+- Pre-commit hook blocks commits with exposed credentials
+- All secrets go in environment variables only
 
 ---
 
-## Performance Optimization
+## Known Issues (as of April 13, 2026)
+- [ ] Outlook email deliverability unconfirmed after SPF/DKIM fix
+- [ ] propiqhq.com domain migration pending
+- [ ] GDPR compliance not implemented (legal risk for EU users)
+- [ ] CI/CD pipeline (GitHub Actions) failing — Playwright/Vite config issue
 
-### Frontend
-
-**Bundle size:**
-- Lazy load routes with `React.lazy()`
-- Code-split large components
-- Optimize images (WebP format, proper sizing)
-- Minify CSS and JS in production
-
-**React performance:**
-- Use `useMemo` for expensive calculations
-- Use `useCallback` for event handlers passed as props
-- Avoid unnecessary re-renders (use React DevTools Profiler)
-
-### Backend
-
-**Database:**
-- Index frequently queried fields
-- Use projection to limit returned fields
-- Cache expensive queries (Redis if needed)
-
-**API:**
-- Use async operations (async/await)
-- Implement rate limiting
-- Compress responses (gzip)
-- Use CDN for static assets
-
----
-
-## Security Rules
-
-**Never commit to git:**
-- ❌ API keys or secrets
-- ❌ `.env` files
-- ❌ Database credentials
-- ❌ Stripe keys
-- ❌ OpenAI keys
-
-**Always:**
-- ✅ Use environment variables for secrets
-- ✅ Validate all user inputs (Pydantic)
-- ✅ Use HTTPS in production
-- ✅ Implement CORS properly
-- ✅ Verify JWT tokens on protected routes
-- ✅ Sanitize database queries (use PyMongo's methods)
-- ✅ Verify Stripe webhook signatures
-
----
-
-## Troubleshooting
-
-### Frontend Issues
-
-**Problem:** Calculator not updating
-**Solution:** Check React state updates, verify useEffect dependencies
-
-**Problem:** Styles not loading
-**Solution:** Verify CSS imports, check Tailwind config
-
-**Problem:** TypeScript errors
-**Solution:** Run `npm run type-check`, fix type mismatches
-
-### Backend Issues
-
-**Problem:** 500 Internal Server Error
-**Solution:** Check server logs, verify environment variables
-
-**Problem:** Database connection failed
-**Solution:** Verify `MONGODB_URI`, check network access in MongoDB Atlas
-
-**Problem:** OpenAI API errors
-**Solution:** Check API key, verify endpoint and API version
-
----
-
-## Resources
-
-### Documentation
-- [React Docs](https://react.dev)
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
-- [FastAPI Docs](https://fastapi.tiangolo.com)
-- [MongoDB PyMongo](https://pymongo.readthedocs.io)
-- [Stripe API](https://stripe.com/docs/api)
-- [Azure OpenAI](https://learn.microsoft.com/en-us/azure/ai-services/openai/)
-
-### Internal Docs
-- `backend/README_INTEGRATIONS.md` - Complete integration overview
-- `backend/CUSTOM_SUPPORT_CHAT_GUIDE.md` - Support chat implementation
-- `backend/MICROSOFT_CLARITY_INTEGRATION.md` - Analytics setup
-
----
-
-## Next Steps
-
-**Immediate priorities:**
-1. Test calculator locally (run Vite dev server)
-2. Verify all calculations are accurate
-3. Test support chat integration
-4. Deploy frontend to Azure Static Web Apps
-5. Full end-to-end testing
-
-**Future enhancements:**
-- Add property comparison feature
-- Export analysis to PDF
-- Email reports to users
-- Mobile app (React Native)
-- Advanced market data integration
-
----
-
-**Last Updated:** 2025-10-21
-**Claude Code Version:** Latest
-**Project Phase:** MVP - Ready for deployment testing
-
----
-
-## Important Notes
-
-⚠️ **This file is project memory** - Everything in this file is automatically loaded into every Claude Code session. Keep it updated as the project evolves.
-
-✅ **Use this file** - Reference this for all development decisions, coding standards, and workflows.
-
-🚀 **Share this file** - New team members can use this to get up to speed quickly.
+## Recently Resolved
+- [x] Frontend using .convex.cloud instead of .convex.site for HTTP routes
+- [x] Resend API key invalid in production
+- [x] Missing SPF/DKIM on propiq.luntra.one
+- [x] Missing OPTIONS handler for /auth/verify-email
+- [x] Verification emails using unverified luntra.one domain
+- [x] Password requirements too strict (now: 8 chars, 1 uppercase, 1 number)
+- [x] 29 markdown files with exposed credentials (redacted)
