@@ -97,7 +97,7 @@ export const DealCalculator = () => {
     setAiError(null);
 
     try {
-      const sessionToken = localStorage.getItem('sessionToken');
+      const sessionToken = localStorage.getItem('propiq_session_token');
       if (!sessionToken) {
         throw new Error('No session token found. Please log in again.');
       }
