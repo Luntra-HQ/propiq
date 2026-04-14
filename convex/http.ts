@@ -240,7 +240,7 @@ http.route({
                       </div>
 
                       <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
-                        <p style="font-size: 16px; margin-bottom: 20px;">Hi ${firstNameForEmail},</p>
+                        <p style="font-size: 16px; margin-bottom: 20px;">Hi ${firstName},</p>
 
                         <p style="font-size: 16px; margin-bottom: 20px;">
                           Thanks for signing up for PropIQ! We're excited to help you analyze real estate investments with AI-powered insights.
@@ -1498,6 +1498,14 @@ http.route({
   }),
 });
 
+http.route({
+  path: "/auth/verify-email",
+  method: "OPTIONS",
+  handler: httpAction(async () => {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }),
+});
+
 /**
  * POST /auth/resend-verification
  * Resend verification email to user
@@ -1553,7 +1561,7 @@ http.route({
                       </div>
 
                       <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
-                        <p style="font-size: 16px; margin-bottom: 20px;">Hi ${firstNameForEmail},</p>
+                        <p style="font-size: 16px; margin-bottom: 20px;">Hi ${firstName},</p>
 
                         <p style="font-size: 16px; margin-bottom: 20px;">
                           Thanks for signing up for PropIQ! We're excited to help you analyze real estate investments with AI-powered insights.
