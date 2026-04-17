@@ -333,3 +333,5 @@ temp/
 
 # Local Netlify folder
 .netlify
+.dotenv
+.env*
