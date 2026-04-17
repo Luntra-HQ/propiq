@@ -468,7 +468,7 @@ export async function sendDay0WelcomeEmail(user: any): Promise<void> {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: "PropIQ <noreply@propiq.luntra.one>",
+      from: "PropIQ <noreply@propiqhq.com>",
       to: email,
       subject: `${firstName}, your PropIQ account is ready! 🎉`,
       html,
@@ -617,7 +617,7 @@ async function sendDay1OnboardingEmail(user: any): Promise<void> {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: "PropIQ <noreply@propiq.luntra.one>",
+      from: "PropIQ <noreply@propiqhq.com>",
       to: email,
       subject: `${firstName}, here's what PropIQ can do for you`,
       html,
@@ -756,7 +756,7 @@ async function sendDay3OnboardingEmail(user: any): Promise<void> {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: "PropIQ <noreply@propiq.luntra.one>",
+      from: "PropIQ <noreply@propiqhq.com>",
       to: email,
       subject: `${firstName}, have you tried the Deal Calculator?`,
       html,
@@ -907,7 +907,7 @@ async function sendDay7OnboardingEmail(user: any): Promise<void> {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: "PropIQ <noreply@propiq.luntra.one>",
+      from: "PropIQ <noreply@propiqhq.com>",
       to: email,
       subject: `${firstName}, you have ${analysesLeft} free analyses left`,
       html,

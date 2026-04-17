@@ -11,7 +11,7 @@
 
 import { test, expect } from '@playwright/test';
 
-const BASE_URL = 'https://propiq.luntra.one';
+const BASE_URL = 'https://propiqhq.com';
 const TEST_EMAIL_PREFIX = 'uat-test-';
 const TIMESTAMP = Date.now();
 

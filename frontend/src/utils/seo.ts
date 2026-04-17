@@ -25,7 +25,7 @@ export const updateMetaTags = (config: SEOConfig): void => {
     title,
     description,
     keywords,
-    ogImage = 'https://propiq.luntra.one/og-image.jpg',
+    ogImage = 'https://propiqhq.com/og-image.jpg',
     ogType = 'website',
     twitterCard = 'summary_large_image',
     canonicalUrl,
@@ -116,11 +116,11 @@ export const pageSEO = {
     title: 'PropIQ - AI Real Estate Investment Analysis | Analyze Properties in 30 Seconds',
     description: 'Analyze any property in 30 seconds with AI-powered insights. Get cap rate, cash flow, ROI calculations instantly. Trusted by 1,000+ investors. Try free.',
     keywords: 'AI real estate analysis, property investment calculator, rental property analyzer, real estate software, cap rate calculator',
-    canonicalUrl: 'https://propiq.luntra.one/',
+    canonicalUrl: 'https://propiqhq.com/',
     structuredData: {
       '@type': 'WebPage',
       'name': 'PropIQ - AI Real Estate Investment Analysis',
-      'url': 'https://propiq.luntra.one/'
+      'url': 'https://propiqhq.com/'
     }
   }),
 
@@ -128,11 +128,11 @@ export const pageSEO = {
     title: 'Real Estate Deal Calculator | PropIQ - Free Property Analysis Tool',
     description: 'Free real estate deal calculator with cap rate, cash flow, ROI analysis. Run scenarios, 5-year projections, and get instant deal scores. No signup required.',
     keywords: 'real estate calculator, deal calculator, cap rate calculator, cash flow calculator, ROI calculator, property analysis tool',
-    canonicalUrl: 'https://propiq.luntra.one/calculator',
+    canonicalUrl: 'https://propiqhq.com/calculator',
     structuredData: {
       '@type': 'WebApplication',
       'name': 'PropIQ Deal Calculator',
-      'url': 'https://propiq.luntra.one/calculator',
+      'url': 'https://propiqhq.com/calculator',
       'applicationCategory': 'FinanceApplication',
       'offers': {
         '@type': 'Offer',
@@ -146,11 +146,11 @@ export const pageSEO = {
     title: 'PropIQ Pricing - Plans for Real Estate Investors | From $29/month',
     description: 'Choose your PropIQ plan: Free (3 analyses), Starter ($29/mo), Pro ($79/mo), or Elite ($199/mo). All plans include AI analysis, deal calculator, and support.',
     keywords: 'PropIQ pricing, real estate software pricing, property analysis subscription, investor tools pricing',
-    canonicalUrl: 'https://propiq.luntra.one/pricing',
+    canonicalUrl: 'https://propiqhq.com/pricing',
     structuredData: {
       '@type': 'WebPage',
       'name': 'PropIQ Pricing',
-      'url': 'https://propiq.luntra.one/pricing'
+      'url': 'https://propiqhq.com/pricing'
     }
   }),
 
@@ -162,14 +162,14 @@ export const pageSEO = {
       ? `Comprehensive AI-powered analysis for ${address}. View cap rate, cash flow, ROI, deal score, and investment recommendations.`
       : 'Get comprehensive AI-powered property analysis in 30 seconds. Enter any address to see cap rate, cash flow projections, and investment recommendations.',
     keywords: 'property analysis, real estate analysis, investment property evaluation, cap rate, cash flow analysis',
-    canonicalUrl: 'https://propiq.luntra.one/analyze'
+    canonicalUrl: 'https://propiqhq.com/analyze'
   }),
 
   signup: (): SEOConfig => ({
     title: 'Sign Up for PropIQ - Start Analyzing Properties for Free',
     description: 'Create your free PropIQ account and get 3 property analyses. No credit card required. Start making smarter real estate investment decisions today.',
     keywords: 'PropIQ signup, create account, free trial, real estate investment tool',
-    canonicalUrl: 'https://propiq.luntra.one/signup',
+    canonicalUrl: 'https://propiqhq.com/signup',
     ogType: 'website'
   }),
 
@@ -177,7 +177,7 @@ export const pageSEO = {
     title: 'Login to PropIQ - AI Real Estate Investment Analysis',
     description: 'Access your PropIQ account to analyze properties, view saved analyses, and manage your subscription.',
     keywords: 'PropIQ login, sign in, real estate analysis login',
-    canonicalUrl: 'https://propiq.luntra.one/login'
+    canonicalUrl: 'https://propiqhq.com/login'
   })
 };
 

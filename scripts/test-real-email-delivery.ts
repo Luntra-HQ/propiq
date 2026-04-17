@@ -87,14 +87,14 @@ async function testSignupAndEmailDelivery() {
     console.log('📬 CHECK YOUR EMAIL INBOX');
     console.log('='.repeat(80));
     console.log('\nPlease check your email inbox for:');
-    console.log('- From: PropIQ <noreply@propiq.luntra.one>');
+    console.log('- From: PropIQ <noreply@propiqhq.com>');
     console.log('- Subject: Verify your PropIQ email address');
     console.log('- Contains: Blue "Verify My Email" button');
     console.log('\n⚠️  Also check your SPAM/JUNK folder if not in inbox\n');
 
     console.log('📋 What to verify:');
     console.log('1. Email arrived in inbox (not spam)');
-    console.log('2. Sender shows as "PropIQ <noreply@propiq.luntra.one>"');
+    console.log('2. Sender shows as "PropIQ <noreply@propiqhq.com>"');
     console.log('3. Email has proper formatting (not broken HTML)');
     console.log('4. "Verify My Email" button works and redirects to app');
     console.log('5. After clicking, see "Email Verified! 🎉" success page');

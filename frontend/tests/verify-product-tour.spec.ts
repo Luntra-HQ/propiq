@@ -5,7 +5,7 @@
 
 import { test, expect } from '@playwright/test';
 
-const PRODUCTION_URL = process.env.PLAYWRIGHT_BASE_URL || 'https://propiq.luntra.one';
+const PRODUCTION_URL = process.env.PLAYWRIGHT_BASE_URL || 'https://propiqhq.com';
 
 test.describe('Product Tour Verification', () => {
   test('product tour appears for brand new user', async ({ page, context }) => {

@@ -229,7 +229,7 @@ async function sendDay3NurtureEmail(lead: any): Promise<void> {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: "PropIQ <noreply@propiq.luntra.one>",
+      from: "PropIQ <noreply@propiqhq.com>",
       to: email,
       subject: `${firstName}, ready to analyze your first property?`,
       html,
@@ -364,7 +364,7 @@ async function sendDay7NurtureEmail(lead: any): Promise<void> {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: "PropIQ <noreply@propiq.luntra.one>",
+      from: "PropIQ <noreply@propiqhq.com>",
       to: email,
       subject: `${firstName}, don't miss your 3 free property analyses`,
       html,

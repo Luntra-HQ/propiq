@@ -36,7 +36,7 @@ const IS_PRODUCTION =
 // No credentials needed since we use Bearer tokens (not cookies)
 const corsHeaders = {
   "Access-Control-Allow-Origin": IS_PRODUCTION
-    ? "https://propiq.luntra.one"
+    ? "https://propiqhq.com"
     : "http://localhost:5173",
   "Access-Control-Allow-Credentials": "false",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -224,7 +224,7 @@ http.route({
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                from: "PropIQ <noreply@propiq.luntra.one>",  // Use verified luntra.one domain
+                from: "PropIQ <noreply@propiqhq.com>",  // Use verified propiqhq.com domain
                 to: result.user.email,  // Fixed: use result.user.email
                 subject: "Verify your PropIQ email address",
                 html: `
@@ -500,7 +500,7 @@ http.route({
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                from: "PropIQ <noreply@propiq.luntra.one>",  // Use verified luntra.one domain
+                from: "PropIQ <noreply@propiqhq.com>",  // Use verified propiqhq.com domain
                 to: [result.email],
                 subject: "Reset Your PropIQ Password",
                 html: `
@@ -1545,7 +1545,7 @@ http.route({
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                from: "PropIQ <noreply@propiq.luntra.one>",  // Use verified luntra.one domain
+                from: "PropIQ <noreply@propiqhq.com>",  // Use verified propiqhq.com domain
                 to: result.email,
                 subject: "Verify your PropIQ email address",
                 html: `

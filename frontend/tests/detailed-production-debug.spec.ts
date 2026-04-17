@@ -30,9 +30,9 @@ test('Detailed production debugging', async ({ page }) => {
     networkFailures.push(failure);
   });
 
-  console.log('\n🌐 Loading https://propiq.luntra.one...\n');
+  console.log('\n🌐 Loading https://propiqhq.com...\n');
 
-  await page.goto('https://propiq.luntra.one', {
+  await page.goto('https://propiqhq.com', {
     waitUntil: 'networkidle',
     timeout: 30000
   });

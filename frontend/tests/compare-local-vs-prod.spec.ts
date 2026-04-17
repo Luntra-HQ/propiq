@@ -18,8 +18,8 @@ test('Compare local vs production', async ({ browser }) => {
   });
   console.log('✅ Local screenshot saved: screenshots/local-version.png');
 
-  console.log('\n📸 Capturing PRODUCTION (https://propiq.luntra.one)...');
-  await prodPage.goto('https://propiq.luntra.one', { waitUntil: 'networkidle', timeout: 30000 });
+  console.log('\n📸 Capturing PRODUCTION (https://propiqhq.com)...');
+  await prodPage.goto('https://propiqhq.com', { waitUntil: 'networkidle', timeout: 30000 });
   await prodPage.waitForTimeout(3000); // Wait for any animations
   await prodPage.screenshot({
     path: 'screenshots/production-version.png',

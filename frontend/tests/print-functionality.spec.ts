@@ -4,7 +4,7 @@ import { test, expect, Page } from '@playwright/test';
  * PropIQ Print Functionality Tests
  *
  * Tests the print button functionality and print-friendly styling
- * for analysis reports on propiq.luntra.one
+ * for analysis reports on propiqhq.com
  */
 
 // Helper function to create a test user and login
@@ -333,13 +333,13 @@ test.describe('PropIQ Print Functionality', () => {
     // Skip if not testing against production
     const baseURL = process.env.PLAYWRIGHT_BASE_URL || page.url();
 
-    if (!baseURL.includes('propiq.luntra.one')) {
+    if (!baseURL.includes('propiqhq.com')) {
       test.skip();
       return;
     }
 
     // Test against production
-    await page.goto('https://propiq.luntra.one');
+    await page.goto('https://propiqhq.com');
     await loginAsTestUser(page);
     await runAnalysis(page);
 

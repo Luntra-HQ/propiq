@@ -262,7 +262,7 @@ export function VerifyEmail() {
           <div className="bg-gray-50 px-8 py-4 border-t border-gray-200">
             <p className="text-center text-sm text-gray-600">
               Need help?{' '}
-              <a href="mailto:support@propiq.luntra.one" className="text-violet-600 hover:text-violet-700 font-medium">
+              <a href="mailto:support@propiqhq.com" className="text-violet-600 hover:text-violet-700 font-medium">
                 Contact Support
               </a>
             </p>

@@ -1,6 +1,6 @@
 /**
  * Production Backend Integration Tests
- * Verifies full user journey with Convex backend on propiq.luntra.one
+ * Verifies full user journey with Convex backend on propiqhq.com
  *
  * This test suite ensures:
  * 1. Users can sign up and be saved to Convex database
@@ -13,7 +13,7 @@
 import { test, expect } from '@playwright/test';
 
 // Test against production URL
-const PRODUCTION_URL = process.env.PLAYWRIGHT_BASE_URL || 'https://propiq.luntra.one';
+const PRODUCTION_URL = process.env.PLAYWRIGHT_BASE_URL || 'https://propiqhq.com';
 const CONVEX_URL = 'https://mild-tern-361.convex.cloud';
 
 test.describe('Production Backend Integration - Full User Journey', () => {

@@ -5,7 +5,7 @@
 
 import { test, expect } from '@playwright/test';
 
-const PRODUCTION_URL = process.env.PLAYWRIGHT_BASE_URL || 'https://propiq.luntra.one';
+const PRODUCTION_URL = process.env.PLAYWRIGHT_BASE_URL || 'https://propiqhq.com';
 
 test.describe('Usage Limits & Constraints - Chaos Testing', () => {
 

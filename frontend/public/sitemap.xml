@@ -25,19 +25,19 @@
 
   <!-- Homepage - Primary entry point -->
   <url>
-    <loc>https://propiq.luntra.one/</loc>
+    <loc>https://propiqhq.com/</loc>
     <lastmod>2025-11-06</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
     <image:image>
-      <image:loc>https://propiq.luntra.one/og-image.jpg</image:loc>
+      <image:loc>https://propiqhq.com/og-image.jpg</image:loc>
       <image:title>PropIQ - AI Real Estate Investment Analysis</image:title>
     </image:image>
   </url>
 
   <!-- Calculator - Core Feature -->
   <url>
-    <loc>https://propiq.luntra.one/calculator</loc>
+    <loc>https://propiqhq.com/calculator</loc>
     <lastmod>2025-11-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
@@ -45,7 +45,7 @@
 
   <!-- Pricing Page - Key Conversion Page -->
   <url>
-    <loc>https://propiq.luntra.one/pricing</loc>
+    <loc>https://propiqhq.com/pricing</loc>
     <lastmod>2025-11-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -62,28 +62,28 @@
   =====================================================
 
   <url>
-    <loc>https://propiq.luntra.one/calculator/cap-rate</loc>
+    <loc>https://propiqhq.com/calculator/cap-rate</loc>
     <lastmod>2025-XX-XX</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://propiq.luntra.one/calculator/cash-flow</loc>
+    <loc>https://propiqhq.com/calculator/cash-flow</loc>
     <lastmod>2025-XX-XX</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://propiq.luntra.one/calculator/roi</loc>
+    <loc>https://propiqhq.com/calculator/roi</loc>
     <lastmod>2025-XX-XX</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://propiq.luntra.one/calculator/cash-on-cash</loc>
+    <loc>https://propiqhq.com/calculator/cash-on-cash</loc>
     <lastmod>2025-XX-XX</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -93,35 +93,35 @@
   =====================================================
 
   <url>
-    <loc>https://propiq.luntra.one/guides/how-to-analyze-rental-property</loc>
+    <loc>https://propiqhq.com/guides/how-to-analyze-rental-property</loc>
     <lastmod>2025-XX-XX</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
 
   <url>
-    <loc>https://propiq.luntra.one/guides/cap-rate-explained</loc>
+    <loc>https://propiqhq.com/guides/cap-rate-explained</loc>
     <lastmod>2025-XX-XX</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
 
   <url>
-    <loc>https://propiq.luntra.one/guides/cash-flow-analysis</loc>
+    <loc>https://propiqhq.com/guides/cash-flow-analysis</loc>
     <lastmod>2025-XX-XX</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
 
   <url>
-    <loc>https://propiq.luntra.one/guides/real-estate-roi</loc>
+    <loc>https://propiqhq.com/guides/real-estate-roi</loc>
     <lastmod>2025-XX-XX</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
 
   <url>
-    <loc>https://propiq.luntra.one/guides/1-percent-rule</loc>
+    <loc>https://propiqhq.com/guides/1-percent-rule</loc>
     <lastmod>2025-XX-XX</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -131,7 +131,7 @@
   =====================================================
 
   <url>
-    <loc>https://propiq.luntra.one/blog</loc>
+    <loc>https://propiqhq.com/blog</loc>
     <lastmod>2025-XX-XX</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
@@ -141,28 +141,28 @@
   =====================================================
 
   <url>
-    <loc>https://propiq.luntra.one/terms</loc>
+    <loc>https://propiqhq.com/terms</loc>
     <lastmod>2025-XX-XX</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
 
   <url>
-    <loc>https://propiq.luntra.one/privacy</loc>
+    <loc>https://propiqhq.com/privacy</loc>
     <lastmod>2025-XX-XX</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
 
   <url>
-    <loc>https://propiq.luntra.one/about</loc>
+    <loc>https://propiqhq.com/about</loc>
     <lastmod>2025-XX-XX</lastmod>
     <changefreq>quarterly</changefreq>
     <priority>0.6</priority>
   </url>
 
   <url>
-    <loc>https://propiq.luntra.one/contact</loc>
+    <loc>https://propiqhq.com/contact</loc>
     <lastmod>2025-XX-XX</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
@@ -172,14 +172,14 @@
   =====================================================
 
   <url>
-    <loc>https://propiq.luntra.one/vs/biggerpockets-calculator</loc>
+    <loc>https://propiqhq.com/vs/biggerpockets-calculator</loc>
     <lastmod>2025-XX-XX</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
 
   <url>
-    <loc>https://propiq.luntra.one/vs/zillow-calculator</loc>
+    <loc>https://propiqhq.com/vs/zillow-calculator</loc>
     <lastmod>2025-XX-XX</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>

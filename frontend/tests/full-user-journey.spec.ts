@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const BASE_URL = 'https://propiq.luntra.one';
+const BASE_URL = 'https://propiqhq.com';
 
 test.describe('PropIQ Complete User Journey', () => {
   test.beforeEach(async ({ page }) => {

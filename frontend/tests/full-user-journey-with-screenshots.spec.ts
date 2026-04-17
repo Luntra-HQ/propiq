@@ -1,6 +1,6 @@
 import { test, expect, Page } from '@playwright/test';
 
-const BASE_URL = 'https://propiq.luntra.one';
+const BASE_URL = 'https://propiqhq.com';
 const SCREENSHOTS_DIR = './test-results/evidence';
 
 // Helper function to take timestamped screenshots

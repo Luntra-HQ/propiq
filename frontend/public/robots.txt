@@ -11,7 +11,7 @@ Allow: /
 Crawl-delay: 1
 
 # Sitemap location (for automated discovery)
-Sitemap: https://propiq.luntra.one/sitemap.xml
+Sitemap: https://propiqhq.com/sitemap.xml
 
 # ==========================================
 # EXPLICIT ALLOW FOR MAJOR SEARCH ENGINES

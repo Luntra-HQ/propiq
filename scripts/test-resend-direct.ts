@@ -19,7 +19,7 @@ async function testResend() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "PropIQ <noreply@propiq.luntra.one>",
+        from: "PropIQ <noreply@propiqhq.com>",
         to: TEST_EMAIL,
         subject: "PropIQ Email Test - Direct API",
         html: `

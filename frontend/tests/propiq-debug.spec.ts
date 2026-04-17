@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('PropIQ Dashboard Debugging', () => {
-  const url = 'https://propiq.luntra.one';
+  const url = 'https://propiqhq.com';
 
   test('1. Check if page loads', async ({ page }) => {
     console.log('🔍 Loading:', url);

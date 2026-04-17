@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Production Integration Verification Script
-# Verifies that Convex backend is fully integrated with propiq.luntra.one
+# Verifies that Convex backend is fully integrated with propiqhq.com
 
 set -e  # Exit on error
 
@@ -16,7 +16,7 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 # Configuration
-PRODUCTION_URL="${PRODUCTION_URL:-https://propiq.luntra.one}"
+PRODUCTION_URL="${PRODUCTION_URL:-https://propiqhq.com}"
 CONVEX_URL="https://mild-tern-361.convex.cloud"
 
 echo "📍 Testing against:"

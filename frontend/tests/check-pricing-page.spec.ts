@@ -1,8 +1,8 @@
 import { test } from '@playwright/test';
 
 test('Check if pricing page is accessible', async ({ page }) => {
-  console.log('🌐 Loading https://propiq.luntra.one...');
-  await page.goto('https://propiq.luntra.one', { waitUntil: 'networkidle' });
+  console.log('🌐 Loading https://propiqhq.com...');
+  await page.goto('https://propiqhq.com', { waitUntil: 'networkidle' });
 
   // Take initial screenshot
   await page.screenshot({

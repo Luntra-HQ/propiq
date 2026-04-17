@@ -12,7 +12,7 @@ import { useEffect } from 'react';
  *   title="Pricing Plans - PropIQ"
  *   description="Choose the perfect PropIQ plan for your real estate investment needs. Plans from $29/month."
  *   keywords="PropIQ pricing, real estate software pricing, property analysis subscription"
- *   canonical="https://propiq.luntra.one/pricing"
+ *   canonical="https://propiqhq.com/pricing"
  * />
  * ```
  */
@@ -178,8 +178,8 @@ export const HomeSEO = () => (
     title="PropIQ - AI Real Estate Investment Analysis | Analyze Properties in 30 Seconds"
     description="Analyze any property in 30 seconds with AI-powered insights. Get cap rate, cash flow, ROI calculations instantly. Trusted by real estate investors. Try free."
     keywords="AI real estate investment analysis, property investment calculator, rental property analysis, real estate deal analyzer"
-    canonical="https://propiq.luntra.one/"
-    ogImage="https://propiq.luntra.one/og-image.jpg"
+    canonical="https://propiqhq.com/"
+    ogImage="https://propiqhq.com/og-image.jpg"
   />
 );
 
@@ -188,8 +188,8 @@ export const PricingSEO = () => (
     title="Pricing Plans - PropIQ Real Estate Investment Analysis"
     description="Choose the perfect PropIQ plan for your investment needs. Plans from $29/month with 3 free trial analyses. Analyze properties with AI-powered insights."
     keywords="PropIQ pricing, real estate software pricing, property analysis subscription, real estate investment tool cost"
-    canonical="https://propiq.luntra.one/pricing"
-    ogImage="https://propiq.luntra.one/og-image.jpg"
+    canonical="https://propiqhq.com/pricing"
+    ogImage="https://propiqhq.com/og-image.jpg"
     structuredData={{
       "@context": "https://schema.org",
       "@type": "Product",
@@ -210,8 +210,8 @@ export const CalculatorSEO = () => (
     title="Real Estate Investment Calculator - Free Property Analysis Tool | PropIQ"
     description="Free real estate investment calculator. Calculate cap rate, cash flow, ROI, and more. Professional-grade property analysis in 30 seconds. Try PropIQ free."
     keywords="real estate calculator, cap rate calculator, cash flow calculator, ROI calculator, property investment calculator, rental property calculator"
-    canonical="https://propiq.luntra.one/calculator"
-    ogImage="https://propiq.luntra.one/og-image.jpg"
+    canonical="https://propiqhq.com/calculator"
+    ogImage="https://propiqhq.com/og-image.jpg"
     structuredData={{
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",

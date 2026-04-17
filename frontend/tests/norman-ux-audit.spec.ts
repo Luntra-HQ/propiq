@@ -40,7 +40,7 @@ test.describe('Don Norman UX Audit - First-Time User Experience', () => {
   test.beforeEach(async ({ page }) => {
     // Clear storage to simulate first-time user
     await page.context().clearCookies();
-    await page.goto('https://propiq.luntra.one');
+    await page.goto('https://propiqhq.com');
     // Wait for page to be fully interactive
     await page.waitForLoadState('networkidle');
   });

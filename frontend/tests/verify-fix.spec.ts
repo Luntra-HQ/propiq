@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
 
 test('Verify Deal IQ Dashboard loads correctly', async ({ page }) => {
-  console.log('🚀 Testing https://propiq.luntra.one');
+  console.log('🚀 Testing https://propiqhq.com');
 
-  await page.goto('https://propiq.luntra.one');
+  await page.goto('https://propiqhq.com');
   await page.waitForTimeout(3000);
 
   // Check for Firebase globals

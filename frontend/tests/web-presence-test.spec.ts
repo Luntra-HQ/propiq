@@ -12,7 +12,7 @@ import { test, expect } from '@playwright/test';
  * This simulates "local traffic" - real users finding your site.
  */
 
-const PRODUCTION_URL = 'https://propiq.luntra.one';
+const PRODUCTION_URL = 'https://propiqhq.com';
 const STAGING_URL = 'https://dealiq.luntra.one'; // Will redirect to propiq
 
 test.describe('PropIQ Web Presence & Brand Discovery', () => {
@@ -45,7 +45,7 @@ test.describe('PropIQ Web Presence & Brand Discovery', () => {
     console.log('🔗 Canonical URL:', canonical);
 
     if (canonical) {
-      expect(canonical).toContain('propiq.luntra.one');
+      expect(canonical).toContain('propiqhq.com');
       expect(canonical).not.toContain('dealiq');
     }
 
@@ -296,7 +296,7 @@ test.describe('PropIQ Web Presence & Brand Discovery', () => {
     console.log('   Old URL: https://dealiq.luntra.one');
     console.log('   Final URL:', finalUrl);
 
-    expect(finalUrl).toContain('propiq.luntra.one');
+    expect(finalUrl).toContain('propiqhq.com');
     expect(finalUrl).not.toContain('dealiq');
 
     // Check redirect status code
